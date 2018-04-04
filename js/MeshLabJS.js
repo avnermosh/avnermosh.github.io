@@ -37,6 +37,7 @@
             .css({
                 display: "table",
                 position: "absolute",
+                width: "70%",
                 height: "100%"
             });
 
@@ -44,6 +45,7 @@
             .css({
                 display: "table-cell",
                 background: "none",
+                width: "100%",
                 verticalAlign: "middle"
             });
 
@@ -51,7 +53,8 @@
 
     var _$pane = $('<div id="mlj-tools-pane"></div>')
             .css({
-                display: "table-cell"
+                display: "table-cell",
+                width: "100%"
             })
             .data("visible", true);
 
@@ -121,7 +124,15 @@
             top: 0
         });
 
+        // _$3D.css({
+        //     position: "absolute",
+        //     width: $(window).width(),
+        //     left: 0,
+        //     height: "100%",
+        //     top: 0
+        // });
 
+        
         $(document).keydown(function (event) {
             if ((event.ctrlKey || event.metaKey) && event.which === 70) {
                 event.preventDefault();
@@ -156,19 +167,18 @@
 
     $(window).resize(function (event) {
         var h = $(window).outerHeight() - $('#mlj-split-pane').position().top;
-
+    // $(window).resize(function (event) {
         if (!$(event.target).hasClass('ui-resizable')) {
             $(".mlj-resiz2").height(h - (
                     $('.mlj-resiz1').height() + $('.mlj-resiz3').height()));
         }
-
         MLJ.gui.getWidget("TabbedPane")._refresh();
 
         _$3D.css({
             width: $(window).width() - (_$pane.outerWidth() + _$pane.offset().left),
             left: _$pane.outerWidth() + _$pane.offset().left
         });
-
+    //     if (!$(event.target).hasClass('ui-resizable')) {
     });
 
     _$hideBtn.click(function () {

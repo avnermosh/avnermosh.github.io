@@ -33,6 +33,9 @@
  * @memberOf MLJ.core
  */
 MLJ.core.Layer = function (id, name, cppMesh) {
+
+    console.time("BEG MLJ.core.Layer");
+    
     this.name = name;
     this.id = id;
     //boolen for control - if the ptrMesh() was called
@@ -80,6 +83,7 @@ MLJ.core.Layer = function (id, name, cppMesh) {
             useIndex = false;
         }
 
+        console.log("AAAAAAAAAAAAAAAAAAAA ");
         console.time("Time to create mesh: ");
         // This Threejs object is used as a 'group' 
         // This node will have as children all the overlays of this layer.

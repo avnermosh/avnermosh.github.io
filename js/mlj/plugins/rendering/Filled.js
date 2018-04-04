@@ -1,4 +1,8 @@
 
+var scene2;
+var meshObject2;
+var object2;
+
 // This function is called at framework startup to add a new plugin
 (function (plugin, core, scene) {
 
@@ -191,7 +195,8 @@
         console.log("BEG try5");
 
         // ok
-        var zipLoader = new ZipLoader( 'mesh/3543_W18_shimi_mainHouse.3.reduceVertices.zip' );
+        // var zipLoader = new ZipLoader( 'mesh/3543_W18_shimi_mainHouse.3.reduceVertices.zip' );
+        var zipLoader = new ZipLoader( 'mesh/3543_W18_shimi_mainHouse.4.reduceVertices.zip' );
         
         // var zipLoader = new ZipLoader( '3543_W18_shimi.zip' );
 
@@ -199,8 +204,7 @@
 
             console.log( 'loaded!' );
             filenames = Object.keys(zipLoader.files);
-            console.log( 'filenames: ' + filenames );
-            // return;
+            // console.log( 'filenames: ' + filenames );
             
             // loop over keys
             var blobs = {};
@@ -209,28 +213,28 @@
             for (var key in filenames)
             {
                 filename = filenames[key];
-                console.log( 'filename: ' + filename );
+                // console.log( 'filename: ' + filename );
 
                 var fileExtention = getFileExtention(filename);
-                console.log( 'fileExtention: ' + fileExtention );
+                // console.log( 'fileExtention: ' + fileExtention );
 
                 switch(fileExtention) {
                     case "jpg":
                     case "JPG":
-                        console.log( 'Setting as image/jpeg' );
+                        // console.log( 'Setting as image/jpeg' );
                         blobs[filename] = zipLoader.extractAsBlobUrl( filename, 'image/jpeg' );
                         break;
                     case "png":
-                        console.log( 'Setting as image/png' );
+                        // console.log( 'Setting as image/png' );
                         blobs[filename] = zipLoader.extractAsBlobUrl( filename, 'image/png' );
                         break;
                     case "mtl":
-                        console.log( 'Setting as text/plain' );
+                        // console.log( 'Setting as text/plain' );
                         blobs[filename] = zipLoader.extractAsBlobUrl( filename, 'text/plain' );
                         mtlFileName = filename;
                         break;
                     case "obj":
-                        console.log( 'Setting as text/plain' );
+                        // console.log( 'Setting as text/plain' );
                         blobs[filename] = zipLoader.extractAsBlobUrl( filename, 'text/plain' );
                         objFileName = filename;
                         break;
@@ -243,8 +247,8 @@
                 }
                 
             }
-            console.log( 'blobs keys: ' + Object.keys(blobs) );
-            console.log( 'blobs vals: ' + Object.values(blobs) );
+            // console.log( 'blobs keys: ' + Object.keys(blobs) );
+            // console.log( 'blobs vals: ' + Object.values(blobs) );
             console.log( 'mtlFileName: ' + mtlFileName );
             console.log( 'objFileName: ' + objFileName );
 
@@ -253,15 +257,15 @@
             // Initialize loading manager with URL callback.
             var objectURLs = [];
             loadingManager.setURLModifier( ( url ) => {
-                console.log( 'BEG setURLModifier' );
-                console.log( "url: " + url );
-                console.log( "blobs[url]: " + blobs[url] );
+                // console.log( 'BEG setURLModifier' );
+                // console.log( "url: " + url );
+                // console.log( "blobs[url]: " + blobs[url] );
 
 	        // url = URL.createObjectURL( blobs[ url ] );
 	        url = blobs[ url ];
                 
 	        objectURLs.push( url );
-                console.log( "objectURLs: " + objectURLs );
+                // console.log( "objectURLs: " + objectURLs );
 	        return url;
             } );
 
@@ -276,7 +280,6 @@
 
 	    var onError = function ( xhr ) { };
 
-            
             var mtlLoader = new THREE.MTLLoader(loadingManager);
 	    mtlLoader.load( mtlFileName, function( materials ) {
 	        materials.preload();
@@ -287,7 +290,8 @@
 	        objLoader.load( objFileName, function ( object ) {
                     
 		    // object.position.y = - 95;
-		    scene.addOverlayLayer3( object );
+                    object2 = object;
+		    scene.add( object );
                     
 	        }, onProgress, onError );
 
@@ -309,15 +313,25 @@
         console.log("meshFile: " + meshFile);
         console.log("plug.getName(): " + plug.getName());
 
-        var meshName = meshFile.cppMesh.getMeshName();
-        console.log("meshName: " + meshName);
+        // var meshName = meshFile.cppMesh.getMeshName();
+        // console.log("meshName: " + meshName);
 
-        var materialName = meshFile.cppMesh.getMaterialName();
-        console.log("materialName: " + materialName);
+        // var numTextures = meshFile.cppMesh.getTextureNumber();
+        // console.log("numTextures: " + numTextures);
+
+        // var materialName = meshFile.cppMesh.getMaterialName();
+        // console.log("materialName: " + materialName);
         
         if (on) {
 
-            try5();
+            // try5();
+            console.log("after try5");
+            scene2 = scene;
+            // meshObject2 = meshFile.overlays.getByKey(plug.getName());
+            meshObject2 = meshFile;
+            console.log("meshFile.overlays: " + meshFile.overlays);
+            console.log("plug.getName(): " + plug.getName());
+            console.log("meshObject2: " + meshObject2);
             
             } else {
                 scene.removeOverlayLayer(meshFile, plug.getName()); // when plugin is deactivated we can release resources

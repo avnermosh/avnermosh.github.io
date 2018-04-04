@@ -55,6 +55,7 @@ MLJ.core.File = {
 };
 
 (function () {
+    var _this = this;
     var _openedList = new MLJ.util.AssociativeArray();
 
     function isExtensionValid(extension) {
@@ -71,10 +72,142 @@ MLJ.core.File = {
         return false;
     }
 
+    var getFileExtention = function (filename2)
+    {
+        // http://www.jstips.co/en/javascript/get-file-extension/
+        var fileExt = filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
+        return fileExt;
+    };
+
+    // function loadZipFile(archiveFileName) {
+    this.loadZipFile = function (archiveFileName) {
+        // https://github.com/yomotsu/ZipLoader
+        console.log("BEG loadZipFile1");
+
+        // ok
+        // var zipLoader = new ZipLoader( 'mesh/3543_W18_shimi_mainHouse.3.reduceVertices.zip' );
+        // var zipLoader = new ZipLoader( 'mesh/3543_W18_shimi_mainHouse.4.reduceVertices.zip' );
+        
+        // console.log("archiveFileName: " + archiveFileName);
+        // var zipLoader = new ZipLoader( archiveFileName );
+        
+        // ok
+        // var zipLoader = new ZipLoader( 'mesh/3543_W18_shimi_mainHouse.4.reduceVertices.zip' );
+
+        // ok
+        archiveFileName = 'mesh/3543_W18_shimi.SM.zip';
+
+        // ok when selecting the file via the "open file" button
+        // if file is in /home/avner/avner/meshlabjs/branches/meshlabjs_avnerV1/3543_W18_shimi.SM.zip
+        // (but not if the file is in /home/avner/avner/meshlabjs/branches/meshlabjs_avnerV1/mesh/3543_W18_shimi.SM.zip)
+        // has to be in the same directory where index.html is ?
+        
+        console.log("archiveFileName: " + archiveFileName);
+
+        var zipLoader = new ZipLoader( archiveFileName );
+        
+        zipLoader.on( 'load', function ( e ) {
+
+            console.log( 'loaded!' );
+            filenames = Object.keys(zipLoader.files);
+            console.log( 'filenames: ' );
+            console.log( filenames );
+            
+            // loop over keys
+            var blobs = {};
+            var mtlFileName;
+            var objFileName;
+            for (var key in filenames)
+            {
+                filename = filenames[key];
+                console.log( 'filename: ' + filename );
+
+                var fileExtention = getFileExtention(filename);
+                // console.log( 'fileExtention: ' + fileExtention );
+
+                switch(fileExtention) {
+                    case "":
+                        // e.g. skip directory names
+                        break;
+                    case "jpg":
+                    case "JPG":
+                        blobs[filename] = zipLoader.extractAsBlobUrl( filename, 'image/jpeg' );
+                        break;
+                    case "png":
+                        blobs[filename] = zipLoader.extractAsBlobUrl( filename, 'image/png' );
+                        break;
+                    case "mtl":
+                    case "pto":
+                        blobs[filename] = zipLoader.extractAsBlobUrl( filename, 'text/plain' );
+                        mtlFileName = filename;
+                        break;
+                    case "obj":
+                        blobs[filename] = zipLoader.extractAsBlobUrl( filename, 'text/plain' );
+                        objFileName = filename;
+                        break;
+                    default:
+                        var msgStr = 'fileExtension: ' + fileExtention + 'in .zip file is not supported';
+                        console.log( msgStr );
+                        return;
+                        throw msgStr;
+                        break;
+                }
+                
+            }
+            console.log( 'mtlFileName: ' + mtlFileName );
+            console.log( 'objFileName: ' + objFileName );
+
+            var loadingManager = new THREE.LoadingManager();
+
+            // Initialize loading manager with URL callback.
+            var objectURLs = [];
+            loadingManager.setURLModifier( ( url ) => {
+	        url = blobs[ url ];
+	        objectURLs.push( url );
+	        return url;
+            } );
+
+            var mtlLoader = new THREE.MTLLoader(loadingManager);
+            mtlLoader.setMaterialOptions( {side: THREE.DoubleSide} );
+	    mtlLoader.load( mtlFileName, function( materials ) {
+	        materials.preload();
+
+	        var objLoader = new THREE.OBJLoader(loadingManager);
+	        objLoader.setMaterials( materials );
+
+                objLoader.load( objFileName, function ( object ) {
+                    object.traverse(function ( child ) {
+                        if( child.material ) {
+                            child.material.side = THREE.DoubleSide;
+                        }
+                        if ( child instanceof THREE.Mesh ) {
+                            child.geometry.computeBoundingBox();
+                            object.bBox = child.geometry.boundingBox;
+                        }
+                    });
+                    object2 = object;
+                    MLJ.core.Scene.add( object );
+	        } );
+
+	    });
+
+            // scene.render();
+            MLJ.core.Scene.render();
+
+        } );
+
+        console.log("bar3a");
+        
+        zipLoader.load();
+
+        return 0;
+    }
+    
     /**
      * Loads 'file' in the virtual file system as an Int8Array and reads it into the layer 'mf'
      */
-    function loadMeshDataFromFile(file, mf, onLoaded) {
+    // function loadMeshDataFromFile(file, mf, onLoaded) {
+    this.loadMeshDataFromFile = function (file, mf, onLoaded) {
         var fileReader = new FileReader();
         fileReader.readAsArrayBuffer(file);
         fileReader.onloadend = function (fileLoadedEvent) {
@@ -89,7 +222,8 @@ MLJ.core.File = {
             if (file.name.split('.').pop() === "zip")
             {
                 console.log("bar1");
-                resOpen = mf.cppMesh.openMeshZip(file.name, mf.name); //extract data to a layer folder
+                // resOpen = mf.cppMesh.openMeshZip(file.name, mf.name); //extract data to a layer folder
+                resOpen = _this.loadZipFile(file.name, mf.name);
             }
             else
             {
@@ -105,7 +239,7 @@ MLJ.core.File = {
             console.timeEnd("Parsing Mesh Time");
             FS.unlink(file.name);
             onLoaded(true, mf);
-            MLJ.core.Scene.addStateToHistory();
+            // MLJ.core.Scene.addStateToHistory();
         };
     }
 
@@ -144,7 +278,7 @@ MLJ.core.File = {
 
             mf.fileName = file.name;
 
-            loadMeshDataFromFile(file, mf, function (loaded, meshFile) {
+            _this.loadMeshDataFromFile(file, mf, function (loaded, meshFile) {
                 if (loaded) {
                     /**
                      *  Triggered when a mash file is opened
@@ -181,7 +315,7 @@ MLJ.core.File = {
             return;
         }
 
-        loadMeshDataFromFile(file, mf, function (loaded, meshFile) {
+        _this.loadMeshDataFromFile(file, mf, function (loaded, meshFile) {
             if (loaded) {
                 /**
                  *  Triggered when a mesh file is reloaded

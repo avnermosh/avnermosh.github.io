@@ -103,7 +103,8 @@ MLJ.gui.component.Grid = function () {
 
     var $row = $('<div></div>')
             .css({
-                display: "table-row"
+                display: "table-row",
+                width: "100%"
             });
 
     var $cell, arg;
@@ -710,7 +711,12 @@ MLJ.extend(MLJ.gui.component.Component, MLJ.gui.component.ComboBox);
  * @author Stefano Gabriele 
  */
 MLJ.gui.component.ToolBar = function () {
-    var _html = $('<div class="mjs-toolbar"></div>');
+    // var _html = $('<div class="mjs-toolbar"></div>');
+    var _html = $('<div class="mjs-toolbar"></div>')
+        .css({
+            display: "table-cell",
+            width: "100%"
+        });
 
     this.add = function () {
         for (var i = 0; i < arguments.length; i++) {

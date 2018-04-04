@@ -613,7 +613,7 @@ THREE.OBJLoader = ( function () {
 				if ( geometry.vertices.length === 0 ) continue;
 
 				var buffergeometry = new THREE.BufferGeometry();
-
+                            
 				buffergeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( geometry.vertices, 3 ) );
 
 				if ( geometry.normals.length > 0 ) {
@@ -696,6 +696,9 @@ THREE.OBJLoader = ( function () {
 
 				}
 
+                            // console.log("buffergeometry");
+                            // console.log(buffergeometry.ToJson());
+                            
 				mesh.name = object.name;
 
 				container.add( mesh );
