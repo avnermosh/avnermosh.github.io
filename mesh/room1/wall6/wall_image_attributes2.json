@@ -1,0 +1,1340 @@
+{
+    "faces": [
+        {
+            "vertices": [
+                {
+                    "imageCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoordsNormalized": {
+                        "x": 1,
+                        "y": 0
+                    },
+                    "worldcoords": {
+                        "x": 501.0,
+                        "y": 0.0,
+                        "z": 1199.0
+                    }
+                },
+                {
+                    "imageCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoordsNormalized": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "worldcoords": {
+                        "x": 1201.0,
+                        "y": 0.0,
+                        "z": 1199.0
+                    }
+                },
+                {
+                    "imageCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoordsNormalized": {
+                        "x": 0,
+                        "y": 1
+                    },
+                    "worldcoords": {
+                        "x": 1201.0,
+                        "y": 250.0,
+                        "z": 1199.0
+                    }
+                }
+            ]
+        },
+        {
+            "vertices": [
+                {
+                    "imageCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoordsNormalized": {
+                        "x": 1,
+                        "y": 0
+                    },
+                    "worldcoords": {
+                        "x": 501.0,
+                        "y": 0.0,
+                        "z": 1199.0
+                    }
+                },
+                {
+                    "imageCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoordsNormalized": {
+                        "x": 0,
+                        "y": 1
+                    },
+                    "worldcoords": {
+                        "x": 1201.0,
+                        "y": 250.0,
+                        "z": 1199.0
+                    }
+                },
+                {
+                    "imageCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoords": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "uvCoordsNormalized": {
+                        "x": 1,
+                        "y": 1
+                    },
+                    "worldcoords": {
+                        "x": 501.0,
+                        "y": 250.0,
+                        "z": 1199.0
+                    }
+                }
+            ]
+        }
+    ],
+    "imagesInfo": [
+        {
+            "blPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 213.55,
+                    "y": 1903.97
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.07,
+                    "y": 0.84
+                },
+                "worldcoords": {
+                    "x": 1151.9999999999998,
+                    "y": 209.99999999999997,
+                    "z": 1199.0
+                }
+            },
+            "brPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 1764.33,
+                    "y": 1888.38
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.59,
+                    "y": 0.83
+                },
+                "worldcoords": {
+                    "x": 788.0,
+                    "y": 207.5,
+                    "z": 1199.0
+                }
+            },
+            "centerPoint": {
+                "imageCoords": {
+                    "x": 2376,
+                    "y": 1584
+                },
+                "uvCoords": {
+                    "x": 1004.22,
+                    "y": 1379.71
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.33,
+                    "y": 0.61
+                },
+                "worldcoords": {
+                    "x": 970.0,
+                    "y": 152.5,
+                    "z": 1199.0
+                }
+            },
+            "imageFileName": "IMG_6902.JPG",
+            "imageHeight": 3168,
+            "imageIndex": 0,
+            "imageWidth": 4752,
+            "neighborImages": {
+                "bottomImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                },
+                "leftImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                },
+                "rightImage": {
+                    "distance": 0.25,
+                    "pointIndex": 4
+                },
+                "topImage": {
+                    "distance": 0.17262676501632065,
+                    "pointIndex": 5
+                }
+            },
+            "originX": 0,
+            "originY": 0,
+            "tlPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 220.49,
+                    "y": 855.12
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.07,
+                    "y": 0.38
+                },
+                "worldcoords": {
+                    "x": 1152.0,
+                    "y": 95.0,
+                    "z": 1199.0
+                }
+            },
+            "trPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 1762.18,
+                    "y": 876.6
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.59,
+                    "y": 0.38
+                },
+                "worldcoords": {
+                    "x": 788.0,
+                    "y": 95.0,
+                    "z": 1199.0
+                }
+            }
+        },
+        {
+            "blPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 1007.72,
+                    "y": 1890.46
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.34,
+                    "y": 0.83
+                },
+                "worldcoords": {
+                    "x": 962.9999999999999,
+                    "y": 207.49999999999997,
+                    "z": 1199.0
+                }
+            },
+            "brPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 2530.28,
+                    "y": 1875.16
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.84,
+                    "y": 0.82
+                },
+                "worldcoords": {
+                    "x": 613.0,
+                    "y": 204.99999999999997,
+                    "z": 1199.0
+                }
+            },
+            "centerPoint": {
+                "imageCoords": {
+                    "x": 2376,
+                    "y": 1584
+                },
+                "uvCoords": {
+                    "x": 1784.0,
+                    "y": 1375.74
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.59,
+                    "y": 0.6
+                },
+                "worldcoords": {
+                    "x": 788.0,
+                    "y": 150.0,
+                    "z": 1199.0
+                }
+            },
+            "imageFileName": "IMG_6903.JPG",
+            "imageHeight": 3168,
+            "imageIndex": 1,
+            "imageWidth": 4752,
+            "neighborImages": {
+                "bottomImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                },
+                "leftImage": {
+                    "distance": 0.2601922366251537,
+                    "pointIndex": 0
+                },
+                "rightImage": {
+                    "distance": 0.14142135623730953,
+                    "pointIndex": 2
+                },
+                "topImage": {
+                    "distance": 0.15231546211727812,
+                    "pointIndex": 4
+                }
+            },
+            "originX": 0,
+            "originY": 0,
+            "tlPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 1014.53,
+                    "y": 860.69
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.34,
+                    "y": 0.38
+                },
+                "worldcoords": {
+                    "x": 962.9999999999999,
+                    "y": 95.0,
+                    "z": 1199.0
+                }
+            },
+            "trPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 2528.18,
+                    "y": 881.78
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.84,
+                    "y": 0.39
+                },
+                "worldcoords": {
+                    "x": 613.0,
+                    "y": 97.5,
+                    "z": 1199.0
+                }
+            }
+        },
+        {
+            "blPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 1499.64,
+                    "y": 1773.61
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.5,
+                    "y": 0.78
+                },
+                "worldcoords": {
+                    "x": 851.0,
+                    "y": 195.0,
+                    "z": 1199.0
+                }
+            },
+            "brPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 2853.83,
+                    "y": 1760.0
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.95,
+                    "y": 0.77
+                },
+                "worldcoords": {
+                    "x": 536.0,
+                    "y": 192.5,
+                    "z": 1199.0
+                }
+            },
+            "centerPoint": {
+                "imageCoords": {
+                    "x": 2376,
+                    "y": 1584
+                },
+                "uvCoords": {
+                    "x": 2190.08,
+                    "y": 1315.81
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.73,
+                    "y": 0.58
+                },
+                "worldcoords": {
+                    "x": 690.0,
+                    "y": 145.0,
+                    "z": 1199.0
+                }
+            },
+            "imageFileName": "IMG_6904.JPG",
+            "imageHeight": 3168,
+            "imageIndex": 2,
+            "imageWidth": 4752,
+            "neighborImages": {
+                "bottomImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                },
+                "leftImage": {
+                    "distance": 0.14142135623730953,
+                    "pointIndex": 1
+                },
+                "rightImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                },
+                "topImage": {
+                    "distance": 0.16278820596099705,
+                    "pointIndex": 3
+                }
+            },
+            "originX": 0,
+            "originY": 0,
+            "tlPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 1505.7,
+                    "y": 857.72
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.5,
+                    "y": 0.38
+                },
+                "worldcoords": {
+                    "x": 851.0,
+                    "y": 95.0,
+                    "z": 1199.0
+                }
+            },
+            "trPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 2851.96,
+                    "y": 876.48
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.95,
+                    "y": 0.38
+                },
+                "worldcoords": {
+                    "x": 536.0,
+                    "y": 95.0,
+                    "z": 1199.0
+                }
+            }
+        },
+        {
+            "blPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 1525.11,
+                    "y": 1473.27
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.51,
+                    "y": 0.65
+                },
+                "worldcoords": {
+                    "x": 844.0,
+                    "y": 162.5,
+                    "z": 1199.0
+                }
+            },
+            "brPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 2999.0,
+                    "y": 1458.18
+                },
+                "uvCoordsNormalized": {
+                    "x": 1.0,
+                    "y": 0.64
+                },
+                "worldcoords": {
+                    "x": 501.0,
+                    "y": 160.0,
+                    "z": 1199.0
+                }
+            },
+            "centerPoint": {
+                "imageCoords": {
+                    "x": 2376,
+                    "y": 1584
+                },
+                "uvCoords": {
+                    "x": 2290.25,
+                    "y": 965.93
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.76,
+                    "y": 0.42
+                },
+                "worldcoords": {
+                    "x": 669.0,
+                    "y": 105.0,
+                    "z": 1199.0
+                }
+            },
+            "imageFileName": "IMG_6905.JPG",
+            "imageHeight": 3168,
+            "imageIndex": 3,
+            "imageWidth": 4752,
+            "neighborImages": {
+                "bottomImage": {
+                    "distance": 0.16278820596099705,
+                    "pointIndex": 2
+                },
+                "leftImage": {
+                    "distance": 0.23345235059857503,
+                    "pointIndex": 4
+                },
+                "rightImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                },
+                "topImage": {
+                    "distance": 0.09486832980505136,
+                    "pointIndex": 8
+                }
+            },
+            "originX": 0,
+            "originY": 0,
+            "tlPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 1531.82,
+                    "y": 458.28
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.51,
+                    "y": 0.2
+                },
+                "worldcoords": {
+                    "x": 844.0,
+                    "y": 50.0,
+                    "z": 1199.0
+                }
+            },
+            "trPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 2999.0,
+                    "y": 479.07
+                },
+                "uvCoordsNormalized": {
+                    "x": 1.0,
+                    "y": 0.21
+                },
+                "worldcoords": {
+                    "x": 501.0,
+                    "y": 52.5,
+                    "z": 1199.0
+                }
+            }
+        },
+        {
+            "blPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 806.45,
+                    "y": 1554.45
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.27,
+                    "y": 0.68
+                },
+                "worldcoords": {
+                    "x": 1012.0,
+                    "y": 170.0,
+                    "z": 1199.0
+                }
+            },
+            "brPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 2333.28,
+                    "y": 1539.1
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.78,
+                    "y": 0.68
+                },
+                "worldcoords": {
+                    "x": 655.0,
+                    "y": 170.00000000000003,
+                    "z": 1199.0
+                }
+            },
+            "centerPoint": {
+                "imageCoords": {
+                    "x": 2376,
+                    "y": 1584
+                },
+                "uvCoords": {
+                    "x": 1584.91,
+                    "y": 1038.28
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.53,
+                    "y": 0.46
+                },
+                "worldcoords": {
+                    "x": 830.0,
+                    "y": 115.0,
+                    "z": 1199.0
+                }
+            },
+            "imageFileName": "IMG_6906.JPG",
+            "imageHeight": 3168,
+            "imageIndex": 4,
+            "imageWidth": 4752,
+            "neighborImages": {
+                "bottomImage": {
+                    "distance": 0.15231546211727812,
+                    "pointIndex": 1
+                },
+                "leftImage": {
+                    "distance": 0.17117242768623694,
+                    "pointIndex": 5
+                },
+                "rightImage": {
+                    "distance": 0.23345235059857503,
+                    "pointIndex": 3
+                },
+                "topImage": {
+                    "distance": 0.11000000000000004,
+                    "pointIndex": 7
+                }
+            },
+            "originX": 0,
+            "originY": 0,
+            "tlPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 813.28,
+                    "y": 521.79
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.27,
+                    "y": 0.23
+                },
+                "worldcoords": {
+                    "x": 1012.0,
+                    "y": 57.5,
+                    "z": 1199.0
+                }
+            },
+            "trPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 2331.17,
+                    "y": 542.94
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.78,
+                    "y": 0.24
+                },
+                "worldcoords": {
+                    "x": 655.0,
+                    "y": 60.0,
+                    "z": 1199.0
+                }
+            }
+        },
+        {
+            "blPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 234.76,
+                    "y": 1585.16
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.08,
+                    "y": 0.7
+                },
+                "worldcoords": {
+                    "x": 1145.0,
+                    "y": 175.0,
+                    "z": 1199.0
+                }
+            },
+            "brPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 1829.06,
+                    "y": 1503.62
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.61,
+                    "y": 0.66
+                },
+                "worldcoords": {
+                    "x": 774.0,
+                    "y": 165.0,
+                    "z": 1199.0
+                }
+            },
+            "centerPoint": {
+                "imageCoords": {
+                    "x": 2376,
+                    "y": 1584
+                },
+                "uvCoords": {
+                    "x": 1069.21,
+                    "y": 1014.22
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.36,
+                    "y": 0.44
+                },
+                "worldcoords": {
+                    "x": 949.0000000000001,
+                    "y": 110.0,
+                    "z": 1199.0
+                }
+            },
+            "imageFileName": "IMG_6907.JPG",
+            "imageHeight": 3168,
+            "imageIndex": 5,
+            "imageWidth": 4752,
+            "neighborImages": {
+                "bottomImage": {
+                    "distance": 0.17262676501632065,
+                    "pointIndex": 0
+                },
+                "leftImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                },
+                "rightImage": {
+                    "distance": 0.17117242768623694,
+                    "pointIndex": 4
+                },
+                "topImage": {
+                    "distance": 0.11180339887498947,
+                    "pointIndex": 6
+                }
+            },
+            "originX": 0,
+            "originY": 0,
+            "tlPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 231.94,
+                    "y": 474.83
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.08,
+                    "y": 0.21
+                },
+                "worldcoords": {
+                    "x": 1145.0,
+                    "y": 52.50000000000001,
+                    "z": 1199.0
+                }
+            },
+            "trPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 1806.69,
+                    "y": 509.11
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.6,
+                    "y": 0.22
+                },
+                "worldcoords": {
+                    "x": 781.0,
+                    "y": 55.00000000000001,
+                    "z": 1199.0
+                }
+            }
+        },
+        {
+            "blPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 238.69,
+                    "y": 1275.24
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.08,
+                    "y": 0.56
+                },
+                "worldcoords": {
+                    "x": 1145.0,
+                    "y": 140.0,
+                    "z": 1199.0
+                }
+            },
+            "brPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 1783.23,
+                    "y": 1259.71
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.59,
+                    "y": 0.55
+                },
+                "worldcoords": {
+                    "x": 788.0,
+                    "y": 137.5,
+                    "z": 1199.0
+                }
+            },
+            "centerPoint": {
+                "imageCoords": {
+                    "x": 2376,
+                    "y": 1584
+                },
+                "uvCoords": {
+                    "x": 1026.18,
+                    "y": 753.09
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.34,
+                    "y": 0.33
+                },
+                "worldcoords": {
+                    "x": 962.9999999999999,
+                    "y": 82.5,
+                    "z": 1199.0
+                }
+            },
+            "imageFileName": "IMG_6908.JPG",
+            "imageHeight": 3168,
+            "imageIndex": 6,
+            "imageWidth": 4752,
+            "neighborImages": {
+                "bottomImage": {
+                    "distance": 0.11180339887498947,
+                    "pointIndex": 5
+                },
+                "leftImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                },
+                "rightImage": {
+                    "distance": 0.191049731745428,
+                    "pointIndex": 7
+                },
+                "topImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                }
+            },
+            "originX": 0,
+            "originY": 0,
+            "tlPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 245.6,
+                    "y": 230.6
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.08,
+                    "y": 0.1
+                },
+                "worldcoords": {
+                    "x": 1145.0,
+                    "y": 25.0,
+                    "z": 1199.0000000000002
+                }
+            },
+            "trPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 1781.1,
+                    "y": 252.0
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.59,
+                    "y": 0.11
+                },
+                "worldcoords": {
+                    "x": 788.0000000000001,
+                    "y": 27.5,
+                    "z": 1199.0000000000002
+                }
+            }
+        },
+        {
+            "blPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 823.54,
+                    "y": 1310.68
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.27,
+                    "y": 0.57
+                },
+                "worldcoords": {
+                    "x": 1012.0,
+                    "y": 142.5,
+                    "z": 1199.0
+                }
+            },
+            "brPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 2347.69,
+                    "y": 1295.35
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.78,
+                    "y": 0.57
+                },
+                "worldcoords": {
+                    "x": 655.0,
+                    "y": 142.5,
+                    "z": 1199.0
+                }
+            },
+            "centerPoint": {
+                "imageCoords": {
+                    "x": 2376,
+                    "y": 1584
+                },
+                "uvCoords": {
+                    "x": 1600.64,
+                    "y": 795.42
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.53,
+                    "y": 0.35
+                },
+                "worldcoords": {
+                    "x": 830.0,
+                    "y": 87.5,
+                    "z": 1199.0
+                }
+            },
+            "imageFileName": "IMG_6909.JPG",
+            "imageHeight": 3168,
+            "imageIndex": 7,
+            "imageWidth": 4752,
+            "neighborImages": {
+                "bottomImage": {
+                    "distance": 0.11000000000000004,
+                    "pointIndex": 4
+                },
+                "leftImage": {
+                    "distance": 0.191049731745428,
+                    "pointIndex": 6
+                },
+                "rightImage": {
+                    "distance": 0.20099751242241776,
+                    "pointIndex": 8
+                },
+                "topImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                }
+            },
+            "originX": 0,
+            "originY": 0,
+            "tlPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 830.36,
+                    "y": 279.83
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.28,
+                    "y": 0.12
+                },
+                "worldcoords": {
+                    "x": 1005.0,
+                    "y": 30.0,
+                    "z": 1199.0
+                }
+            },
+            "trPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 2345.59,
+                    "y": 300.94
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.78,
+                    "y": 0.13
+                },
+                "worldcoords": {
+                    "x": 655.0,
+                    "y": 32.5,
+                    "z": 1199.0
+                }
+            }
+        },
+        {
+            "blPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 1422.43,
+                    "y": 1266.76
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.47,
+                    "y": 0.56
+                },
+                "worldcoords": {
+                    "x": 872.0,
+                    "y": 140.0,
+                    "z": 1199.0
+                }
+            },
+            "brPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 3167
+                },
+                "uvCoords": {
+                    "x": 2925.02,
+                    "y": 1251.66
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.98,
+                    "y": 0.55
+                },
+                "worldcoords": {
+                    "x": 515.0,
+                    "y": 137.5,
+                    "z": 1199.0
+                }
+            },
+            "centerPoint": {
+                "imageCoords": {
+                    "x": 2376,
+                    "y": 1584
+                },
+                "uvCoords": {
+                    "x": 2188.53,
+                    "y": 758.79
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.73,
+                    "y": 0.33
+                },
+                "worldcoords": {
+                    "x": 690.0,
+                    "y": 82.5,
+                    "z": 1199.0
+                }
+            },
+            "imageFileName": "IMG_6910.JPG",
+            "imageHeight": 3168,
+            "imageIndex": 8,
+            "imageWidth": 4752,
+            "neighborImages": {
+                "bottomImage": {
+                    "distance": 0.09486832980505136,
+                    "pointIndex": 3
+                },
+                "leftImage": {
+                    "distance": 0.20099751242241776,
+                    "pointIndex": 7
+                },
+                "rightImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                },
+                "topImage": {
+                    "distance": 1000000.0,
+                    "pointIndex": -1
+                }
+            },
+            "originX": 0,
+            "originY": 0,
+            "tlPoint": {
+                "imageCoords": {
+                    "x": 0,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 1429.16,
+                    "y": 250.5
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.48,
+                    "y": 0.11
+                },
+                "worldcoords": {
+                    "x": 865.0,
+                    "y": 27.5,
+                    "z": 1199.0000000000002
+                }
+            },
+            "trPoint": {
+                "imageCoords": {
+                    "x": 4751,
+                    "y": 0
+                },
+                "uvCoords": {
+                    "x": 2922.95,
+                    "y": 271.31
+                },
+                "uvCoordsNormalized": {
+                    "x": 0.97,
+                    "y": 0.12
+                },
+                "worldcoords": {
+                    "x": 522.0,
+                    "y": 30.0,
+                    "z": 1199.0
+                }
+            }
+        }
+    ],
+    "materialIndex": 4,
+    "materialName": "room1/wall6/wall_fused.jpg",
+    "overviewImageInfo": {
+        "blPoint": {
+            "imageCoords": {
+                "x": 0,
+                "y": 2279
+            },
+            "uvCoords": {
+                "x": 0,
+                "y": 0
+            },
+            "uvCoordsNormalized": {
+                "x": 0,
+                "y": 0
+            },
+            "worldcoords": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            }
+        },
+        "brPoint": {
+            "imageCoords": {
+                "x": 2999,
+                "y": 2279
+            },
+            "uvCoords": {
+                "x": 0,
+                "y": 0
+            },
+            "uvCoordsNormalized": {
+                "x": 0,
+                "y": 0
+            },
+            "worldcoords": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            }
+        },
+        "centerPoint": {
+            "imageCoords": {
+                "x": 1500,
+                "y": 1140
+            },
+            "uvCoords": {
+                "x": 0,
+                "y": 0
+            },
+            "uvCoordsNormalized": {
+                "x": 0,
+                "y": 0
+            },
+            "worldcoords": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            }
+        },
+        "imageFileName": "NA",
+        "imageHeight": 2280,
+        "imageIndex": 0,
+        "imageWidth": 3000,
+        "neighborImages": {
+            "bottomImage": {
+                "distance": 1000000.0,
+                "pointIndex": -1
+            },
+            "leftImage": {
+                "distance": 1000000.0,
+                "pointIndex": -1
+            },
+            "rightImage": {
+                "distance": 1000000.0,
+                "pointIndex": -1
+            },
+            "topImage": {
+                "distance": 1000000.0,
+                "pointIndex": -1
+            }
+        },
+        "originX": 0,
+        "originY": 0,
+        "tlPoint": {
+            "imageCoords": {
+                "x": 0,
+                "y": 0
+            },
+            "uvCoords": {
+                "x": 0,
+                "y": 0
+            },
+            "uvCoordsNormalized": {
+                "x": 0,
+                "y": 0
+            },
+            "worldcoords": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            }
+        },
+        "trPoint": {
+            "imageCoords": {
+                "x": 2999,
+                "y": 0
+            },
+            "uvCoords": {
+                "x": 0,
+                "y": 0
+            },
+            "uvCoordsNormalized": {
+                "x": 0,
+                "y": 0
+            },
+            "worldcoords": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            }
+        }
+    }
+}
