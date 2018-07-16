@@ -131,7 +131,11 @@ var doEnableOverlayImageBoundaries = true;
             // https://stackoverflow.com/questions/31433413/return-the-array-of-bytes-from-filereader
             droppedFileData = new Blob([droppedFile]);
             var promise = new Promise(getBuffer);
-
+            var wallsInfo = _selectedLayer.getWallsInfo();
+            var wallInfo = wallsInfo[_selectedWallIndex];
+            var imageInfo = wallInfo.imagesInfo[_selectedImageIndex];
+            var origImageFilename = imageInfo.imageFilename;
+            
             promise.then(function(data) {
 	        var droppedFileUrl = URL.createObjectURL(droppedFileData);
 
@@ -139,9 +143,6 @@ var doEnableOverlayImageBoundaries = true;
                 console.log('_selectedImageIndex', _selectedImageIndex);
 
                 // replace wallsInfo[wallIndex].imagesInfo[imageIndex] with the dropped file
-                var wallsInfo = _selectedLayer.getWallsInfo();
-                var wallInfo = wallsInfo[_selectedWallIndex];
-                var imageInfo = wallInfo.imagesInfo[_selectedImageIndex];
                 console.log('Orig imageInfo.imageFilename', imageInfo.imageFilename);
                 
                 imageInfo.imageFilename = droppedFile.name;
@@ -180,12 +181,60 @@ var doEnableOverlayImageBoundaries = true;
                 // Update _blobs with the new image
                 _blobs[imageInfo.imageFilename] = droppedFileUrl;
             }).then(function() {
-                // javascript chain promises
-                // refresh the texture, and refresh the 3d model
+                
+                ////////////////////////////////////////////////////
+                // BEG Update _blobs with the updated mtlFileName
+                // 
+                // Update mtlFileName with the new thumbnail
+                // Create a blob for the updated mtlFileName data (json?)
+                // Create a blobUrl for the blob
+                // Replace the old blobUrl with the updated blobUrl
+                ////////////////////////////////////////////////////
+                
+                mtlInfo = _selectedLayer.getMtlInfo();
 
-                var mtlFileName = "2910_w47_shertzer_section1.6a_reduceTextureIndices.floor1a.obj.mtl";
-                // var mtlFileName = "2910_w47_shertzer_section1.6a_reduceTextureIndices.floor1.obj.mtl";
-                var wallsInfo = _selectedLayer.getWallsInfo();
+                // Map
+                // from
+                // map_Kd ./floor1/wall_10/flatten_canvas.resized.jpg
+                // to
+                // map_Kd sec_2_37.jpg
+
+                // extract e.g. wall_10 from ./floor1/wall_10/flatten_canvas.resized.jpg
+                var res1 = origImageFilename.match(/(wall.*)\//);
+                var wallSubString = res1[1];
+
+                // create the regex from string
+                var regexpStr = "map_Kd.*\/" + wallSubString + "\/flatten_canvas.resized.jpg";
+                var regexp0 = new RegExp(regexpStr);
+                    
+                // create the replacement string newStr
+                var newStr = "map_Kd " + imageInfo.imageFilename;
+                var mtlInfo3 = mtlInfo.replace(regexp0, newStr);
+
+                // create a new blobUrl from the updated mtlInfo
+                var mtlBlob = new Blob([mtlInfo3], {type : 'application/text'});
+                var mtlBlobUrl = URL.createObjectURL(mtlBlob);
+                
+                var mtlFileName = MLJ.core.Scene._mtlFileName;
+                
+                // set the updated blobUrl with the updated mtlInfo in _blobs
+                if(_blobs[mtlFileName])
+                {
+                    _blobs[mtlFileName] = mtlBlobUrl;
+                }
+                else
+                {
+                    console.error('_blobs[mtlFileName] is undefined'); 
+                    console.error('mtlFileName', mtlFileName); 
+                }
+
+                ////////////////////////////////////////////////////
+                // END Update _blobs with the updated mtlFileName
+                ////////////////////////////////////////////////////
+
+                ////////////////////////////////////////////////////
+                // refresh the texture, and refresh the 3d model
+                ////////////////////////////////////////////////////
 
                 var groupObject = _selectedLayer.getGroup();
                 if(_selectedLayer.groupObject)

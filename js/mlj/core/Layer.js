@@ -35,6 +35,7 @@ MLJ.core.Layer = function (id, name)
 {
     console.log('BEG MLJ.core.Layer');
 
+    this.mtlInfo = undefined;
     this.wallsInfo = [];
     this.objInstanceUuid = undefined;
     
@@ -112,7 +113,15 @@ MLJ.core.Layer = function (id, name)
     this.setObjInstanceUuid = function (objInstanceUuid) {
         _this.objInstanceUuid = objInstanceUuid;
     };
-    
+
+    this.getMtlInfo = function () {
+        return _this.mtlInfo;
+    };
+
+    this.setMtlInfo = function (mtlInfo) {
+        _this.mtlInfo = mtlInfo;
+    };
+
     this.getWallsInfo = function () {
         return _this.wallsInfo;
     };

@@ -112,16 +112,17 @@ MLJ.core.MeshFile = {
         
     };
 
-    this.loadJson = function (json_filename) {
+    this.loadFile = function (filename, fileType) {
         var data;
         // https://blog-en.openalfa.com/how-to-read-synchronously-json-files-with-jquery
+        // generalized for fileType: json and text
         $.ajax({ 
-            url: json_filename, 
-            dataType: 'json', 
+            url: filename, 
+            dataType: fileType, 
             data: data, 
             async: false, 
-            success: function(json){
-                data = json;
+            success: function(data0){
+                data = data0;
                 return;
             }
         });
@@ -217,7 +218,8 @@ MLJ.core.MeshFile = {
         var mtlFileName;
         var objFileName;
         var wallsInfo = [];
-
+        var mtlInfo;
+        
         for (var key in filenames)
         {
             var filename = filenames[key];
@@ -243,9 +245,22 @@ MLJ.core.MeshFile = {
                 case "JPG":
                     if(doSkipJPG)
                     {
-                        var re1 = /flatten_canvas/;
+                        // take1 - skip non "flatten_canvas" images
+                        // var re1 = /flatten_canvas/;
+                        // var regex1_matched = filename.match(re1);
+                        // if(regex1_matched)
+                        // {
+                        //     console.log('regex1_matched');
+                        //     blobs[filename] = zipLoaderInstance.extractAsBlobUrl( filename, 'image/jpeg' );
+                        // }
+
+                        // take2 - Skip individual images with "IMG" (and not e.g. "flatten_canvas" images)
+                        var re1 = /IMG/;
                         var regex1_matched = filename.match(re1);
                         if(regex1_matched)
+                        {
+                        }
+                        else
                         {
                             console.log('regex1_matched');
                             blobs[filename] = zipLoaderInstance.extractAsBlobUrl( filename, 'image/jpeg' );
@@ -261,6 +276,8 @@ MLJ.core.MeshFile = {
                     blobs[filename] = zipLoaderInstance.extractAsBlobUrl( filename, 'text/plain' );
                     mtlFileName = filename;
                     MLJ.core.Scene._mtlFileName = mtlFileName;
+                    mtlInfo = _this.loadFile(blobs[filename], "text");
+                    
                     break;
                 case "obj":
                     blobs[filename] = zipLoaderInstance.extractAsBlobUrl( filename, 'text/plain' );
@@ -277,7 +294,7 @@ MLJ.core.MeshFile = {
                     var regex1_matched = filename.match(re1);
                     if(regex1_matched)
                     {
-                        var wallInfo = _this.loadJson(blobs[filename]);
+                        var wallInfo = _this.loadFile(blobs[filename], "json");
                         wallInfo.attributesFilename = filename;
                         wallsInfo.push(wallInfo);
                     }
@@ -300,6 +317,8 @@ MLJ.core.MeshFile = {
         MLJ.core.Scene.setBlobs(blobs);
 
         layer.setWallsInfo(wallsInfo);
+        layer.setMtlInfo(mtlInfo);
+        
         retval = _this.loadObjectAndMaterialFiles(objFileName, mtlFileName, layer);
         if(retval == false)
         {
