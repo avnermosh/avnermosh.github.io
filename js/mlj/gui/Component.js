@@ -101,10 +101,10 @@ MLJ.gui.component.Grid = function () {
             })
             .data("grid", true);
 
+//                width: "100%"
     var $row = $('<div></div>')
             .css({
-                display: "table-row",
-                width: "100%"
+                display: "table-row"
             });
 
     var $cell, arg;
@@ -711,12 +711,7 @@ MLJ.extend(MLJ.gui.component.Component, MLJ.gui.component.ComboBox);
  * @author Stefano Gabriele 
  */
 MLJ.gui.component.ToolBar = function () {
-    // var _html = $('<div class="mjs-toolbar"></div>');
-    var _html = $('<div class="mjs-toolbar"></div>')
-        .css({
-            display: "table-cell",
-            width: "100%"
-        });
+    var _html = $('<div class="mjs-toolbar"></div>');
 
     this.add = function () {
         for (var i = 0; i < arguments.length; i++) {
@@ -743,13 +738,15 @@ MLJ.extend(MLJ.gui.component.Component, MLJ.gui.component.ToolBar);
  */
 MLJ.gui.component.Pane = function () {
 
-    var _html = '<div class="mlj-pane ui-widget-content"></div>';
+    var _html = '<div class="contain mlj-pane ui-widget-content"></div>';
 
     this._make = function () {
 
         this.$.css({
             height: "100%",
             width: "100%",
+            // object-fit: "contain",
+            // background-size: "contain",
             overflow: "auto"
         });
     };

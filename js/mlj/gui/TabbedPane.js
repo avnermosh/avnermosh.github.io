@@ -10,32 +10,11 @@
 
         var _tabs = [];
         var _$tabbedPane = $('<div id="mlj-tabbed-pane"></div>');
-        var _$tabsBar = $('<ul id="mlj-tabs-bar"></ui>');
 
-        var _$filterWrapp = $('<div/>').css({
-            overflow: "auto",
-            width: "100%"
-        });
-
-
-        var _$rendPane = $('<div/>').css({
-            position: "relative"            
-        });
-        
         var _$texPane = $('<div/>').css({
+            position: "relative",
             width: "100%"  
         });
-
-        //Accordion for filters pane
-        var _filtersAccord = new component.Accordion({
-            heightStyle: 'content',
-            collapsible: true,
-            active: false
-        });
-        _filtersAccord.$.attr('id', 'accordion-filters');
-
-        //Tool bar for rendering pane
-        var _renderingTb = new component.ToolBar();
 
         function Tab(name) {
             this.name = name;
@@ -57,46 +36,15 @@
 
         function resize() {
             _$tabbedPane.outerHeight(_$tabbedPane.parent().height());
-
-            $("#tab-Filters").outerHeight(
-                    _$tabbedPane.height() - _$tabsBar.outerHeight());
-
-            _$filterWrapp.outerHeight($("#tab-Filters").height()
-                    - $('#mlj-search-widget').height());
-
-            $("#tab-Rendering").outerHeight(
-                    _$tabbedPane.height() - _$tabsBar.outerHeight());            
-
-            _$rendPane.outerHeight($("#tab-Rendering").height()
-                    - _renderingTb.$.outerHeight());
-            
-            $("#tab-Texture").outerHeight(
-                    _$tabbedPane.height() - _$tabsBar.outerHeight());
-            
-            _$texPane.outerHeight($("#tab-Texture").height()
-                    - _renderingTb.$.outerHeight());
-            
+            $("#tab-Texture").outerHeight(_$tabbedPane.height());
+            _$texPane.outerHeight($("#tab-Texture").height());
         }
 
         function init() {
-            _$tabbedPane.append(_$tabsBar);
-
-            var filterTab = new Tab("Filters");
-            filterTab
-                    .appendContent(MLJ.gui.getWidget("SearchTool")._make())
-                    .appendContent(_$filterWrapp);
-            _$filterWrapp.append(_filtersAccord.$);
-
-            var renderingTab = new Tab("Rendering");
-            renderingTab
-                    .appendContent(_renderingTb.$)
-                    .appendContent(_$rendPane);            
-            
             var textureTab = new Tab("Texture");
-            textureTab
-                    .appendContent(_$texPane);
+            textureTab.appendContent(_$texPane);
 
-            _tabs.push(filterTab, renderingTab, textureTab);
+            _tabs.push(textureTab);
 
             _$tabbedPane.on('tabsactivate', function (event, ui) {
                 resize();
@@ -108,7 +56,6 @@
                 var tab;
                 for (var i = 0, m = _tabs.length; i < m; i++) {
                     tab = _tabs[i];
-                    _$tabsBar.append(tab.$tab);
                     _$tabbedPane.append(tab.$content());
                 }
 
@@ -128,22 +75,10 @@
             _$tabbedPane.tabs("refresh");
         };
 
-        this.getFiltersAccord = function () {
-            return _filtersAccord;
-        };
-
-        this.getRenderingPane = function () {
-            return _$rendPane;
-        };
-        
         this.getTexturePane = function () {
             return _$texPane;
         };
 
-        this.getRendToolBar = function () {
-            return _renderingTb;
-        };
-        
         this.selectTab = function(index) {
             _$tabbedPane.tabs("option","active",index);
         };

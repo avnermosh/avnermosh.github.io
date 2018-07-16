@@ -35,8 +35,6 @@ MLJ.core.plugin.Manager = {
 
 (function (widget, gui) {
 
-    var _filters = new MLJ.util.AssociativeArray();
-    var _rendering = new MLJ.util.AssociativeArray();
     var _texture = new MLJ.util.AssociativeArray();
 
     /**
@@ -50,19 +48,10 @@ MLJ.core.plugin.Manager = {
      */
     this.install = function () {
         var plugin;
-        var search = MLJ.gui.getWidget("SearchTool");
         for (var i = 0; i < arguments.length; i++) {
             plugin = arguments[i];
             if (plugin instanceof MLJ.core.plugin.Plugin) {
-                if (plugin instanceof MLJ.core.plugin.Filter) {
-                    _filters.set(plugin.getName(), plugin);
-                    search.addItem(plugin.getName());
-                    if(plugin.parameters.tooltip) {
-                        search.addItem(plugin.parameters.tooltip);
-                    }
-                } else if (plugin instanceof MLJ.core.plugin.BaseRendering) {
-                    _rendering.set(plugin.getName(), plugin);
-                } else if (plugin instanceof MLJ.core.plugin.Texturing){
+                if (plugin instanceof MLJ.core.plugin.Texturing){
                     _texture.set(plugin.getName(), plugin);                    
                 }
             } else {
@@ -81,75 +70,11 @@ MLJ.core.plugin.Manager = {
      */
     this.run = function () {
         
-        //sort filters in alphabetical order
-        _filters.sortByKey();
-        
-        var ptr = _filters.iterator();        
-        while (ptr.hasNext()) {
-            ptr.next()._main();
-        }
-
-        ptr = _rendering.iterator();
-        while (ptr.hasNext()) {
-            ptr.next()._main();
-        }
-        
         ptr = _texture.iterator();
         while (ptr.hasNext()) {
             ptr.next()._main();
         }
 
     };
-
-    this.getRenderingPlugins = function () {    
-        return _rendering;
-    };
-
-    this.getFilterPlugins = function () {
-        return _filters;
-    };
-    
-     /**
-     * Executes a Creation Filter. 
-     * 
-     * It is used only at startup to start a creation filter. 
-     * @memberOf MLJ.core.plugin
-     */
-    this.executeCreateFilter = function (filterName) {
-        filterHandle = _filters.getByKey(filterName);
-        if(filterHandle === undefined )
-        {
-            console.log("Filter is not defined: "+filterName+"\n");
-        }
-        else
-        {
-            console.log("Executing filter "+filterName+"\n");  
-            filterHandle._applyTo();
-        }
-    };
-
-     /**
-     * Executes a Layer Filter. 
-     * 
-     * It is used only at startup to start a filter and currently works and, 
-     * currently, it is meaningful only for creation filters. 
-     * To be extended in the future to a more reasonable 
-     * minimal script-like approach...
-     * @memberOf MLJ.core.plugin
-     */
-    this.executeLayerFilter = function (filterName, currentLayer) {
-        filterHandle = _filters.getByKey(filterName);
-        if(filterHandle === undefined )
-        {
-            console.log("Filter is not defined: "+filterName+"\n");
-            
-        }
-        else
-        {
-            console.log("Executing filter "+filterName+" x on layer " + currentLayer.name + "\n");  
-            filterHandle._applyTo(currentLayer);
-        }
-    };
-
 
 }).call(MLJ.core.plugin.Manager, MLJ.widget, MLJ.gui);//MLJ.widget contains GUI running widgets

@@ -35,17 +35,15 @@
 
     var _$wrapper = $('<div></div>')
             .css({
-                display: "table",
-                position: "absolute",
-                width: "70%",
+                // width: "80%",
+                width: "65%",
                 height: "100%"
             });
 
     var _$border = $('<div id="mlj-tools-pane-border"></div>')
             .css({
-                display: "table-cell",
-                background: "none",
                 width: "100%",
+                background: "none",
                 verticalAlign: "middle"
             });
 
@@ -53,8 +51,8 @@
 
     var _$pane = $('<div id="mlj-tools-pane"></div>')
             .css({
-                display: "table-cell",
                 width: "100%"
+                // height: "10%"
             })
             .data("visible", true);
 
@@ -82,6 +80,33 @@
         return _PiP.$;
     }
 
+    ////////////////////////////////////////////////////
+    // BEG drag drop file
+    ////////////////////////////////////////////////////
+
+    // https://opensourcehacker.com/2011/11/11/cancelling-html5-drag-and-drop-events-in-web-browsers/    
+    // prevent from dropping anything outside the drop zone
+    function prepareDontMissDND() {
+
+        $(document.body).bind("dragover", function(e) {
+            e.preventDefault();
+            console.log('foo1');
+            return false;
+        });
+
+        $(document.body).bind("drop", function(e){
+            e.preventDefault();
+            console.log('foo2');
+            return false;
+        });
+
+    }
+
+    ////////////////////////////////////////////////////
+    // END drag drop file
+    ////////////////////////////////////////////////////
+
+    
     this.makeGUI = function (title) {
         _$border.append(_$hideBtn);
         _$wrapper.append(_$pane, _$border);
@@ -91,94 +116,47 @@
         });
 
         $('body').append(_$3D, _$wrapper, makeTitle(title));
-
+        prepareDontMissDND();
+        
         _$pane.append(MLJ.gui.getWidget("SceneBar")._make());
 
         var $wrap = $("<div/>").attr("id", "mlj-split-pane");
-        var $pos1 = $("<div/>").css({height: "30%"}).addClass("mlj-resiz1");
-        var $pos2 = $("<div/>").css({height: "50%", minHeight: "150px"})
-                .addClass("mlj-resiz2");
-        var $pos3 = $("<div/>").css({height: "20%"}).addClass("mlj-resiz3");
-        $wrap.append($pos1, $pos2, $pos3);
+        var $pos1 = $("<div/>").css({height: "100%"});
+        $wrap.append($pos1);
+
         _$pane.append($wrap);
-        splitPane("mlj-resiz1");
-        splitPane("mlj-resiz2");
 
         //Init split pane height on window ready        
         $(window).ready(function () {
             $wrap.height($(window).height() - $wrap.offset().top);
         });
 
-        $pos1.append(MLJ.gui.getWidget("LayersPane")._make());
-        $pos2.append(MLJ.gui.getWidget("TabbedPane")._make());
-        $pos3.append(MLJ.gui.getWidget("Log")._make());
-
-        $('body').append(MLJ.gui.getWidget("Logo")._make());
-        $('body').append(MLJ.gui.getWidget("Info")._make());
-
+        $pos1.append(MLJ.gui.getWidget("TabbedPane")._make());
+        
         _$3D.css({
             position: "absolute",
             width: $(window).width() - (_$pane.outerWidth() + _$pane.offset().left),
-            left: _$pane.outerWidth() - _$pane.offset().left,
+            left: _$pane.outerWidth() + _$pane.offset().left,
             height: "100%",
             top: 0
         });
 
-        // _$3D.css({
-        //     position: "absolute",
-        //     width: $(window).width(),
-        //     left: 0,
-        //     height: "100%",
-        //     top: 0
-        // });
-
-        
         $(document).keydown(function (event) {
             if ((event.ctrlKey || event.metaKey) && event.which === 70) {
                 event.preventDefault();
                 MLJ.widget.TabbedPane.selectTab(0);
-                MLJ.widget.SearchTool.focus();
-                MLJ.widget.SearchTool.select();
             }
         });
+
     };
 
-    function splitPane(cl) {
-        var sum, minH;
-        $("." + cl).resizable({
-            handles: 's',
-            start: function (e, ui) {
-                var divTwo = ui.element.next();
-                sum = ui.element.height() + divTwo.height();
-                minH = parseInt(divTwo.css("min-height"), 10);
-            },
-            resize: function (e, ui) {
-                var divTwo = ui.element.next();
-                var remainingSpace = sum - ui.element.height();
-                if (remainingSpace >= minH) {
-                    divTwo.height(remainingSpace);
-                } else {
-                    ui.element.height(sum - minH);
-                    divTwo.height(minH);
-                }
-            }
-        });
-    }
-
     $(window).resize(function (event) {
-        var h = $(window).outerHeight() - $('#mlj-split-pane').position().top;
-    // $(window).resize(function (event) {
-        if (!$(event.target).hasClass('ui-resizable')) {
-            $(".mlj-resiz2").height(h - (
-                    $('.mlj-resiz1').height() + $('.mlj-resiz3').height()));
-        }
         MLJ.gui.getWidget("TabbedPane")._refresh();
 
         _$3D.css({
             width: $(window).width() - (_$pane.outerWidth() + _$pane.offset().left),
             left: _$pane.outerWidth() + _$pane.offset().left
         });
-    //     if (!$(event.target).hasClass('ui-resizable')) {
     });
 
     _$hideBtn.click(function () {

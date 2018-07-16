@@ -1,12 +1,19 @@
-(function (plugin, core, scene) {
+////////////////////////////////////////////////////////////////
+//
+// This file (js/mlj/plugins/rendering/TexturePanelPlugin.js) is responsible to handle the GUI for the Texturing tab
+// e.g. resize the texture when zooming in/out with the middle mouse button
+//
+// for comparison the file MLJ.core.plugin.Texturing.js (in mlj/core/plugin/) does xxx
+////////////////////////////////////////////////////////////////
 
+var animationDuration = 200;
+
+(function (plugin, core, scene) {
 
     var texCamera, texScene, texRenderer, texControls;
 
     var DEFAULTS = {
         uvParam: false,
-        planeOpacity: 1,
-        paramColorWidget: new THREE.Color('#FF0000'),
         selectedTexture: 0
     };
 
@@ -17,134 +24,31 @@
         on: true
     }, DEFAULTS);
 
-    var textureSelectionWidget, parametrizationWidget, opacityPlaneWidget, paramColorWidget;
     var widgets;
-    var texNameLabel, textureInfos;
 
     plug._init = function (guiBuilder) {
         widgets = [];
-
-        textureSelectionWidget = guiBuilder.Choice({
-            label: "Texture:",
-            tooltip: "",
-            combobox: true,
-            options: [{content: "dummy0", value: 0, selected: true}], //I'm gonna put 4 dummy value in order to trigger the selection menu creation
-            
-            bindTo: (function () {  // here we define also a callback to invoke at every change of this option                
-                var bindToFun = function (value) {
-                    var layer = MLJ.core.Scene.getSelectedLayer();
-                    if (layer.name !== null && layer.texturesNum > 0) {
-                        layer.selectedTexture = value;
-                        texScene.remove(texScene.getObjectByName("planeMesh"));
-                        texScene.remove(texScene.getObjectByName("paramMesh"));
-
-                        layer.texture[value].planeMesh.material.opacity = layer.texture[value].texPanelParam.planeOpacity;
-                        texScene.add(layer.texture[value].planeMesh);
-
-                        if (layer.texture[value].texPanelParam.uvParam) {
-                            layer.texture[value].paramMesh.material.color = layer.texture[value].texPanelParam.paramColorWidget;
-                            texScene.add(layer.texture[value].paramMesh);
-                        }
-
-                        texRenderer.render(texScene, texCamera);
-                        paramColorWidget.color.setColor("#" + layer.texture[value].texPanelParam.paramColorWidget.getHexString());
-                        opacityPlaneWidget.rangedfloat.setValue(layer.texture[value].texPanelParam.planeOpacity);
-                        parametrizationWidget.choice.selectByValue(layer.texture[value].texPanelParam.uvParam);
-                        
-                        if(textureInfos && texNameLabel){
-                            texNameLabel.text(layer.texture[value].fileName);
-                            textureInfos.text(layer.texture[value].width + "x" + layer.texture[value].height + "   " + layer.texture[value].components);
-                        }
-                    }
-                };
-                bindToFun.toString = function () {
-                    return "selectedTexture";
-                };
-                return bindToFun;
-            }())
-        });
-
-
-        parametrizationWidget = guiBuilder.Choice({
-            label: "UV Parametrization",
-            tooltip: "",
-            options: [
-                {content: "Off", value: false, selected: true},
-                {content: "On", value: true}
-            ],
-            bindTo: (function () {  // here we define also a callback to invoke at every change of this option                
-                var bindToFun = function (choice) {
-                    //if there is a layer selected and that layer has a texture, we'll show the parametrization
-                    var layer = MLJ.core.Scene.getSelectedLayer();
-                    if (layer.name !== null && layer.texturesNum > 0) {
-                        if (choice) {
-                            texScene.add(layer.texture[layer.selectedTexture].paramMesh);
-                        } else {
-                            texScene.remove(texScene.getObjectByName("paramMesh"));
-                        }
-
-                        texRenderer.render(texScene, texCamera);
-                    }
-                };
-                bindToFun.toString = function () {
-                    return 'uvParam';
-                };
-                return bindToFun;
-            }())
-        });
-
-        opacityPlaneWidget = guiBuilder.RangedFloat({
-            label: "Plane Opacity",
-            tooltip: "How shiny the specular highlight is. A higher value gives a sharper highlight",
-            min: 0, max: 1, step: 0.01,
-            defval: 1,
-            bindTo: (function () {  // here we define also a callback to invoke at every change of this option                
-                var bindToFun = function (value) {
-                    //if there is a layer selected and that layer has a texture we'll modify its opacity
-                    var layer = MLJ.core.Scene.getSelectedLayer();
-                    if (layer.name !== null && layer.texturesNum > 0) {
-                        layer.texture[layer.selectedTexture].planeMesh.material.opacity = value;
-                        texRenderer.render(texScene, texCamera);
-                    }
-                };
-                bindToFun.toString = function () {
-                    return 'planeOpacity';
-                };
-                return bindToFun;
-            }())
-        });
-
-        paramColorWidget = guiBuilder.Color({
-            label: "Color",
-            tooltip: "Change parametrization mesh color",
-            color: "#" + DEFAULTS.paramColorWidget.getHexString(),
-            bindTo: (function () {  // here we define also a callback to invoke at every change of this option                
-                var bindToFun = function (value) {
-                    //if there is a layer selected and that layer has a texture we'll modify its color
-                    var layer = MLJ.core.Scene.getSelectedLayer();
-                    if (layer.name !== null && layer.texturesNum > 0) {
-                        layer.texture[layer.selectedTexture].paramMesh.material.color = value;
-                        texRenderer.render(texScene, texCamera);
-                    }
-                };
-                bindToFun.toString = function () {
-                    return 'paramColorWidget';
-                };
-                return bindToFun;
-            }())
-        });
-
-        widgets.push(parametrizationWidget, opacityPlaneWidget, paramColorWidget);
         hideWidgets();
         canvasInit();
     };
 
 
-    plug._applyTo = function (meshFile, layersNum, $) {
+    plug._applyTo = function (layer, layersNum, $) {
+        // // RemoveME:
+        // console.clear();
 
-        texNameLabel = $("label[for='textureName']");
-        textureInfos = $("label[for='textureInfos']");
+        //if the array has been defined then there was at least a texture, for now, we are gonna show ONLY the first one
+        layer.texturesNum = 0;
+        if (layer.texture.length > 0) {
+            layer.texturesNum = 1;
+        }
+        
+        // remove?
+        scene.render();
 
+        scene2 = scene;
+        meshObject2 = layer;
+        
         $("#texCanvasWrapper").append(texRenderer.domElement);
 
         //Always remove everything from the scene when creating the meshes and adding them to the scene
@@ -152,83 +56,50 @@
             texScene.remove(texScene.children[i]);
         }
 
-        if (meshFile.texturesNum > 0 && layersNum > 0) {
+        // console.log('layer.texture.length', layer.texture.length);
+        // console.log('layer.texturesNum', layer.texturesNum);
+        // console.log('layersNum', layersNum);
+        
+        if (layer.texturesNum > 0 && layersNum > 0) {
 
-            createTextureSelectionWidget(meshFile);
             showWidgets();
 
-            for (var i = 0; i < meshFile.texturesNum; i++) {
-                var texWidth = meshFile.texture[i].width;
-                var texHeight = meshFile.texture[i].height;
-                var texFormat = meshFile.texture[i].format;
-                var imgBuff = meshFile.texture[i].imgBuff;
-
-                //If a layer is added, we need to create the parametrization flat mesh for the first time, so, if it's undefined
-                //We'll create it only now in order to avoid useless computation on each layer selections
-                if (!meshFile.texture[i].paramMesh) {
-                    //Let's get started with uvs, vertices and colors
-                    //We're now taking an array structured as [u,v,0] for each vertex of each face, hence the 3*3*FN size
-                    var bufferptr = meshFile.cppMesh.getUvParamCoordinates(0); //we're, for now, using just the first texture uv data
-                    var facesCoordsVec = new Float32Array(Module.HEAPU8.buffer, bufferptr, meshFile.FN * 9);
-
-                    //Material used to show the parametrization
-                    var paramGeomBuff = new THREE.BufferGeometry();
-                    paramGeomBuff.addAttribute('position', new THREE.BufferAttribute(facesCoordsVec, 3));
-                    var paramGeom = new THREE.Geometry().fromBufferGeometry(paramGeomBuff);
-                    paramGeom.center(); //center the mesh in the scene  
-                    var paramMesh = new THREE.Mesh(paramGeom, new THREE.MeshBasicMaterial({wireframe: true, color: meshFile.texture[i].texPanelParam.paramColorWidget})); //generate the mesh and position, scale it to its size and move it to the center 
-                    paramMesh.position.x = paramMesh.position.y = 0;
-                    paramMesh.position.z = 0.2; //sta un pò sopra la planeMesh
-                    paramMesh.scale.x = paramMesh.scale.y = 70;
-                    paramMesh.name = "paramMesh";
-                    meshFile.texture[i].paramMesh = paramMesh;
-                }
-
+            for (var i = 0; i < layer.texturesNum; i++) {
                 //If a layer is added, we need to create the planar mesh with the texture for the first time, so, if it's undefined
                 //We'll create it only now in order to avoid useless computation on each layer selections
-                if (!meshFile.texture[i].planeMesh) {
-                    var ratio = texWidth / texHeight; //The texture may not be squared
-                    var planeGeometry = new THREE.PlaneBufferGeometry(ratio, 1);
-                    planeGeometry.center();
-                    var planeTexture = new THREE.DataTexture(imgBuff, texWidth, texHeight, texFormat);
-                    planeTexture.needsUpdate = true;
-                    planeTexture.wrapS = planeTexture.wrapT = THREE.ClampToEdgeWrapping;
-                    planeTexture.minFilter = THREE.LinearFilter;
-                    var planeMesh = new THREE.Mesh(planeGeometry, new THREE.MeshBasicMaterial({map: planeTexture, transparent: true, opacity: meshFile.texture[i].texPanelParam.planeOpacity}));
+                if (!layer.texture[i].planeMesh) {
+
+                    var map2 = layer.texture[0].data.material.map;
+                    
+                    var material = new THREE.SpriteMaterial( { map: map2, color: 0xffffff, fog: true } );
+                    var planeMesh = new THREE.Sprite( material );
                     planeMesh.position.x = planeMesh.position.y = planeMesh.position.z = 0;
-                    planeMesh.scale.x = planeMesh.scale.y = 70;
+                    // planeMesh.scale.x = planeMesh.scale.y = 70;
+                    planeMesh.scale.x = 100
+                    planeMesh.scale.y = 100;
                     planeMesh.name = "planeMesh";
-                    meshFile.texture[i].planeMesh = planeMesh;
+                    
+                    layer.texture[i].planeMesh = planeMesh;
                 }
             }
-            //Add the mesh to the scene, now is paramMesh, but can be switched with planeMesh
+
+            
+            //Add the mesh to the scene
             texControls.reset();
 
-            //La plane mesh è sempre visibile
-            texScene.add(meshFile.texture[meshFile.selectedTexture].planeMesh);
-
-            //Ma la parametrizzazione va mostrata in base alla selettore on/off
-            if (meshFile.texture[meshFile.selectedTexture].texPanelParam.uvParam)
-                texScene.add(meshFile.texture[meshFile.selectedTexture].paramMesh);
+            // The plane mesh is always visible
+            texScene.add(layer.texture[layer.selectedTexture].planeMesh);
             
-            
-            texNameLabel.text(meshFile.texture[meshFile.selectedTexture].fileName);
-            texNameLabel.removeClass("error");
-            textureInfos.text(meshFile.texture[meshFile.selectedTexture].width + "x" + meshFile.texture[meshFile.selectedTexture].height + "   " + meshFile.texture[meshFile.selectedTexture].components);
-
         } else {
             hideWidgets();
-
-            if (layersNum < 1)
-                texNameLabel.text("No Layer Selected");
-            else
-                texNameLabel.text("No texture");
-            
-            texNameLabel.addClass("error");
         }
 
-        $(window).trigger('resize'); //This will resize the windows properly and trigger the resizeCanvas function
-        texRenderer.render(texScene, texCamera);   //Always render, if nothing is shown, then no layer is selected     
+        //This will resize the windows properly and trigger the resizeCanvas function
+        $(window).trigger('resize');
+
+        //Always render, if nothing is shown, then no layer is selected
+        texRenderer.render(texScene, texCamera);
+
     };
 
 
@@ -293,10 +164,9 @@
 
     function resizeCanvas() {
         if (texRenderer && texCamera && texScene) {
-            //92.5% of the tab width, higher value makes it bigger, lower values makes schrinking impossible/slow
-            var panelWidth = $("#tab-Texture").width() * 0.925;
-            var panelHeight = $("#tab-Texture").height() * 0.785; //78.5% of the tab height
-
+            var panelWidth = $("#tab-Texture").width();
+            var panelHeight = $("#tab-Texture").height()
+            
             texControls.handleResize();
             texCamera.aspect = panelWidth / panelHeight;
             texCamera.updateProjectionMatrix();
@@ -304,58 +174,65 @@
         }
     }
 
-    function createTextureSelectionWidget(meshFile) {
-        var selectMenu = textureSelectionWidget.choice.$;
-        selectMenu.empty();
-        
-        for (var i = 0; i < meshFile.texturesNum; i++) {
-            selectMenu.append($("<option></option>").attr("value", i).text(meshFile.texture[i].fileName));
-        }
-        
-        selectMenu.val(meshFile.selectedTexture);
-        selectMenu.selectmenu('refresh', true); //NEEDED TO UPDATE THE MENU
-        
-        textureSelectionWidget.choice.$.parent().parent().parent().attr('id', 'textureChoiceContainer');
-        textureSelectionWidget.choice.$.parent().parent().parent().prependTo(MLJ.widget.TabbedPane.getTexturePane().find("div")[0]);
-    }
-
-
     function hideWidgets() {
         //call the parent to hide the div containing both label and button set
         for (var i = 0; i < widgets.length; i++) {
             if (widgets[i].rangedfloat)
-                widgets[i].rangedfloat.$.parent().parent().hide(200);
+                widgets[i].rangedfloat.$.parent().parent().hide(animationDuration);
             if (widgets[i].color)
-                widgets[i].color.$.parent().parent().hide(200);
+                widgets[i].color.$.parent().parent().hide(animationDuration);
             if (widgets[i].choice)
-                widgets[i].choice.$.parent().parent().hide(200);
+                widgets[i].choice.$.parent().parent().hide(animationDuration);
         }
 
-        if (textureSelectionWidget)
-            textureSelectionWidget.choice.$.parent().parent().hide(200);
-        $("#texCanvasWrapper").hide(200);
-        $("#texInfoContainer").hide(200);
+        $("#texCanvasWrapper").hide(animationDuration);
+        $("#texInfoContainer").hide(animationDuration);
     }
 
     function showWidgets() {
         //call the parent to show the div containing both label and button set
         for (var i = 0; i < widgets.length; i++) {
             if (widgets[i].rangedfloat)
-                widgets[i].rangedfloat.$.parent().parent().show(200);
+                widgets[i].rangedfloat.$.parent().parent().show(animationDuration);
             if (widgets[i].color)
-                widgets[i].color.$.parent().parent().show(200);
+                widgets[i].color.$.parent().parent().show(animationDuration);
             if (widgets[i].choice)
-                widgets[i].choice.$.parent().parent().show(200);
+                widgets[i].choice.$.parent().parent().show(animationDuration);
         }
 
-        if (textureSelectionWidget)
-            textureSelectionWidget.choice.$.parent().parent().show(200);
-        $("#texCanvasWrapper").show(200);
-        $("#texInfoContainer").show(200);
+        $("#texCanvasWrapper").show(animationDuration);
+        $("#texInfoContainer").show(animationDuration);
     }
-
-
 
     plugin.Manager.install(plug);
 
+    var doLoadHardcodedZipFile = true;
+    doLoadHardcodedZipFile = false;
+    if(doLoadHardcodedZipFile)
+    {
+        // $(window).load happens after $(window).ready
+        // 
+        // a. loadMeshDataFromFile triggers "MeshFileOpened" event
+        // b. Scene::$(document).on("MeshFileOpened responds on it and calls addLayer
+        // the window needs to be fully loaded so that the trigger is intercepted in b. and addLayer is called
+        // 
+        // https://stackoverflow.com/questions/20418169/difference-between-window-load-and-window-ready?lq=1
+        // https://stackoverflow.com/questions/3698200/window-onload-vs-document-ready
+        //
+        // $(window).ready(function () {
+        $(window).load(function () {
+            // txtFile needs to in the same dir as index.html
+            // https://stackoverflow.com/questions/8390855/how-to-instantiate-a-file-object-in-javascript
+            // var txtFile = "foo1.zip"
+            // var txtFile = "3543_W18_shimi.SM.zip"
+            // var txtFile = "2910_w47_shertzer_section0.6a_reduceTextureIndices.zip"
+            // var txtFile = "2910_w47_shertzer_section0.6a_reduceTextureIndices.floor0.zip"
+            // var txtFile = "2910_w47_shertzer_section0.6a_reduceTextureIndices.floor0_sm.zip"
+            var txtFile = "2910_w47_shertzer_section1.6a_reduceTextureIndices.floor1_sm.zip";
+            
+            var file1 = new File([""], txtFile, {type: "application/zip"})
+            MLJ.core.MeshFile.openMeshFile(file1);
+        });
+    }
+    
 })(MLJ.core.plugin, MLJ.core, MLJ.core.Scene);

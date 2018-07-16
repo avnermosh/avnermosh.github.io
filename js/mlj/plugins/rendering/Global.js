@@ -5,7 +5,7 @@
         DefaultDownColor: new THREE.Color('#8080ff'),
         FieldOfView : scene.getCamera()
     };
-     var plug = new plugin.Rendering({
+    var plug = new plugin.Texturing({
         name: "Global",        
         tooltip: "Global Tooltip",
         icon: "img/icons/global.png"        
@@ -109,7 +109,7 @@
         });
 
     };
-    plug._applyTo = function (meshFile, on) {
+    plug._applyTo = function (layer, on) {
         //alert(scene.getCamera());
     }
     plug.getBackfaceCullingValue = function (type) {

@@ -27,6 +27,8 @@ THREE.TrackballControls = function ( object, domElement ) {
 	this.noZoom = false;
 	this.noPan = false;
 
+    this.isKeyDown = false;
+
 	this.staticMoving = false;
 	this.dynamicDampingFactor = 0.2;
 
@@ -156,7 +158,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 			angle;
 
 		return function rotateCamera() {
-
+                    // console.log('BEG rotateCamera'); 
 			moveDirection.set( _moveCurr.x - _movePrev.x, _moveCurr.y - _movePrev.y, 0 );
 			angle = moveDirection.length();
 
@@ -202,6 +204,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 
 	this.zoomCamera = function () {
+            // console.log('BEG zoomCamera'); 
 
 		var factor;
 
@@ -236,6 +239,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 	};
 
 	this.panCamera = ( function() {
+            console.log('BEG panCamera'); 
 
 		var mouseChange = new THREE.Vector2(),
 			objectUp = new THREE.Vector3(),
@@ -358,7 +362,9 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 	// listeners
 
-	function keydown( event ) {
+    function keydown( event ) {
+        // console.log('BEG keydown'); 
+            _this.isKeyDown = true;
 
 		if ( _this.enabled === false ) return;
 
@@ -387,6 +393,8 @@ THREE.TrackballControls = function ( object, domElement ) {
 	}
 
 	function keyup( event ) {
+            // console.log('BEG keyup'); 
+            _this.isKeyDown = false;
 
 		if ( _this.enabled === false ) return;
 
@@ -434,7 +442,6 @@ THREE.TrackballControls = function ( object, domElement ) {
 	}
 
 	function mousemove( event ) {
-            // console.log("BEG mousemove");
 		if ( _this.enabled === false ) return;
 
 		event.preventDefault();

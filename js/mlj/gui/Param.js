@@ -137,9 +137,9 @@ MLJ.gui.Param.String = function (flags) {
     };
     
     this.onChange = function(foo) {
-      this.textfield.onChange(function() {
-          foo(_this.getValue());
-      });
+        this.textfield.onChange(function() {
+            foo(_this.getValue());
+        });
     };
 
     this._changeValue = function (value) {
@@ -148,7 +148,7 @@ MLJ.gui.Param.String = function (flags) {
 
     MLJ.gui.Param.call(this);
 
-    }
+}
 MLJ.extend(MLJ.gui.Param, MLJ.gui.Param.String);
 
 MLJ.gui.Param.Bool = function (flags) {
@@ -169,9 +169,9 @@ MLJ.gui.Param.Bool = function (flags) {
     };
     
     this.onChange = function(foo) {
-      this.checkbox.onChange(function() {
-          foo(_this.getValue());
-      });
+        this.checkbox.onChange(function() {
+            foo(_this.getValue());
+        });
     };
 
     MLJ.gui.Param.call(this);
@@ -181,8 +181,8 @@ MLJ.extend(MLJ.gui.Param, MLJ.gui.Param.Bool);
 
 MLJ.gui.Param.Choice = function (flags) {
     this.choice = (flags.combobox || flags.options.length > 3)
-            ? new MLJ.gui.component.ComboBox(flags)
-            : new MLJ.gui.component.ButtonSet(flags);
+        ? new MLJ.gui.component.ComboBox(flags)
+        : new MLJ.gui.component.ButtonSet(flags);
     this.label = new MLJ.gui.component.Label(flags);
 
     var _this = this;
@@ -315,18 +315,11 @@ MLJ.gui.Param.LayerSelection = function (flags) {
      * @returns {MLJ.core.Layer}    
      */
     this.getSelectedLayer = function() {
+        console.log('BEG getSelectedLayer'); 
         return MLJ.core.Scene.getLayerByName(this.selector.getSelectedEntry());
     };
 
-    /**
-         * Returns a pointer to the cppMesh corresponding to the layer currently selected from the widget.
-         * Useful to pass this value in plugins when calling the module cpp functions.
-         * @returns {Module.CppMesh}    
-         */
-        this.getSelectedPtrMesh = function() {
-            return MLJ.core.Scene.getLayerByName(this.selector.getSelectedEntry()).ptrMesh();
-        };
-        MLJ.gui.Param.call(this);
-    };
+    MLJ.gui.Param.call(this);
+};
 
 MLJ.extend(MLJ.gui.Param, MLJ.gui.Param.LayerSelection);

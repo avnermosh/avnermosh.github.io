@@ -42,14 +42,14 @@ var Module = {
     memoryInitializerPrefixURL: "js/generated/",
     preRun: [],
     postRun: [],
-    print: function (text) {
-        var w = MLJ.gui.getWidget("Log");
-        w.append(text);
-    },
-    printErr: function (text) {
-        var w = MLJ.gui.getWidget("Log");
-        w.append(text);
-    }
+    // print: function (text) {
+    //     var w = MLJ.gui.getWidget("Log");
+    //     w.append(text);
+    // },
+    // printErr: function (text) {
+    //     var w = MLJ.gui.getWidget("Log");
+    //     w.append(text);
+    // }
 };
 
 MLJ.core = {
@@ -125,7 +125,8 @@ MLJ.core.Headlight = function (scene, camera, renderer) {
     var _on = true;
     var _light = new THREE.DirectionalLight("#ffffff",0.5);
     _light.position.set( 0, -1, 0 );
-
+    // _light.position.set( 1, 1, 0.0001 );
+    
 
     /**
      * Sets this headlight on/off

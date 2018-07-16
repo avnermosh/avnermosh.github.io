@@ -10,6 +10,27 @@ and open the template in the editor.
 
 /*BROWSER RESETS ____________________________________________________________ */
 
+/* html, body, div, span, applet, object, iframe, */
+/* h1, h2, h3, h4, h5, h6, p, blockquote, pre, */
+/* a, abbr, acronym, address, big, cite, code, */
+/* del, dfn, em, img, ins, kbd, q, s, samp, */
+/* small, strike, strong, sub, sup, tt, var, */
+/* b, u, i, center, */
+/* dl, dt, dd, ol, ul, li, */
+/* fieldset, form, label, legend, */
+/* table, caption, tbody, tfoot, thead, tr, th, td, */
+/* article, aside, canvas, details, embed,  */
+/* figure, figcaption, footer, header, hgroup,  */
+/* menu, nav, output, ruby, section, summary, */
+/* time, mark, audio, video { */
+/*     margin: 0; */
+/*     padding: 0; */
+/*     border: 0; */
+/*     font-size: 100%; */
+/*     font: inherit; */
+/*     vertical-align: baseline; */
+/* } */
+
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 a, abbr, acronym, address, big, cite, code,
@@ -19,7 +40,7 @@ b, u, i, center,
 dl, dt, dd, ol, ul, li,
 fieldset, form, label, legend,
 table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
+article, aside, details, embed, 
 figure, figcaption, footer, header, hgroup, 
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
@@ -30,6 +51,8 @@ time, mark, audio, video {
     font: inherit;
     vertical-align: baseline;
 }
+
+
 /* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure, 
 footer, header, hgroup, menu, nav, section {
@@ -85,14 +108,13 @@ html,body{
 }
 
 /* TOOLS PANE _______________________________________________________________ */
+
 #mlj-tools-pane {    
-    min-width: 200px;
-    width: 400px;
-    min-width: 400px;
-    max-width: 630px;
+    max-width: 100%;
     height: 100%;    
     border-right: gainsboro ridge;
 }
+
 #mlj-tabbed-pane {
     font-size: 10pt;
 }
@@ -212,18 +234,18 @@ html,body{
 
 /* LOG WIDGET _______________________________________________________________ */
 
-#mlj-log-widget  {    
-    position: relative;    
+#mlj-log-widget  {
+    position: relative;
     width: 100%;
-    height: 100%;             
-    background-color: rgba(0,0,0,0.5);    
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
 }
 
 #mlj-log-widget textarea{
     position: absolute;
     background:none;
     color: white;
-    border: none;    
+    border: none;
     margin: 0;
     resize: none;
     padding: 5px;
@@ -238,12 +260,12 @@ html,body{
 }
 
 /* INFO WIDGET ______________________________________________________________ */
-#mlj-info {    
+#mlj-info {
     /*overflow: auto;*/
     padding: 3px;
     width: 120px;
-    height: 60px;    
-    background-color: rgba(0,0,0,0.5);    
+    height: 60px;
+    background-color: rgba(0,0,0,0.5);
     color: white;
     font-size: 75%;
     text-align: center;
@@ -268,25 +290,6 @@ html,body{
     margin-right:2px;
     border: solid thin darkgray;
     border-radius: 2px;
-}
-
-
-/* Save dialog style ________________________________________________________ */
-
-#mlj-save-dialog input[type='checkbox']{
-    width: 20%;
-    text-align: center;
-}
-
-#mlj-save-dialog input,
-#mlj-save-dialog select {
-    margin: 6px 0;
-    width: 100%;
-}
-
-#mlj-save-dialog #button-wrapper {
-    text-align: right;
-    margin: 6px 0; 
 }
 
 
@@ -379,78 +382,11 @@ html,body{
     z-index: 999;
 }
 
-/* Histogram labels ______________________________________________________________ */
-.mlj-hist-label {    
-    /*overflow: auto;
-    padding: 4px;
-    background-color: rgba(0,0,0,0.5); */   
-    color: white;
-    font-size: 65%;
-    text-align: center;
-    vertical-align: middle;
-    border-radius: 4px;
-}
-
- #sketchfabProgressBar {
-    position: relative;
-    width: 100%;
-    height: 20px;
-    background-color: #BCC6CC;
-    margin-top: 10px;
-}
-
-#progressBar {
-    position: absolute;
-    width: 0%;
-    height: 100%;
-    background-color: #4863A0;
-}
-
-#pBarLabel {
-    text-align: center; /* If you want to center it */
-    line-height: 20px; /* Set the line-height to the same as the height of the progress bar container, to center it vertically */
-    color: white;
-}
-
-#exitUpdateButton,#mlj-upload-dialog-button,#uploadButton{
-    width: 50%;
-    height: 30px;
-    text-align: center;
-    position: relative;
-    left: 25%;
-    margin-top: 10px;
-}
-
-#the-form input[type='text'],#the-form input[type='password'],#the-form textarea{
-    width: 98%;
-}
-
-#the-form{
-    line-height: 19px;
-}
-
-#passwordCounter,#descriptionCounter,#nameCounter {
-    display:inline;
-    color: grey;   
-    font-size: 90%;
-}
-
-#passwordCounter.overflow,#descriptionCounter.overflow,#nameCounter.overflow,#status.error{
-    color: red;
-}
-
-#sketchfabUpload{
-    margin-top: 8px;
-}
-
 #texCanvasWrapper{
     margin-left: 3px;
     margin-top: 8px;
     margin-bottom: 5px;
-}
-
-#textureChoiceContainer{
-    margin-top: 3px;
+    object-fit: contain;
 }
 
 label[for='textureInfos'], label[for='textureName']{
@@ -460,4 +396,42 @@ label[for='textureInfos'], label[for='textureName']{
 
 label[for='textureName'].error{
     color: red;
+}
+
+.fill {object-fit: fill;}
+.contain {object-fit: contain;}
+.cover {object-fit: cover;}
+.scale-down {object-fit: scale-down;}
+.none {object-fit: none;}
+
+#drop_area {
+  width: 100%;
+  height: 50%;
+  border: 3px dashed #aaaaaa;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.area
+{
+    border: 5px dotted #ccc;    
+    padding: 50px;    
+    text-align: center;    
+}
+
+.drag
+{
+    border: 5px dotted green;            
+    background-color: yellow;
+}
+
+#result ul{
+    list-style: none;
+    margin-top:20px;
+}
+
+#result ul li
+{
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;    
 }

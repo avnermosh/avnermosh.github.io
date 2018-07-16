@@ -29,34 +29,28 @@
 /**         
  * @class Creates a new Layer 
  * @param {String} name The name of the mesh file
- * @param {CppMesh} cppMesh the CppMesh object
  * @memberOf MLJ.core
  */
-MLJ.core.Layer = function (id, name, cppMesh) {
+MLJ.core.Layer = function (id, name)
+{
+    console.log('BEG MLJ.core.Layer');
 
-    console.time("BEG MLJ.core.Layer");
+    this.wallsInfo = [];
+    this.objInstanceUuid = undefined;
     
     this.name = name;
     this.id = id;
-    //boolen for control - if the ptrMesh() was called
-    this.calledPtrMesh=false;
-    this.getCalledPtrMesh=function()
-    {
-        return this.calledPtrMesh;
-    }
-    this.resetCalledPtrMesh=function()
-    {
-        this.calledPtrMesh=false;
-    }
+    this.groupObject = undefined;
+    this.materialForSelectedLine = undefined;
+    this.materialForSelectedLine = new THREE.LineBasicMaterial({color: 0xffff00});
+    
     /**
      * @type {String} - Set if a mesh is read from a file
-     * (see {@link MLJ.core.File.openMeshFile}), defaults to the empty string
+     * (see {@link MLJ.core.MeshFile.openMeshFile}), defaults to the empty string
      */
     this.fileName = "";
     this.selectedTexture = 0;
 
-    this.cppMesh = cppMesh;
-    this.cppMesh.setMeshName(name);
     this.VN = this.FN = this.threeMesh = null;
     // Array of booleans that reflect what are the overlays on or off for this layer.
     this.properties = new MLJ.util.AssociativeArray();
@@ -68,22 +62,16 @@ MLJ.core.Layer = function (id, name, cppMesh) {
     var _this = this;
 
     this.initializeRenderingAttributes = function () {
+        
         for (var pname in MLJ.core.defaults) {
             _this.overlaysParams.set(pname,
                     jQuery.extend(true, {}, MLJ.core.defaults[pname]));
         }
 
         // Select the appropriate color mode
-        var cw = _this.overlaysParams.getByKey("ColorWheel");
+        // var cw = _this.overlaysParams.getByKey("ColorWheel");
         var useIndex = true;
-        if (cppMesh.hasPerVertexColor()) {
-            cw.mljColorMode = MLJ.ColorMode.Vertex;
-        } else if (cppMesh.hasPerFaceColor()) {
-            cw.mljColorMode = MLJ.ColorMode.Face;
-            useIndex = false;
-        }
 
-        console.log("AAAAAAAAAAAAAAAAAAAA ");
         console.time("Time to create mesh: ");
         // This Threejs object is used as a 'group' 
         // This node will have as children all the overlays of this layer.
@@ -101,7 +89,38 @@ MLJ.core.Layer = function (id, name, cppMesh) {
             _this.properties.set("Filled", false);
             _this.properties.set("Points", true);
         }
+
+        console.log('END initializeRenderingAttributes');
     };
+
+    this.getMaterialForSelectedLine = function () {
+        return _this.materialForSelectedLine;
+    };
+
+    this.getGroup = function () {
+        return _this.groupObject;
+    };
+
+    this.setGroup = function (groupObject) {
+        _this.groupObject = groupObject;
+    };
+
+    this.getObjInstanceUuid = function () {
+        return _this.objInstanceUuid;
+    };
+
+    this.setObjInstanceUuid = function (objInstanceUuid) {
+        _this.objInstanceUuid = objInstanceUuid;
+    };
+    
+    this.getWallsInfo = function () {
+        return _this.wallsInfo;
+    };
+
+    this.setWallsInfo = function (wallsInfo) {
+        _this.wallsInfo = wallsInfo;
+    };
+
     // This functions prepares the buffers that can be used by all the rendering overlay
     // for mesh geometry we replicate per triangle all the vertex information (e.g. fn*3 vertexes) 
     // to allow simple per face data managment. 
@@ -110,77 +129,6 @@ MLJ.core.Layer = function (id, name, cppMesh) {
     // For point clouds we obviously keep everything per vertex.
 
     this.updateMeshBufferData = function () {
-        _this.VN = cppMesh.VN();
-        _this.FN = cppMesh.FN();
-
-        var geometry = _this.threeMesh.geometry;
-        var bufferptr, bufferData;
-
-        var positionAttrib = null, normalAttrib = null, colorAttrib = null, uvsAttrib = null, indexAttrib = null;
-
-        if (_this.FN === 0) { // Point Cloud
-            bufferptr = cppMesh.getVertexVector(true); // if there are no faces load unique vertices
-            bufferData = new Float32Array(new Float32Array(Module.HEAPU8.buffer, bufferptr, _this.VN * 3));
-            positionAttrib = new THREE.BufferAttribute(bufferData, 3);
-            Module._free(bufferptr);
-
-            bufferptr = cppMesh.getVertexNormalVector(true);
-            bufferData = new Float32Array(new Float32Array(Module.HEAPU8.buffer, bufferptr, _this.VN * 3));
-            normalAttrib = new THREE.BufferAttribute(bufferData, 3);
-            Module._free(bufferptr);
-
-            bufferptr = cppMesh.getVertexColors(true);
-            bufferData = new Float32Array(new Float32Array(Module.HEAPU8.buffer, bufferptr, _this.VN * 3));
-            colorAttrib = new THREE.BufferAttribute(bufferData, 3);
-            Module._free(bufferptr);
-
-        } else { // Always Load as disconnected triangles
-            bufferptr = cppMesh.getVertexVector(false);
-            bufferData = new Float32Array(new Float32Array(Module.HEAPU8.buffer, bufferptr, _this.FN * 9));
-            positionAttrib = new THREE.BufferAttribute(bufferData, 3);
-            Module._free(bufferptr);
-            
-           /*bufferptr = cppMesh.getFaceIndex();
-            bufferData = new Uint32Array(new Uint32Array(Module.HEAPU8.buffer, bufferptr, _this.FN * 3));
-            indexAttrib = new THREE.BufferAttribute(bufferData, 3);
-            Module._free(bufferptr);*/
-
-            bufferptr = cppMesh.getVertexNormalVector(false);
-            bufferData = new Float32Array(new Float32Array(Module.HEAPU8.buffer, bufferptr, _this.FN * 9));
-            normalAttrib = new THREE.BufferAttribute(bufferData, 3)
-
-            bufferptr = cppMesh.getWedgeTextureCoordinates(0);
-            bufferData = new Float32Array(new Float32Array(Module.HEAPU8.buffer, bufferptr, _this.FN * 6));
-            uvsAttrib = new THREE.BufferAttribute(bufferData, 2)
-            Module._free(bufferptr);
-
-            var colorMode = _this.overlaysParams.getByKey("ColorWheel").colorMode;
-            if (colorMode === MLJ.ColorMode.Face) {
-                bufferptr = cppMesh.getFaceColors();
-                bufferData = new Float32Array(new Float32Array(Module.HEAPU8.buffer, bufferptr, _this.FN * 9));
-                colorAttrib = new THREE.BufferAttribute(bufferData, 3);
-                Module._free(bufferptr);
-            } else
-            {
-                bufferptr = cppMesh.getVertexColors(false);
-                bufferData = new Float32Array(new Float32Array(Module.HEAPU8.buffer, bufferptr, _this.FN * 9));
-                colorAttrib = new THREE.BufferAttribute(bufferData, 3);
-                Module._free(bufferptr);
-            }
-        }
-
-        if (positionAttrib !== null)
-            geometry.addAttribute('position', positionAttrib);
-        if (normalAttrib !== null)
-            geometry.addAttribute('normal', normalAttrib);
-        if (uvsAttrib !== null)
-            geometry.addAttribute('uv', uvsAttrib);        
-        //if (indexAttrib !== null)
-            //geometry.addAttribute('index', indexAttrib);
-
-        geometry.addAttribute('VCGColor', colorAttrib);
-
-        geometry.computeBoundingBox();
     };  
 
     this.usingIndexedGeometry = function () {
@@ -201,16 +149,6 @@ MLJ.core.Layer = function (id, name, cppMesh) {
     };
 
     /**
-     * Returns the ptr to the cppMesh object
-     * @returns {Number} An emscripten pointer to the VCG mesh of this layer
-     */
-    
-    this.ptrMesh = function () {
-        this.calledPtrMesh=true;
-        return _this.cppMesh.getMeshPtr();
-    };
-
-    /**
      * Removes the object from memory
      * @author Stefano Gabriele     
      */
@@ -221,7 +159,9 @@ MLJ.core.Layer = function (id, name, cppMesh) {
         while (iter.hasNext()) {
             mesh = iter.next();
             mesh.geometry.dispose();
+            mesh.geometry = null;
             mesh.material.dispose();
+            mesh.material = null;
 
             if (mesh.texture) {
                 mesh.texture.dispose();
@@ -229,15 +169,29 @@ MLJ.core.Layer = function (id, name, cppMesh) {
             }
         }
 
+        if(_this.groupObject)
+        {
+            MLJ.core.Scene.removeFromScene( _this.groupObject );
+            delete _this.groupObject;
+            _this.groupObject = null;
+        }
+
+        if(_this.materialForSelectedLine)
+        {
+            MLJ.core.Scene.removeFromScene( _this.materialForSelectedLine );
+            delete _this.materialForSelectedLine;
+            _this.materialForSelectedLine = null;
+        }
+        
         _this.threeMesh.geometry.dispose();
+        _this.threeMesh.geometry = null;
         _this.threeMesh.material.dispose();
+        _this.threeMesh.material = null;
 
         if (_this.threeMesh.texture) {
             _this.threeMesh.texture.dispose();
             _this.threeMesh.texture = null;
         }
-
-        _this.cppMesh.delete();
 
         _this.name = _this.VN = _this.FN =
                 _this.threeMesh = _this.properties = _this.overlays =
