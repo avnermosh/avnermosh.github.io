@@ -51,6 +51,12 @@
             });
             MLJ.gui.disabledOnSceneEmpty(saveMeshFileButton);
 
+            var edit3dModelOverlay = new component.ToggleButton({
+                tooltip: "Edit model overlay",
+                icon: "img/icons/IcoMoon-Free-master/PNG/48px/0146-wrench.png"
+            });
+            MLJ.gui.disabledOnSceneEmpty(edit3dModelOverlay);
+            
             var openImageFileButton = new component.FileButton({
                 tooltip: "Open image file",
                 icon: "img/icons/IcoMoon-Free-master/PNG/48px/0015-images.png",
@@ -65,6 +71,7 @@
             MLJ.gui.disabledOnSceneEmpty(resetTrackball);
             _toolBar.add(openMeshFileButton,
                          saveMeshFileButton,
+                         edit3dModelOverlay,
                          openImageFileButton,
                          resetTrackball);
             
@@ -78,6 +85,9 @@
                 MLJ.core.MeshFile.saveMeshFile(layer, "meshModel.zip");
             });
 
+            edit3dModelOverlay.onClick(function () {
+                MLJ.core.Scene.setEdit3dModelOverlayFlag(edit3dModelOverlay.isOn());
+            });
            
             openImageFileButton.onChange(function (input) {
                 MLJ.core.ImageFile.openImageFile(input.files);

@@ -34,6 +34,24 @@
  */
 MLJ.util = {};
 
+// list of colors
+// https://www.imagemagick.org/script/color.php
+// online color chooser
+// https://www.htmlcsscolor.com/hex/00AA00
+MLJ.util.redColor = 0xff0000;
+MLJ.util.greenColor = 0x00ff00;
+MLJ.util.whiteColor = 0xffffff;
+MLJ.util.yellowColor = 0xffff00;
+MLJ.util.blueColor = 0x0000ff;
+MLJ.util.islamicGreenColor = 0x00aa00;
+
+
+// get nested object safely, using reduce
+MLJ.util.getNestedObject = function (nestedObj, pathArr) {
+    return pathArr.reduce((obj, key) =>
+                          (obj && obj[key] !== 'undefined') ? obj[key] : undefined, nestedObj);
+}
+
 MLJ.util.loadFile = function (path, callback) {
     if (!jQuery.isFunction(callback)) {
         console.warn("The callback paramter must be a funciton.");
