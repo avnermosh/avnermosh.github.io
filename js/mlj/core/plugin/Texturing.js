@@ -20,17 +20,11 @@ MLJ.core.plugin.Texturing = function (parameters, defaults) {
 
     this._main = function () {    
         _this._init(guiBuilder);
-        //The webgl texture canvas wrapper
-        // pane.appendContent('<div id="texCanvasWrapper"></div>');
-        pane.appendContent('<div class="contain" id="texCanvasWrapper"></div>');
+        // pane.appendContent('<p class="left">left</p><p class="right">right</p>');
+        pane.appendContent('<div class="contain2" id="texCanvasWrapper1"></div>');
         texturePane.append(pane.$);
         pane.$.hide();
     };
-
-
-    this.getParam = function (paramKey) {
-        return guiBuilder.params.getByKey(paramKey);
-    }
 
     this._setOnParamChange = guiBuilder.setOnParamChange;
 
@@ -61,7 +55,9 @@ MLJ.core.plugin.Texturing = function (parameters, defaults) {
         //The panel will be shown only when the first mesh is loaded
         //it is the only way to hide
         if (MLJ.core.Scene.getLayers().size() === 1)
+        {
             pane.$.show();
+        }
 
         update();
         _this._applyTo(layer, 1, $);
@@ -77,13 +73,13 @@ MLJ.core.plugin.Texturing = function (parameters, defaults) {
         _this._applyTo(layer, layersNum, $);
     });
 
-    $(document).on("Texture2FileOpened", function (event, texture2) {
+    $(document).on("Texture2FileOpened", function (event, texture3) {
 
         var layer = MLJ.core.Scene.getSelectedLayer();
         if (layer === undefined)
             return;
 
-        layer.texture[0] = texture2;
+        layer.texture[0] = texture3;
         
         if (MLJ.core.Scene.getLayers().size() === 1)
         {

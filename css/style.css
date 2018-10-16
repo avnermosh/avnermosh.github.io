@@ -44,12 +44,12 @@ article, aside, details, embed,
 figure, figcaption, footer, header, hgroup, 
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
+    /* margin: 0; */
+    /* padding: 0; */
+    /* border: 0; */
+    /* font-size: 100%; */0% */
     font: inherit;
-    vertical-align: baseline;
+    /* vertical-align: baseline; */
 }
 
 
@@ -58,20 +58,26 @@ article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
     display: block;
 }
+
 body {
     line-height: 1;
 }
+
 ol, ul {
     list-style: none;
 }
+
 blockquote, q {
     quotes: none;
 }
+
 blockquote:before, blockquote:after,
+
 q:before, q:after {
     content: '';
     content: none;
 }
+
 table {
     border-collapse: collapse;
     border-spacing: 0;
@@ -84,11 +90,11 @@ b {
 }
 
 html,body{
-    width: 100%;
-    height: 100%;    
-    font-family: Segoe UI,Arial,sans-serif;
-    overflow: hidden;
-    background: linear-gradient( #00000f,  #8080ff);
+    /* width: 100%; */
+    /* height: 100%; */
+    /* font-family: Segoe UI,Arial,sans-serif; */
+    /* overflow: hidden; */
+    /* background: linear-gradient( #00000f,  #8080ff); */
 }
 
 /* 3D (Contains canvas) _____________________________________________________ */
@@ -100,7 +106,7 @@ html,body{
     background-image: url('../img/favicon.png');
     background-size: auto 30px;
     background-repeat: no-repeat;
-    padding-left: 50px;    
+    /* padding-left: 50px;     */
     line-height: 30px;    
     font-weight: bold;
     font-size: 12pt;
@@ -118,6 +124,7 @@ html,body{
 #mlj-tabbed-pane {
     font-size: 10pt;
 }
+
 /* Buttons ____________________________________________________________ */
 
 .mjs-toolbar .ui-button .ui-button-text,
@@ -133,9 +140,11 @@ html,body{
     height: 18px;     
     vertical-align: middle;   
 }
+
 .ui-button-right-align {
-	float:right;
+	float: right;
 }
+
 #mlj-scenebar-widget .ui-button img {
     width: 14px;
     height: 14px;
@@ -154,18 +163,20 @@ html,body{
 }
 
 /* SEARCH WIDGET ____________________________________________________________ */
+
 #mlj-search-widget {                
     /*background-color: gainsboro;*/          
-    padding: 5px;    
+    /* padding: 5px;     */
     width: 100%;
     position: relative;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
+
 #mlj-search-widget input { 
     width: 100%;    
-    padding: 5px;   
+    /* padding: 5px;    */
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
@@ -181,18 +192,18 @@ html,body{
 
 #mlj-layers .mlj-layers-entry {    
     height: 24px;
-    margin: 4px 0;
+    /* margin: 4px 0; */
     position: relative;
 }
 
 #mlj-layers .mlj-layer {       
     border: solid 1px rgba(0,0,0,0);
-    top:0px;
+    top: 0px;
     left: 30px;
     right: 2px;
     height: 100%;    
     line-height: 24px;
-    padding-left: 5px;    
+    /* padding-left: 5px;     */
 }
 
 #mlj-layers .mlj-layer.selected,
@@ -215,7 +226,7 @@ html,body{
 #mlj-layers .mlj-eye {
     height: 24px;
     width: 24px;
-    margin-left: 5px;
+    /* margin-left: 5px; */
     background-size: 16px 16px;
     background-color: rgba(255,255,255,0.7); 
     background-repeat: no-repeat;
@@ -243,13 +254,13 @@ html,body{
 
 #mlj-log-widget textarea{
     position: absolute;
-    background:none;
+    background: none;
     color: white;
     border: none;
     margin: 0;
     resize: none;
-    padding: 5px;
-    top:0; bottom:0;
+    /* padding: 5px; */
+    top: 0; bottom: 0;
     width: 100%;
     height: 100%;
     outline: none;
@@ -260,9 +271,10 @@ html,body{
 }
 
 /* INFO WIDGET ______________________________________________________________ */
+
 #mlj-info {
     /*overflow: auto;*/
-    padding: 3px;
+    /* padding: 3px; */
     width: 120px;
     height: 60px;
     background-color: rgba(0,0,0,0.5);
@@ -274,12 +286,13 @@ html,body{
 }
 
 #mlj-info p {
-    margin: 5px;
+    /* margin: 5px; */
 }
 
 /* MeshLabJs Toolbar style __________________________________________________ */
+
 .mjs-toolbar {
-    padding: 6px 5px;
+    /* padding: 6px 5px; */
     background-color: #E0E0E0;
     /*background-color: #0F2D60;*/  
     /*background-color: #0D47A1;*/      
@@ -287,16 +300,17 @@ html,body{
 }
 
 .mjs-toolbar button {
-    margin-right:2px;
-    border: solid thin darkgray;
-    border-radius: 2px;
+    /* margin-right: 2px; */
+    /* border: solid thin darkgray; */
+    /* border-radius: 2px; */
 }
 
 
 /* Custom Toggle Button _____________________________________________________ */
+
 .mlj-custom-toggle-button {
     display: inline-block;
-    padding-bottom: 8px;
+    /* padding-bottom: 8px; */
     position: relative;
 }
 
@@ -321,7 +335,7 @@ html,body{
     cursor: s-resize;                                 
     left: 0; 
     right: 0;
-    bottom:0;
+    bottom: 0;
     height: 4px;
     background-color: darkgray;
     opacity: 0.5;    
@@ -341,11 +355,11 @@ html,body{
     line-height: 120%;
 }
 .ui-tabs .ui-tabs-panel {
-    padding: 0.5em 0;
+    /* padding: 0.5em 0; */
 }
 
 .ui-accordion-header .ui-button {
-    margin-left: 5px; 
+    /* margin-left: 5px;  */
 }
 
 .ui-accordion .ui-accordion-content {
@@ -365,14 +379,14 @@ html,body{
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    width:70px;
+    width: 70px;
     display: table-cell;
     border: none;
-    padding: 4px;
+    /* padding: 4px; */
 }
 
 .mlj-picker-preview {    
-    width:22px;    
+    width: 22px;    
     background-color: red;
     display: table-cell;
     border-left: solid 1px darkgray;    
@@ -383,10 +397,11 @@ html,body{
 }
 
 #texCanvasWrapper{
-    margin-left: 3px;
-    margin-top: 8px;
-    margin-bottom: 5px;
+    /* margin-left: 3px; */
+    /* margin-top: 8px; */
+    /* margin-bottom: 5px; */
     object-fit: contain;
+    /* object-fit: none; */
 }
 
 label[for='textureInfos'], label[for='textureName']{
@@ -398,11 +413,33 @@ label[for='textureName'].error{
     color: red;
 }
 
-.fill {object-fit: fill;}
-.contain {object-fit: contain;}
-.cover {object-fit: cover;}
-.scale-down {object-fit: scale-down;}
-.none {object-fit: none;}
+.fill {
+    object-fit: fill;
+}
+
+.texPaneClass {
+    object-fit: contain;
+}
+
+.contain1 {
+    object-fit: contain;
+}
+
+.contain2 {
+    object-fit: contain;
+}
+
+.cover {
+    object-fit: cover;
+}
+
+.scale-down {
+    object-fit: scale-down;
+}
+
+.none {
+    object-fit: none;
+}
 
 #drop_area {
   width: 100%;
@@ -415,7 +452,7 @@ label[for='textureName'].error{
 .area
 {
     border: 5px dotted #ccc;    
-    padding: 50px;    
+    /* padding: 50px;     */
     text-align: center;    
 }
 
@@ -427,11 +464,58 @@ label[for='textureName'].error{
 
 #result ul{
     list-style: none;
-    margin-top:20px;
+    /* margin-top: 20px; */
 }
 
 #result ul li
 {
     border-bottom: 1px solid #ccc;
-    margin-bottom: 10px;    
+    /* margin-bottom: 10px;     */
+}
+
+/* quilljs sticky note __________________________________________________ */
+
+.content-area{
+	line-height: 3;
+}
+
+.note p{
+	font-family: 'Reenie Beanie', cursive;
+	font-size: 15px;
+}
+
+.inactive-note {
+    background-color: red;
+    display: none;
+}
+
+.active-note {
+    background-color: red;
+    display: block;
+}
+
+.note-element-label{
+    color: #FFF;
+    font-family: sans-serif;
+    padding: 2px;
+    background: rgba( 0, 0, 0, .6 );
+}
+
+.note {
+    background-color: #ff0000;
+    position: absolute;
+}
+
+.editor {
+    background-color: #0000ff;
+}
+
+/* texCanvas __________________________________________________ */
+
+.texCanvas {
+  margin: 0 auto;
+  padding: 40px;
+  width: 80%;
+  color: #333;
+  background: #419be0;
 }

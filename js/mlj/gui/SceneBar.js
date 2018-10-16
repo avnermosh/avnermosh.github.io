@@ -62,18 +62,33 @@
                 icon: "img/icons/IcoMoon-Free-master/PNG/48px/0015-images.png",
                 multiple: true
             });
+            MLJ.gui.disabledOnSceneEmpty(openImageFileButton);
+            
+            var addStickyNoteButton = new component.Button({
+                tooltip: "Add sticky note",
+                icon: "img/icons/IcoMoon-Free-master/PNG/48px/0035-file-text.png"
+            });
+            MLJ.gui.disabledOnSceneEmpty(addStickyNoteButton);
             
             var resetTrackball = new component.Button({
                 tooltip: "Reset trackball",
                 icon: "img/icons/home.png"
             });
-
             MLJ.gui.disabledOnSceneEmpty(resetTrackball);
+
+            var nextImage = new component.Button({
+                tooltip: "Next image",
+                icon: "img/icons/IcoMoon-Free-master/PNG/48px/0309-arrow-right.png"
+            });
+            MLJ.gui.disabledOnSceneEmpty(nextImage);
+            
             _toolBar.add(openMeshFileButton,
                          saveMeshFileButton,
                          edit3dModelOverlay,
                          openImageFileButton,
-                         resetTrackball);
+                         addStickyNoteButton,
+                         resetTrackball,
+                         nextImage);
             
             // SCENE BAR EVENT HANDLERS
             openMeshFileButton.onChange(function (input) {
@@ -93,9 +108,19 @@
                 MLJ.core.ImageFile.openImageFile(input.files);
             });
 
+            addStickyNoteButton.onClick(function () {
+                var layer = MLJ.core.Scene.getSelectedLayer();
+                layer.addStickyNote();
+            });
+           
             resetTrackball.onClick(function() {
                 MLJ.core.Scene.resetTrackball();
             })
+
+            nextImage.onClick(function() {
+                MLJ.core.Scene.loadNextImage();
+            })
+                        
         }
 
         /**

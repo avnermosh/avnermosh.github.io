@@ -33,10 +33,17 @@
         console.error("MLJ.gui.widget module needed.");
     }
 
+    let portraitWidth = 1512;
+    let portraitHeight = 2016;
+    let imageAspectPortrait = portraitWidth / portraitHeight;
+
+    let texturePaneWidth = window.innerHeight / imageAspectPortrait;
+    let texturePaneTo3dPaneWidthRatio = Math.floor( 100 * (texturePaneWidth / window.innerWidth) );
+    let texturePaneTo3dPaneWidthRatioStr = texturePaneTo3dPaneWidthRatio + "%";
+
     var _$wrapper = $('<div></div>')
             .css({
-                // width: "80%",
-                width: "65%",
+                width: texturePaneTo3dPaneWidthRatioStr,
                 height: "100%"
             });
 
@@ -51,8 +58,8 @@
 
     var _$pane = $('<div id="mlj-tools-pane"></div>')
             .css({
-                width: "100%"
-                // height: "10%"
+                width: "100%",
+                height: "100%"
             })
             .data("visible", true);
 
@@ -90,13 +97,11 @@
 
         $(document.body).bind("dragover", function(e) {
             e.preventDefault();
-            console.log('foo1');
             return false;
         });
 
         $(document.body).bind("drop", function(e){
             e.preventDefault();
-            console.log('foo2');
             return false;
         });
 
@@ -120,15 +125,16 @@
         
         _$pane.append(MLJ.gui.getWidget("SceneBar")._make());
 
-        var $wrap = $("<div/>").attr("id", "mlj-split-pane");
-        var $pos1 = $("<div/>").css({height: "100%"});
-        $wrap.append($pos1);
+        var $pos1 = $("<div/>").css({
+            width: "100%",
+            height: "100%"
+        });
 
-        _$pane.append($wrap);
+        _$pane.append($pos1);
 
-        //Init split pane height on window ready        
+        //Init pane height on window ready        
         $(window).ready(function () {
-            $wrap.height($(window).height() - $wrap.offset().top);
+            _$pane.height($(window).height() - _$pane.offset().top);
         });
 
         $pos1.append(MLJ.gui.getWidget("TabbedPane")._make());

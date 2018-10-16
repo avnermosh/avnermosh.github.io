@@ -39,9 +39,6 @@ THREE.OBJExporter.prototype = {
                 else
                     mtlOutput += 'newmtl material' + mat.id + '\n';
                 
-                // newmtl material_10
-                // illum 2
-                // map_Kd ./floor1/wall_16/flatten_canvas.resized.jpg
                 mtlOutput += 'illum 2\n';
                 
                 if (mat.map && mat.map instanceof THREE.Texture) {
@@ -50,12 +47,35 @@ THREE.OBJExporter.prototype = {
                     // mtlOutput += 'map_Ka ' + file + '\n';
                     // mtlOutput += 'map_Kd ' + file + '\n';
                     
-                    // store the name of the texture file (instead of the image itself?)
-                    var textureFilename = mat.userData["url"];
-
+                    // store the texture file name(s) and orientation(s)
+                    let textureFilenames = "";
+                    let textureOrientations = "";
+                    var iter = mat.userData.urlArray.iterator();
+                    while (iter.hasNext()) {
+                        let imageInfo = iter.next();
+                        let imageFilename = imageInfo.imageFilename;
+                        let imageOrientation = imageInfo.imageOrientation;
+                        
+                        if((mat.userData.urlArray.size() > 1) && (imageFilename === 'default_image.jpg'))
+                        {
+                            // not removing, as this will confuse the iterator
+                            // instead just ignore the default image (it won't be added to the list of images)
+                            // let removedEl = mat.userData.urlArray.remove(imageFilename);
+                        }
+                        else
+                        {
+                            textureFilenames = textureFilenames + " " + imageFilename;
+                            textureOrientations = textureOrientations + " " + imageOrientation;
+                        }
+                    }
+                    
+                    console.log('textureFilenames', textureFilenames);
+                    
                     // https://en.wikipedia.org/wiki/Wavefront_.obj_file
                     // map_Kd - the diffuse texture map
-                    mtlOutput += 'map_Kd ' + textureFilename + '\n';
+                    mtlOutput += 'map_Kd ' + textureFilenames + '\n';
+
+                    mtlOutput += 'map_Kd_orientation ' + textureOrientations + '\n';
                 }
                 else
                 {

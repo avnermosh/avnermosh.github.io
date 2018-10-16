@@ -388,6 +388,9 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 
         }
 
+         let imageFilenameArray = [];
+         let imageOrientationArray = [];
+         
         for ( var prop in mat ) {
 
             var value = mat[ prop ];
@@ -433,13 +436,16 @@ THREE.MTLLoader.MaterialCreator.prototype = {
                 case 'map_kd':
 
                     // Diffuse texture map
-
-                    setMapForType( "map", value );
-                    // avner
-                    params.userData.url = value;
+                    imageFilenameArray = value.split(" ");
 
                     break;
 
+                case 'map_kd_orientation':
+
+                    // Image orientation (e.g. landscape, portrait)
+                    imageOrientationArray = value.split(" ");
+                    break;
+                    
                 case 'map_ks':
 
                     // Specular map
@@ -505,6 +511,37 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 
         }
 
+	 // Update MLJ.core.Scene._imageInfoVec
+         if( imageFilenameArray.length !== imageOrientationArray.length )
+         {
+             console.error( 'The number of image file names  and image orientations differ. ' +
+                            'imageFilenameArray: ' + imageFilenameArray +
+                            ', imageOrientationArray: ' + imageOrientationArray );
+         }
+         else
+         {
+             let imageInfoVec = MLJ.core.Scene.getImageInfoVec();
+             
+             params.userData.urlArray = new MLJ.util.AssociativeArray();
+
+             for (let i=0; i<imageFilenameArray.length; i++) {
+                 let imageFilename = imageFilenameArray[i];
+                 let imageOrientation = imageOrientationArray[i];
+                 
+                 setMapForType( "map", imageFilename );
+
+                 let imageInfo = {imageFilename: imageFilename,
+                                  imageOrientation: imageOrientation};
+
+                 params.userData.urlArray.set(imageFilename, imageInfo);
+                 imageInfoVec.set(imageFilename, imageInfo);
+             }             
+
+             MLJ.core.Scene.setImageInfoVec(imageInfoVec);
+         }
+
+
+         
         this.materials[ materialName ] = new THREE.MeshPhongMaterial( params );
         return this.materials[ materialName ];
 

@@ -23,12 +23,16 @@ THREE.TrackballControls = function ( object, domElement ) {
     this.zoomSpeed = 1.2;
     this.panSpeed = 0.3;
 
+    this.eyeLengthOrig = null;
+    this.scale = 1.0;
+
     this.noRotate = false;
     this.noZoom = false;
     this.noPan = false;
     this.noInsertRectangle = false;
 
     this.isKeyDown = false;
+    this.isMouseDown = false;
 
     this.staticMoving = false;
     this.dynamicDampingFactor = 0.2;
@@ -50,6 +54,7 @@ THREE.TrackballControls = function ( object, domElement ) {
         _prevState = STATE.NONE,
 
         _eye = new THREE.Vector3(),
+        _eyeTmp = new THREE.Vector3(),
 
         _movePrev = new THREE.Vector2(),
         _moveCurr = new THREE.Vector2(),
@@ -206,21 +211,23 @@ THREE.TrackballControls = function ( object, domElement ) {
 
     this.zoomCamera = function () {
 
-        var factor;
+        var zoomFactor = 1.0;
 
+//         console.log('zoomFactor1', zoomFactor); 
         if ( _state === STATE.TOUCH_ZOOM_PAN ) {
 
-            factor = _touchZoomDistanceStart / _touchZoomDistanceEnd;
+            zoomFactor = _touchZoomDistanceStart / _touchZoomDistanceEnd;
             _touchZoomDistanceStart = _touchZoomDistanceEnd;
-            _eye.multiplyScalar( factor );
+            _eyeTmp.multiplyScalar( zoomFactor );
 
         } else {
 
-            factor = 1.0 + ( _zoomEnd.y - _zoomStart.y ) * _this.zoomSpeed;
+            zoomFactor = 1.0 + ( _zoomEnd.y - _zoomStart.y ) * _this.zoomSpeed;
 
-            if ( factor !== 1.0 && factor > 0.0 ) {
+            if ( zoomFactor !== 1.0 && zoomFactor > 0.0 ) {
 
-                _eye.multiplyScalar( factor );
+                _eyeTmp.multiplyScalar( zoomFactor );
+                _eye.multiplyScalar( zoomFactor );
 
             }
 
@@ -236,6 +243,9 @@ THREE.TrackballControls = function ( object, domElement ) {
 
         }
 
+        this.scale = _eyeTmp.length() / this.eyeLengthOrig;
+        // console.log('this.scale', this.scale);
+        
     };
 
     this.panCamera = ( function () {
@@ -300,6 +310,12 @@ THREE.TrackballControls = function ( object, domElement ) {
 
         _eye.subVectors( _this.object.position, _this.target );
 
+        if(!_this.eyeLengthOrig)
+        {
+            _this.eyeLengthOrig = _eye.length();
+        }
+
+        
         if ( ! _this.noRotate ) {
 
             _this.rotateCamera();
@@ -345,6 +361,7 @@ THREE.TrackballControls = function ( object, domElement ) {
         _this.object.up.copy( _this.up0 );
 
         _eye.subVectors( _this.object.position, _this.target );
+        _eyeTmp.subVectors( _this.object.position, _this.target );
 
         _this.object.lookAt( _this.target );
 
@@ -357,7 +374,7 @@ THREE.TrackballControls = function ( object, domElement ) {
     // listeners
 
     function keydown( event ) {
-//                     console.log('BEG keydown'); 
+        // console.log('BEG keydown'); 
         
         // Gets here if key is pressed (no need for the mouse to be pressed)
 
@@ -420,6 +437,7 @@ THREE.TrackballControls = function ( object, domElement ) {
     }
 
     function mousedown( event ) {
+        _this.isMouseDown = true;
 
         if ( _this.enabled === false ) return;
 
@@ -565,6 +583,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 
     function mouseup( event ) {
 
+        _this.isMouseDown = false;
         if ( _this.enabled === false ) return;
 
         event.preventDefault();

@@ -60,6 +60,10 @@ MLJ.core.plugin.Manager = {
         }
     };
 
+    this.getTexturePlugins = function () {
+        return _texture;
+    };
+
     /**
      * Executes the main entry point function for all installed plugins
      * It is called only in the index.html after loading all the js plugins

@@ -13,9 +13,9 @@ MLJ.core.Scene.timeStamp = 0;
 var firstTimeCameraPositioning = true;
 var radius = 100;
 
-// TBD - remove wall related staff. Every wall is a single mesh with single material...
-var wallIndexPrev = 0;
-var imageIndexPrev = 0;
+var positionX0 = 521;
+var positionY0 = 549;
+var positionZ0 = 4282;
 
 (function () {
     var _layers = new MLJ.util.AssociativeArray();
@@ -27,7 +27,6 @@ var imageIndexPrev = 0;
     // _group is THREE.Object3D (similar to THREE.Group) which is base class for most threejs objects
     // used for grouping elements, e.g. scale, position
     var _group;
-    
     var _camera;
     var _scene2D;
     var _camera2D;
@@ -49,6 +48,12 @@ var imageIndexPrev = 0;
     var _overlayObjFileName;
     
     var _selectedImageFilename;
+    var _selectedThumbnailImageFilename;
+    
+    var _selectedImageFilenames;
+    var _selectedImageFilenameIndex = 0;
+
+    var _imageInfoVec = new MLJ.util.AssociativeArray();
 
     ////////////////////////////////////////////////////
     // OverlayRect
@@ -70,7 +75,6 @@ var imageIndexPrev = 0;
     // Other stuff
     ////////////////////////////////////////////////////
 
-    
     var _releaseVersion = 1.0;
     var _modelVersion = undefined;
     var _blobs = {};
@@ -78,7 +82,6 @@ var imageIndexPrev = 0;
     var _zipLoaderInstance = -1;
     var _materialBlue = new THREE.LineBasicMaterial({color: 0x0000ff, linewidth: 5});
 
-   
     function onDocumentMouseMove0( event ) {
         event.preventDefault();
 
@@ -88,9 +91,7 @@ var imageIndexPrev = 0;
         _mouse.y = - ( ( event.clientY - get3DOffset().top - _renderer.domElement.offsetTop ) /
                        _renderer.domElement.clientHeight ) * 2 + 1;
 
-        
         MLJ.core.Scene.render();
-
     }
 
     function get3DSize() {
@@ -150,15 +151,12 @@ var imageIndexPrev = 0;
         _mouse.y = - ( ( event.clientY - get3DOffset().top - _renderer.domElement.offsetTop ) /
                        _renderer.domElement.clientHeight ) * 2 + 1;
         
-        var $canvas = $('canvas')[0];
-        $canvas.className = "area drag";
-
     }
 
 
     var droppedFileData;
     
-    function updateMaterial(selectedObject, droppedFileUrl, droppedFilename) {
+    function updateMaterial(selectedOverlayRectObj, droppedFileUrl, droppedFilename, imageOrientation) {
 
         // instantiate a loader
         var loader = new THREE.TextureLoader();
@@ -170,10 +168,33 @@ var imageIndexPrev = 0;
             
             // onLoad callback
             function ( texture ) {
-                selectedObject.material.map = texture;
-                selectedObject.material.userData["url"] = droppedFilename;
-                // selectedObject.material.name = droppedFilename;
-                selectedObject.material.needsUpdate = true
+                selectedOverlayRectObj.material.map = texture;
+
+                let urlArray = MLJ.util.getNestedObject(selectedOverlayRectObj, ['material', 'userData', 'urlArray']);
+                if(!urlArray)
+                {
+                    selectedOverlayRectObj.material.userData.urlArray = new MLJ.util.AssociativeArray();
+                }
+
+                let imageInfo = {imageFilename: droppedFilename,
+                                 imageOrientation: imageOrientation};
+                
+                urlArray.set(droppedFilename, imageInfo);
+
+                let imageInfoVec = MLJ.core.Scene.getImageInfoVec();
+                imageInfoVec.set(droppedFilename, imageInfo);
+                MLJ.core.Scene.setImageInfoVec(imageInfoVec);
+                
+                if(urlArray.size() > 1)
+                {
+                    // remove default image if it exists
+                    let keyToRemove = 'default_image.jpg';
+                    let removedEl = urlArray.remove(keyToRemove);
+                }
+                    
+                _selectedImageFilenames = urlArray.getKeys();
+
+                selectedOverlayRectObj.material.needsUpdate = true;
             },
 
             // onProgress callback currently not supported
@@ -185,6 +206,35 @@ var imageIndexPrev = 0;
             }
         );
     }
+
+    function thumbnailify(base64Image, targetSize, callback) {
+        var img = new Image();
+
+        img.onload = function() {
+            let width = img.width;
+            let height = img.height;
+            let canvas1 = document.createElement('canvas');
+            let ctx = canvas1.getContext("2d");
+
+            canvas1.width = canvas1.height = targetSize;
+
+            ctx.drawImage(
+                img,
+                width > height ? (width - height) / 2 : 0,
+                height > width ? (height - width) / 2 : 0,
+                width > height ? height : width,
+                width > height ? height : width,
+                0, 0,
+                targetSize, targetSize
+            );
+
+            canvas1.toBlob(callback);
+        };
+
+        img.src = base64Image;
+    };
+
+
     
     function filesDroped(event) {
 
@@ -205,8 +255,8 @@ var imageIndexPrev = 0;
 
         // var drop_area = document.getElementById("drop_area");
         // drop_area.className = "area";
-        var $canvas = $('canvas')[0];
-        $canvas.className = "area";
+        let $canvas2 = $('canvas')[0];
+        $canvas2.className = "area";
         
         var droppedFiles = event.dataTransfer.files; //It returns a FileList object
         var filesInfo = "";
@@ -214,15 +264,13 @@ var imageIndexPrev = 0;
         for (var i = 0; i < droppedFiles.length; i++) {
             var droppedFile = droppedFiles[i];
 
-            // Load the file
+            // Load the dragged file
             
-            // Replace blobs[selectedImageFilename]
-
             // https://stackoverflow.com/questions/31433413/return-the-array-of-bytes-from-filereader
             droppedFileData = new Blob([droppedFile]);
-            var promise = new Promise(getBuffer);
+            var promise1 = new Promise(getBuffer);
             
-            promise.then(function(data) {
+            promise1.then(function(data) {
                 var droppedFileUrl = URL.createObjectURL(droppedFileData);
 
                 var droppedFilename = droppedFile.name;
@@ -231,24 +279,80 @@ var imageIndexPrev = 0;
                 // Update _blobs with the new image
                 _blobs[droppedFilename] = droppedFileUrl;
 
-                var scene = MLJ.core.Scene.getScene();
-                var selectedObject = _intersectionInfo.intersectedOverlayRect.object;
-                console.log('selectedObject', selectedObject);
-
-                ////////////////////////////////////////////////////
-                // refresh the 3d model
-                ////////////////////////////////////////////////////
-
-                updateMaterial(selectedObject, droppedFileUrl, droppedFilename);
-
-                ////////////////////////////////////////////////////
-                // refresh the texture in the 2d pane
-                ////////////////////////////////////////////////////
-
-                _selectedImageFilename = droppedFilename;
+                let promise2 = _zipLoaderInstance.getOrientation(droppedFileData);
                 
-                // The file already exists in memory. Load it from the memory and render
-                MLJ.core.MeshFile.loadTexture2FromFile(_blobs[droppedFilename]);
+                promise2.then(function(result2) {
+                    let imageOrientation = result2.orientation;
+                    let imageInfo = {imageFilename: droppedFilename,
+                                     imageOrientation: imageOrientation};
+                    
+                    let imageInfoVec = MLJ.core.Scene.getImageInfoVec();
+                    imageInfoVec.set(droppedFilename, imageInfo);
+                    MLJ.core.Scene.setImageInfoVec(imageInfoVec);
+                    
+                    //////////////////////////////////////////////
+                    // BEG create a thumbnail for the image
+                    //////////////////////////////////////////////
+
+                    // TBD generalize the thumbligy code block into a function in e.g. imageUtils.js ?
+                    
+                    let droppedThumbnailFilename = droppedFilename.substr(0, droppedFilename.lastIndexOf(".")) + ".thumbnail.jpg";
+                    if(!_blobs[droppedThumbnailFilename])
+                    {
+                        thumbnailify(_blobs[droppedFilename], 100, function(base64Thumbnail) {
+                            console.log('done thumbnailify'); 
+	                    // thumbnail.src = base64Thumbnail;
+                            var droppedThumbnailFileUrl = URL.createObjectURL(base64Thumbnail)
+
+                            _blobs[droppedThumbnailFilename] = droppedThumbnailFileUrl;
+
+                            ////////////////////////////////////////////////////
+                            // refresh the texture of the intersectedOverlayRect in the 3d model
+                            ////////////////////////////////////////////////////
+
+                            let selectedOverlayRectObj = _intersectionInfo.intersectedOverlayRect.object;
+                            
+                            updateMaterial(selectedOverlayRectObj, droppedThumbnailFileUrl, droppedThumbnailFilename, imageOrientation);
+                            
+                            
+                            ////////////////////////////////////////////////////
+                            // refresh the texture in the 2d pane
+                            ////////////////////////////////////////////////////
+                            
+                            _selectedImageFilename = droppedFilename;
+                            
+                            // The file already exists in memory. Load it from the memory and render in the 2d pane
+                            MLJ.core.MeshFile.loadTexture2FromFile(_blobs[droppedFilename]);
+                            
+                        });
+
+                    }
+                    else
+                    {
+                        ////////////////////////////////////////////////////
+                        // refresh the texture of the intersectedOverlayRect in the 3d model
+                        ////////////////////////////////////////////////////
+
+                        let selectedOverlayRectObj = _intersectionInfo.intersectedOverlayRect.object;
+                        let droppedThumbnailFileUrl = _blobs[droppedThumbnailFilename];
+                        updateMaterial(selectedOverlayRectObj, droppedThumbnailFileUrl, droppedThumbnailFilename, imageOrientation);
+                        
+                        
+                        ////////////////////////////////////////////////////
+                        // refresh the texture in the 2d pane
+                        ////////////////////////////////////////////////////
+                        
+                        _selectedImageFilename = droppedFilename;
+                        
+                        // The file already exists in memory. Load it from the memory and render in the 2d pane
+                        MLJ.core.MeshFile.loadTexture2FromFile(_blobs[droppedFilename]);
+
+                    }
+                    
+                }).catch(function(err) {
+
+                    console.error('err1', err); 
+                });                         
                 
             }).catch(function(err) {
 
@@ -286,10 +390,9 @@ var imageIndexPrev = 0;
         var cameraFrustumFarPlane = 100000;
         _camera = new THREE.PerspectiveCamera(fov, cameraFrustumAspectRatio, cameraFrustumNearPlane, cameraFrustumFarPlane);
 
-        _camera.position.z = -1500;
-        _camera.position.x = 1500;
-        _camera.position.y = 1500;
-
+        _camera.position.x = positionX0;
+        _camera.position.y = positionY0;
+        _camera.position.z = positionZ0;
         
         // BEG from example2_objLoader_raycasting.js
         _camera.lookAt( _scene.position );
@@ -323,13 +426,12 @@ var imageIndexPrev = 0;
         // INIT CONTROLS
         ////////////////////////////////////////////////////
 
-        var container = document.getElementsByTagName('canvas')[0];
-        _controls = new THREE.TrackballControls(_camera, container);
-        
+        let container1 = document.getElementById('_3D');
+        _controls = new THREE.OrbitControls3Dpane(_camera, container1);
+
         _controls.rotateSpeed = 2.0;
         _controls.zoomSpeed = 1.2;
         _controls.panSpeed = 2.0;
-
         _controls.noZoom = false;
         _controls.noPan = false;
         _controls.staticMoving = true;
@@ -370,23 +472,23 @@ var imageIndexPrev = 0;
         // EVENT HANDLERS
         ////////////////////////////////////////////////////
 
-        var $canvas = $('canvas')[0];
-        $canvas.addEventListener('touchmove', _controls.update.bind(_controls), false);
-        $canvas.addEventListener('mousemove', _controls.update.bind(_controls), false);
-        $canvas.addEventListener('mousewheel', _controls.update.bind(_controls), false);
-        $canvas.addEventListener('DOMMouseScroll', _controls.update.bind(_controls), false); // firefox
+        let $canvas2 = $('canvas')[0];
+        $canvas2.addEventListener('touchmove', _controls.update.bind(_controls), false);
+        $canvas2.addEventListener('mousemove', _controls.update.bind(_controls), false);
+        $canvas2.addEventListener('mousewheel', _controls.update.bind(_controls), false);
+        $canvas2.addEventListener('DOMMouseScroll', _controls.update.bind(_controls), false); // firefox
         document.addEventListener( 'mousemove', onDocumentMouseMove0, false );
 
         ////////////////////////////////////////////////////
-        // BEG drag drop file via canvas
+        // BEG drag drop file via canvas2
         ////////////////////////////////////////////////////
         
-        $canvas.addEventListener("dragover", dragHandler);
-        $canvas.addEventListener("drop", filesDroped);
+        $canvas2.addEventListener("dragover", dragHandler);
+        $canvas2.addEventListener("drop", filesDroped);
 
         _controls.addEventListener('change', function () {
             MLJ.core.Scene.render();
-            $($canvas).trigger('onControlsChange');
+            $($canvas2).trigger('onControlsChange');
         });
 
         $(window).resize(function () {
@@ -474,7 +576,7 @@ var imageIndexPrev = 0;
         _layers.set(layer.name, layer);
         
         _selectedLayer = layer;
-        
+
         $(document).trigger("SceneLayerAdded", [layer, _layers.size()]);
         _this.render();
 
@@ -489,14 +591,31 @@ var imageIndexPrev = 0;
             console.log('No intersection overlay found');
             return;
         }
-        var selectedObject = _intersectionInfo.intersectedOverlayRect.object;
+        // var selectedOverlayRectObj = _intersectionInfo.intersectedOverlayRect.object;
 
         var overlayMeshGroup = _intersectionInfo.intersectionLayer.getOverlayMeshGroup();
         var intersectedOverlayRectObject = overlayMeshGroup.getObjectById(intersectedOverlayRectObjectId);
         if(intersectedOverlayRectObject)
         {
-            _scene.remove( intersectedOverlayRectObject );
-            overlayMeshGroup.remove( intersectedOverlayRectObject );
+            let material_userData_urlArray = MLJ.util.getNestedObject(intersectedOverlayRectObject, ['material', 'userData', 'urlArray']);
+            if(!material_userData_urlArray)
+            {
+                console.log("intersectionObj.material.userData.urlArray is undefined")
+                return false;
+            }
+
+            if(material_userData_urlArray.size() === 0)
+            {
+                _scene.remove( intersectedOverlayRectObject );
+                overlayMeshGroup.remove( intersectedOverlayRectObject );
+            }
+            else
+            {
+                // console.log('material_userData_urlArray.size() before pop', material_userData_urlArray.size()); 
+                let keyToRemove = material_userData_urlArray.getLastKey();
+                material_userData_urlArray.remove(keyToRemove);
+            }
+            _selectedImageFilenames = material_userData_urlArray.getKeys();
         }
         else
         {
@@ -678,7 +797,7 @@ var imageIndexPrev = 0;
     this.setEdit3dModelOverlayFlag = function (edit3dModelOverlayFlag) {
         _edit3dModelOverlayFlag = edit3dModelOverlayFlag;
     };
-    
+
     this.getModelVersion = function () {
         return _modelVersion;
     };
@@ -694,7 +813,12 @@ var imageIndexPrev = 0;
     this.setZipLoaderInstance = function (zipLoaderInstance) {
         _zipLoaderInstance = zipLoaderInstance;
     };
-    
+
+    this.isStickyNotesEnabled = function () {
+        // return false;
+        return true;
+    };
+
     this.getBlobs = function () {
         return _blobs;
     };
@@ -726,6 +850,43 @@ var imageIndexPrev = 0;
     this.getScene = function () {
         return _scene;
     };
+
+    this.getSelectedImageFilename = function () {
+        return _selectedImageFilename;
+    };
+
+    this.getSelectedImageFilenames = function () {
+        return _selectedImageFilenames;
+    };
+
+    this.getSelectedThumbnailImageFilename = function () {
+        return _selectedThumbnailImageFilename;
+    };
+    
+    this.getSelectedImageFilnameIndex = function () {
+        return _selectedImageFilenameIndex;
+    };
+
+    this.setSelectedImageFilnameIndex = function (selectedImageFilnameIndex) {
+        _selectedImageFilenameIndex = selectedImageFilnameIndex;
+    };
+
+    this.getImageInfoVec = function () {
+        return _imageInfoVec;
+    };
+
+    this.setImageInfoVec = function (imageInfoVec) {
+        _imageInfoVec = imageInfoVec;
+    };
+    
+    this.getTrackballControls = function () {
+        return _controls;
+    };
+
+    this.setTrackballControls = function (controls) {
+        _controls = controls;
+    };
+    
     
     var plane = new THREE.PlaneBufferGeometry(2, 2);
     var quadMesh = new THREE.Mesh(
@@ -807,19 +968,19 @@ var imageIndexPrev = 0;
             pos0 += 3;
             var v5 = new THREE.Vector3(posArray[pos0], posArray[pos0+1], posArray[pos0+2]);
 
+
+            // TBD change the order here ???
             var rectangleVertices = {};
             rectangleVertices["tlPoint"] = v0;
             rectangleVertices["trPoint"] = v1;
             rectangleVertices["brPoint"] = v2;
             rectangleVertices["blPoint"] = v5;
 
-            // console.log("v0", v0);
-            // console.log("v1", v1);
-            // console.log("v2", v2);
-            // console.log("v3", v3);
-            // console.log("v4", v4);
-            // console.log("v5", v5);
-
+            // rectangleVertices["tlPoint"] = v0;
+            // rectangleVertices["blPoint"] = v1;
+            // rectangleVertices["brPoint"] = v2;
+            // rectangleVertices["trPoint"] = v5;
+            
             return rectangleVertices;
         }
         else if ( intersection.object.geometry instanceof THREE.Geometry )
@@ -843,69 +1004,52 @@ var imageIndexPrev = 0;
 
     };
 
-    this.loadTheSelectedImageAndRender = function (intersectionObj) {
 
-        var material_userData_url = MLJ.util.getNestedObject(intersectionObj, ['material', 'userData', 'url']);
-        if(! material_userData_url)
-        {
-            console.log("intersectionObj.material.userData.url is undefined")
-            return false;
-        }
+    this.loadTheSelectedImageAndRender = function () {
 
-        // var imageFilename = "sec_2_37.jpg";
-        var imageFilename = material_userData_url;
+        let imageInfo = _imageInfoVec.getByKey(_selectedImageFilename);
 
-        var rectangleVertices = _this.getRectangleVertices(_intersectionInfo.intersectedOverlayRect);
+        // TBD - leave here until showImageInfo is implemented
+        console.log('_selectedImageFilename', _selectedImageFilename);
+        console.log('imageInfo', imageInfo); 
         
-        if(Object.keys(rectangleVertices).length !== 4)
-        {
-            console.log("Failed to get rectangleVertices")
-            return false;
-        }
-        
-        var imageInfo = {
-            imageFilename: imageFilename,
-            tlPoint: {
-                worldcoords: rectangleVertices["tlPoint"]
-            },
-            trPoint: {
-                worldcoords: rectangleVertices["trPoint"]
-            },
-            blPoint: {
-                worldcoords: rectangleVertices["blPoint"]
-            },
-            brPoint: {
-                worldcoords: rectangleVertices["brPoint"]
-            }
-        };
-
-        var imageFilename = imageInfo.imageFilename;
-        _selectedImageFilename = imageFilename;
-        
+        _selectedThumbnailImageFilename = imageInfo.imageFilename;
+        _selectedImageFilename = _selectedThumbnailImageFilename.replace(/\.thumbnail/i, '');
         var blobs = _this.getBlobs();
-        if(blobs[imageFilename])
+        
+        if(blobs[_selectedImageFilename])
         {
             // The file already exists in memory. Load it from the memory and render
-            MLJ.core.MeshFile.loadTexture2FromFile(blobs[imageFilename]);
+            MLJ.core.MeshFile.loadTexture2FromFile(blobs[_selectedImageFilename]);
         }
         else
         {
             // The file is not yet in memory.
             var zipLoaderInstance = _this.getZipLoaderInstance();
-            var offsetInReader = zipLoaderInstance.files[imageFilename].offset;
+            var offsetInReader = zipLoaderInstance.files[_selectedImageFilename].offset;
             if(offsetInReader > 0)
             {
                 // The file is not yet in memory, but its offset is stored in memory.
                 // Load the file from the zip file into memory and render
-                // unzip the image files of specific wall (that were skipped in the initial load)
+                // unzip the image files (that were skipped in the initial load)
                 var doSkipJPG = false;
                 ZipLoader.unzip( _this._zipFileArrayBuffer, doSkipJPG, offsetInReader ).then( function ( zipLoaderInstance ) {
-                    zipLoaderInstance2 = MLJ.core.MeshFile.addImageToBlobs(zipLoaderInstance);
-                    MLJ.core.MeshFile.loadTexture2FromFile(blobs[imageFilename]);
+                    let promise3 = MLJ.core.MeshFile.addImageToBlobs(zipLoaderInstance);
+                    promise3.then(function(value) {
+                        // At this point all the images finished being added to the blob
+                        if(blobs[_selectedImageFilename] === null)
+                        {
+                            console.error('blobs', blobs); 
+                            console.error('_selectedImageFilename', _selectedImageFilename); 
+                            throw 'blobs[_selectedImageFilename] is undefined';
+                        }
+                        MLJ.core.MeshFile.loadTexture2FromFile(blobs[_selectedImageFilename]);
+                    }).catch(function(err) {
+                        console.error('err from promise3', err); 
+                    });
                 });
             }
         }
-
         return true;
     }
 
@@ -1086,14 +1230,15 @@ var imageIndexPrev = 0;
         // BEG from example2_objLoader_raycasting.js
         if(firstTimeCameraPositioning)
         {
-            _camera.position.x = 2205;
-            _camera.position.y = 569;
-            _camera.position.z = 572;
-            
+            _camera.position.x = positionX0;
+            _camera.position.y = positionY0;
+            _camera.position.z = positionZ0;
+           
             _camera.updateMatrixWorld();
+
             firstTimeCameraPositioning = false;
         }
-        
+
         _raycaster.setFromCamera( _mouse, _camera );
 
         var intersects = _raycaster.intersectObjects( _scene.children, true );
@@ -1147,9 +1292,19 @@ var imageIndexPrev = 0;
                 var intersectedOverlayRectObjectPrev = MLJ.util.getNestedObject(_intersectionInfo, ['intersectedOverlayRectPrev', 'object']);
                 if ( !intersectedOverlayRectObjectPrev || (intersectedOverlayRectObjectPrev != intersectedOverlayRectObject) )
                 {
-                    if(_this.loadTheSelectedImageAndRender(_intersectionInfo.intersectedOverlayRect.object) == false)
+                    let urlArray = MLJ.util.getNestedObject(_intersectionInfo, ['intersectedOverlayRect', 'object', 'material', 'userData', 'urlArray']);
+                    if(!urlArray || (urlArray.size() === 0))
                     {
-                        console.error('Failure from loadTheSelectedImageAndRender'); 
+                        console.log("intersectionObj.material.userData.urlArray is undefined")
+                        return false;
+                    }
+                    _selectedImageFilenames = urlArray.getKeys();
+                    _selectedImageFilenameIndex = 0;
+                    _selectedImageFilename = _selectedImageFilenames[_selectedImageFilenameIndex];
+            
+                    if(_this.loadTheSelectedImageAndRender() == false)
+                    {
+                        console.error('Failed to load and render the selected image.'); 
                     }
                 }
                 
@@ -1165,6 +1320,7 @@ var imageIndexPrev = 0;
     this.render = function (fromReqAnimFrame) {
 
         // if(_controls.isKeyDown)
+        if(_controls.isMouseDown)
         {
             _this.findIntersections();
         }
@@ -1178,6 +1334,19 @@ var imageIndexPrev = 0;
         _renderer.render(_scene2D, _camera2D);
         _renderer.autoClear = true;
         
+    };
+
+    this.loadNextImage = function () {
+        if(_selectedImageFilenames.length > 0)
+        {
+            _selectedImageFilenameIndex = (_selectedImageFilenameIndex + 1) % _selectedImageFilenames.length
+            _selectedImageFilename = _selectedImageFilenames[_selectedImageFilenameIndex];
+            
+            if(MLJ.core.Scene.loadTheSelectedImageAndRender() == false)
+            {
+                console.error('Failed to load and render the selected image.'); 
+            }
+        }
     };
 
     this.resetTrackball = function () {

@@ -46,6 +46,19 @@ MLJ.util.blueColor = 0x0000ff;
 MLJ.util.islamicGreenColor = 0x00aa00;
 
 
+// https://www.abeautifulsite.net/adding-and-removing-elements-on-the-fly-using-javascript
+// add html elemnt dynamically
+MLJ.util.addElement = function (parentId, elementTag, elementId, html, elementCssClass) {
+    // Adds an element to the document
+    var parentEl = document.getElementById(parentId);
+    var newElement = document.createElement(elementTag);
+    newElement.setAttribute('id', elementId);
+    newElement.setAttribute('class', elementCssClass);
+    newElement.innerHTML = html;
+    parentEl.appendChild(newElement);
+}
+
+
 // get nested object safely, using reduce
 MLJ.util.getNestedObject = function (nestedObj, pathArr) {
     return pathArr.reduce((obj, key) =>
@@ -196,6 +209,13 @@ MLJ.util.AssociativeArray = function () {
         
         return values[keys[0]];     
     };
+
+    this.getLastKey = function() {
+        if(this.size() === 0)
+            return null;
+
+        return keys[0];
+    };
     
     /**
      * Returns the first inserted value of this associative array or 
@@ -209,7 +229,15 @@ MLJ.util.AssociativeArray = function () {
         
         return values[keys[keys.length - 1]];
     };
+
+    this.getKeys = function() {
+        return keys;
+    };
     
+    this.getValues = function() {
+        return keys;
+    };
+
     /**
      * Returns the value to which the specified key is mapped, or 
      * <code>undefined</code> if this array contains no mapping for the key
@@ -222,6 +250,11 @@ MLJ.util.AssociativeArray = function () {
         return values[key];
     };
 
+    this.getByKeyIndex = function (index) {
+        let key = keys[index]
+        return values[key];
+    };
+    
     /**
      * Returns the number of elements in this array     
      * @returns {Integer} The number of elements in this array

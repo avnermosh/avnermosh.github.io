@@ -20,7 +20,6 @@ MLJ.core.Layer = function (id, name)
 
     this.mtlInfo = undefined;
     this.objInfo = undefined;
-    this.wallsInfo = [];
     
     this.name = name;
     this.id = id;
@@ -33,11 +32,14 @@ MLJ.core.Layer = function (id, name)
     this.overlayMeshGroup = new THREE.Object3D();
     this.overlayMeshGroup.name = "overlay";
 
+    // stickyNoteGroup stores the mutable overlay related meshes
+    this.stickyNoteGroup = new THREE.Object3D();
+    this.stickyNoteGroup.name = "stickyNotes";
+
+    this.noteArray = new MLJ.util.AssociativeArray();
+
     MLJ.core.Scene.setDraggableControl( this.structureMeshGroup, this.overlayMeshGroup );
 
-    // yellow lines
-    this.imagesLineBoundariesMaterial = new THREE.LineBasicMaterial({color: MLJ.util.yellowColor});
-    
     /**
      * @type {String} - Set if a mesh is read from a file
      * (see {@link MLJ.core.MeshFile.openMeshFile}), defaults to the empty string
@@ -58,17 +60,72 @@ MLJ.core.Layer = function (id, name)
         console.log('END initializeRenderingAttributes');
     };
 
-    
-    this.getImagesLineBoundariesMaterial = function () {
-        return _this.imagesLineBoundariesMaterial;
-    };
+    this.addStickyNote = function () {
+        console.log('BEG addStickyNote');
 
+        let selectedImageFilename = MLJ.core.Scene.getSelectedImageFilename();
+
+        if(selectedImageFilename)
+        {
+            let index = _this.noteArray.size();
+            let noteNumber = Number(index);
+            let noteId = "note" + noteNumber;
+            let dataStr = "{\"ops\":[{\"insert\":\"My Note\"},{\"attributes\":{\"header\":1},\"insert\":\"\\n\"}]}";
+
+            let noteData = dataStr;
+            let noteStyle = {
+                top: 0,
+                left: 0
+            };
+            let imageFilename = selectedImageFilename;
+            
+            let texturePlugin = MLJ.core.plugin.Manager.getTexturePlugins().getFirst();
+            var texScene = texturePlugin.getTexScene();
+            var texCamera = texturePlugin.getTexCamera();
+            var texLabelRenderer = texturePlugin.getTexLabelRenderer();
+
+            let newNote = new Note(noteId,
+                                   noteData,
+                                   noteStyle,
+                                   imageFilename,
+                                   index,
+                                   _this,
+                                   texLabelRenderer,
+                                   texScene,
+                                   texCamera);
+
+
+            _this.noteArray.set(noteId, newNote);
+
+        }
+        
+    };
+    
     this.getStructureMeshGroup = function () {
         return _this.structureMeshGroup;
     };
 
     this.addToStructureMeshGroup = function (mesh) {
         _this.structureMeshGroup.add( mesh );
+//         console.log('_this.structureMeshGroup', _this.structureMeshGroup);
+//         let bBox = mesh.bBox;
+//         console.log('bBox', bBox); 
+
+//         var box = new THREE.Box3().setFromObject( mesh );
+//         console.log('box', box);
+
+//         var position1 = new THREE.Vector3();
+//         console.log('position1 before bBox.center', position1);
+//         box.center( position1 ); // this re-sets position1
+//         console.log('position1 after bBox.center', position1);
+
+//         box.center( _this.structureMeshGroup.position ); // this re-sets _this.structureMeshGroup
+//         console.log('_this.structureMeshGroup after bBox.center', _this.structureMeshGroup);
+        
+//         var container = document.getElementsByTagName('canvas')[0];
+//         let trackballControls = new THREE.TrackballControls(_this.structureMeshGroup, container);
+//         MLJ.core.Scene.setTrackballControls(trackballControls);
+        
     };
 
     this.getOverlayMeshGroup = function () {
@@ -77,6 +134,22 @@ MLJ.core.Layer = function (id, name)
 
     this.addToOverlayMeshGroup = function (mesh) {
         _this.overlayMeshGroup.add(mesh);
+    };
+
+    this.getNoteArray = function () {
+        return _this.noteArray;
+    };
+    
+    this.setNoteArray = function (noteArray) {
+        _this.noteArray = noteArray;
+    };
+
+    this.getStickyNoteGroup = function () {
+        return _this.stickyNoteGroup;
+    };
+
+    this.addToStickyNoteGroup = function (css2DObject) {
+        _this.stickyNoteGroup.add( css2DObject );
     };
 
     this.getMtlInfo = function () {
@@ -93,14 +166,6 @@ MLJ.core.Layer = function (id, name)
 
     this.setObjInfo = function (objInfo) {
         _this.objInfo = objInfo;
-    };
-
-    this.getWallsInfo = function () {
-        return _this.wallsInfo;
-    };
-
-    this.setWallsInfo = function (wallsInfo) {
-        _this.wallsInfo = wallsInfo;
     };
 
     this.createRectangleMesh = function (intersectedStructure) {
@@ -136,10 +201,20 @@ MLJ.core.Layer = function (id, name)
         // default placeholder file until a real image file is dropped
         let imageFilename = "default_image.jpg";
 
-        var userData = {url: imageFilename,
+        var userData = {urlArray: new MLJ.util.AssociativeArray(),
                         origPosition: null,
                         scale: null}
 
+        let imageOrientation = -2;
+        let imageInfo = {imageFilename: imageFilename,
+                         imageOrientation: imageOrientation};
+        
+        userData.urlArray.set(imageFilename, imageInfo);
+
+        let imageInfoVec = MLJ.core.Scene.getImageInfoVec();
+        imageInfoVec.set(imageFilename, imageInfo);
+        MLJ.core.Scene.setImageInfoVec(imageInfoVec);
+        
         var rectangleMeshMaterial = new THREE.MeshPhongMaterial( {
 	    opacity: 0.5,
             transparent: false,
@@ -154,7 +229,6 @@ MLJ.core.Layer = function (id, name)
         geometry.vertices = overlayRectangleVerticesArray;
 
         var face1 = new THREE.Face3(0, 1, 2);
-        // var face2 = new THREE.Face3(2, 3, 0);
         var face2 = new THREE.Face3(0, 2, 3);
 
         geometry.faces.push( face1 );
@@ -168,11 +242,11 @@ MLJ.core.Layer = function (id, name)
         ]);
 
         geometry.faceVertexUvs[0].push([
+            new THREE.Vector2(0,0),
             new THREE.Vector2(1,1),
-            new THREE.Vector2(0,1),
-            new THREE.Vector2(0,0)
+            new THREE.Vector2(0,1)
         ]);
-
+        
         //updating the uvs
         geometry.uvsNeedUpdate = true;
 
@@ -226,12 +300,12 @@ MLJ.core.Layer = function (id, name)
             delete _this.overlayMeshGroup;
             _this.overlayMeshGroup = null;
         }
-        
-        if(_this.imagesLineBoundariesMaterial)
+
+        if(_this.stickyNoteGroup)
         {
-            MLJ.core.Scene.removeFromScene( _this.imagesLineBoundariesMaterial );
-            delete _this.imagesLineBoundariesMaterial;
-            _this.imagesLineBoundariesMaterial = null;
+            MLJ.core.Scene.removeFromScene( _this.stickyNoteGroup );
+            delete _this.stickyNoteGroup;
+            _this.stickyNoteGroup = null;
         }
         
         _this.name = null;

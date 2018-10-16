@@ -9,14 +9,19 @@
 var animationDuration = 200;
 
 (function (plugin, core, scene) {
-
-    var texCamera, texScene, texRenderer, texControls;
+    
+    var texCamera;
+    var texScene;
+    var texRenderer1;
+    var texLabelRenderer;
+    var texControls;
+    let rotationVal = 0;
 
     var DEFAULTS = {
         uvParam: false,
         selectedTexture: 0
     };
-
+    
     var plug = new plugin.Texturing({
         name: "TexturePanel",
         tooltip: "Show the texture image and parametrization attached to the mesh",
@@ -32,6 +37,58 @@ var animationDuration = 200;
         canvasInit();
     };
 
+    plug.getTexScene = function () {
+        return texScene;
+    };
+
+    plug.getTexLabelRenderer = function () {
+        return texLabelRenderer;
+    };
+    
+    plug.getTexCamera = function () {
+        return texCamera;
+    };
+    
+    plug.showStickyNotes = function (layer) {
+        
+        let noteArray = layer.getNoteArray();
+
+        let iter = noteArray.iterator();
+        while (iter.hasNext()) {
+            let note = iter.next();
+            
+            let noteElementId = note.getNoteId();
+            let noteElement = document.getElementById(noteElementId);
+            if(!noteElement)
+            {
+                console.error( 'noteElement is not defined for noteElementId:', noteElementId );
+                continue;
+            }
+            
+            let selectedImageFilename = MLJ.core.Scene.getSelectedImageFilename();
+            
+            if(note.getImageFilename() === selectedImageFilename)
+            {
+                // Show the note
+                noteElement.classList.remove("inactive-note");
+                noteElement.classList.add("active-note");
+
+                note.activate();
+                // texEditNotesControls[j].addEventListener( 'dragstart', function ( event ) { texControls.enabled = false; } );
+                // texEditNotesControls[j].addEventListener( 'dragend', function ( event ) { texControls.enabled = true; } );
+                
+            }
+            else
+            {
+                // hide the note
+                noteElement.classList.remove("active-note");
+                noteElement.classList.add("inactive-note");
+
+                note.deactivate();
+            }
+        }
+
+    };
 
     plug._applyTo = function (layer, layersNum, $) {
         // // RemoveME:
@@ -46,20 +103,21 @@ var animationDuration = 200;
         // remove?
         scene.render();
 
-        scene2 = scene;
-        meshObject2 = layer;
-        
-        $("#texCanvasWrapper").append(texRenderer.domElement);
+        $("#texCanvasWrapper1").append(texRenderer1.domElement);
+        if(MLJ.core.Scene.isStickyNotesEnabled())
+        {
+            $("#texCanvasWrapper1").append(texLabelRenderer.domElement);
+        }
 
         //Always remove everything from the scene when creating the meshes and adding them to the scene
         for (var i = texScene.children.length - 1; i >= 0; i--) {
-            texScene.remove(texScene.children[i]);
+
+            if(texScene.children[i].type == "Sprite")
+            {
+                texScene.remove(texScene.children[i]);
+            }
         }
 
-        // console.log('layer.texture.length', layer.texture.length);
-        // console.log('layer.texturesNum', layer.texturesNum);
-        // console.log('layersNum', layersNum);
-        
         if (layer.texturesNum > 0 && layersNum > 0) {
 
             showWidgets();
@@ -70,27 +128,47 @@ var animationDuration = 200;
                 if (!layer.texture[i].planeMesh) {
 
                     var map2 = layer.texture[0].data.material.map;
+
+                    let blobs = MLJ.core.Scene.getBlobs();
+                    let imageInfoVec = MLJ.core.Scene.getImageInfoVec();
+                    let selectedThumbnailImageFilename = MLJ.core.Scene.getSelectedThumbnailImageFilename();
+                    let imageInfo = imageInfoVec.getByKey(selectedThumbnailImageFilename);
+
+                    switch (Number(imageInfo.imageOrientation)) {
+                        case 1:
+                            rotationVal = 0;
+                            break;
+                        case 6:
+                            rotationVal = (-Math.PI / 2);
+                            break;
+                        default:
+                            break;
+                    }
                     
-                    var material = new THREE.SpriteMaterial( { map: map2, color: 0xffffff, fog: true } );
+                    var material = new THREE.SpriteMaterial( { map: map2,
+                                                               color: 0xffffff,
+                                                               rotation: rotationVal,
+                                                               fog: true } );
                     var planeMesh = new THREE.Sprite( material );
                     planeMesh.position.x = planeMesh.position.y = planeMesh.position.z = 0;
-                    // planeMesh.scale.x = planeMesh.scale.y = 70;
                     planeMesh.scale.x = 100
                     planeMesh.scale.y = 100;
                     planeMesh.name = "planeMesh";
-                    
+
                     layer.texture[i].planeMesh = planeMesh;
                 }
             }
 
-            
             //Add the mesh to the scene
             texControls.reset();
 
             // The plane mesh is always visible
             texScene.add(layer.texture[layer.selectedTexture].planeMesh);
-            
-        } else {
+
+            this.showStickyNotes(layer);
+
+        }
+        else {
             hideWidgets();
         }
 
@@ -98,24 +176,30 @@ var animationDuration = 200;
         $(window).trigger('resize');
 
         //Always render, if nothing is shown, then no layer is selected
-        texRenderer.render(texScene, texCamera);
+        texRenderer1.render(texScene, texCamera);
+        if(MLJ.core.Scene.isStickyNotesEnabled())
+        {
+            texLabelRenderer.render(texScene, texCamera);
+        }
 
     };
 
+    function setTexControls(container2) {
+        // // NOT OK - orbit control responds but on all the scene
+        // texControls = new THREE.OrbitControls(texCamera);
 
-    function canvasInit() {
-        //The camera is ortographic and set at the center of the scene, better than prospectic in this case
-        texCamera = new THREE.PerspectiveCamera(70, 512 / 512, 1, 5000);
-        texCamera.position.z = 80; //80 seems like the perfect value, not sure why, I think it is because of the near/fara frustum
-        texScene = new THREE.Scene();
+        // NOT OK - orbit control responds but on all canvases
+        // var container2 = document.getElementsByTagName('canvas')[0];
 
-        texRenderer = new THREE.WebGLRenderer({
-            preserveDrawingBuffer: true,
-            alpha: true});
-        texRenderer.setPixelRatio(window.devicePixelRatio);
-        texRenderer.setClearColor(0XDBDBDB, 1); //Webgl canvas background color
+        // texControls = new THREE.OrbitControls(texCamera, texRenderer1.domElement);
 
-        texControls = new THREE.TrackballControls(texCamera, texRenderer.domElement); //with this, controls are limited to the canvas but right click does not work
+        // let container2 = document.getElementById('tab-Texture');
+        // let container2 = document.getElementById('texCanvasWrapper1');
+
+        // let container2 = document.getElementById('mlj-tools-pane');
+        
+        texControls = new THREE.OrbitControls(texCamera, container2);
+        
         texControls.staticMoving = false;
         texControls.noRoll = true;
         texControls.noRotate = true;
@@ -125,7 +209,45 @@ var animationDuration = 200;
         texControls.zoomSpeed = 0.8;
         texControls.panSpeed = 0.6;
         texControls.addEventListener('change', render);
+    };
+    
+    function canvasInit() {
 
+        // Looks like left,right,top,bottom is in %
+        // (when set to -100,100, the image covers 1/2 of the window)
+        // (when set to -200,200, the image covers 1/4 of the window)
+        // frustum can be updated in resizeCanvas
+        let left = -50;
+        let right = 50;
+        let top = 50;
+        let bottom = -50;
+        let near = -500;
+        let far = 1000;
+        
+        texCamera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
+
+        texCamera.position.set( 0, 0, 80 );
+        
+        texScene = new THREE.Scene();
+
+        texRenderer1 = new THREE.WebGLRenderer({
+            preserveDrawingBuffer: true,
+            alpha: true});
+        
+        texRenderer1.setPixelRatio(window.devicePixelRatio);
+        texRenderer1.setClearColor(0XDBDBDB, 1); //Webgl canvas background color
+
+        let container2 = document.getElementsByTagName('canvas')[0];
+        setTexControls(container2);
+        
+        if(MLJ.core.Scene.isStickyNotesEnabled())
+        {
+            texLabelRenderer = new THREE.CSS2DRenderer();
+            texLabelRenderer.setSize( texRenderer1.getSize().width, texRenderer1.getSize().height );
+            texLabelRenderer.domElement.style.position = 'absolute';
+            texLabelRenderer.domElement.style.top = 0;
+        }
+        
         animate();
     }
 
@@ -137,13 +259,20 @@ var animationDuration = 200;
 
 
     function render() {
-        texRenderer.render(texScene, texCamera);
+        texRenderer1.render(texScene, texCamera);
+        if(MLJ.core.Scene.isStickyNotesEnabled())
+        {
+            texLabelRenderer.render(texScene, texCamera);
+        }
     }
 
     $(window).resize(function () {
         resizeCanvas();
-        if (texRenderer && texCamera && texScene)
-            texRenderer.render(texScene, texCamera);
+        texRenderer1.render(texScene, texCamera);
+        if(MLJ.core.Scene.isStickyNotesEnabled())
+        {
+            texLabelRenderer.render(texScene, texCamera);
+        }
     });
 
 
@@ -156,83 +285,127 @@ var animationDuration = 200;
     $(window).on('tabsactivate', function (event, ui) {
         if (ui.newPanel.attr('id') === MLJ.widget.TabbedPane.getTexturePane().parent().attr('id')) {
             resizeCanvas();
-            if (texRenderer && texCamera && texScene)
-                texRenderer.render(texScene, texCamera);
+            texRenderer1.render(texScene, texCamera);
+            if(MLJ.core.Scene.isStickyNotesEnabled())
+            {
+                texLabelRenderer.render(texScene, texCamera);
+            }
         } else
             $(window).trigger('resize'); //This one is needed to reset the size (since it is impossible to resize the canvas back
     });
 
     function resizeCanvas() {
-        if (texRenderer && texCamera && texScene) {
-            var panelWidth = $("#tab-Texture").width();
-            var panelHeight = $("#tab-Texture").height()
-            
-            texControls.handleResize();
-            texCamera.aspect = panelWidth / panelHeight;
-            texCamera.updateProjectionMatrix();
-            texRenderer.setSize(panelWidth, panelHeight);
+
+        let portraitWidth = 1512;
+        let portraitHeight = 2016;
+        let imageAspectPortrait = portraitWidth / portraitHeight;
+
+        var paneWidth = $("#tab-Texture").width();
+        var paneHeight = $("#tab-Texture").height();
+        if(rotationVal !== 0)
+        {
+            // portrait
+            paneWidth = paneHeight * imageAspectPortrait;
+        }
+        else
+        {
+            // landscape
+            paneWidth = paneHeight / imageAspectPortrait;
+        }
+
+        // aspect has no effect ?? (changing the aspect value to e.g. 1.0 doesn't make a visual difference?? ...)
+        texCamera.aspect = paneWidth / paneHeight;
+
+        // console.log('rotationVal', rotationVal);
+        // console.log('paneWidth', paneWidth); 
+        // console.log('paneHeight', paneHeight);
+
+        texCamera.updateProjectionMatrix();
+
+        texRenderer1.setSize(paneWidth, paneHeight);
+
+        if(MLJ.core.Scene.isStickyNotesEnabled())
+        {
+            texLabelRenderer.setSize(paneWidth, paneHeight);
         }
     }
 
     function hideWidgets() {
-        //call the parent to hide the div containing both label and button set
-        for (var i = 0; i < widgets.length; i++) {
-            if (widgets[i].rangedfloat)
-                widgets[i].rangedfloat.$.parent().parent().hide(animationDuration);
-            if (widgets[i].color)
-                widgets[i].color.$.parent().parent().hide(animationDuration);
-            if (widgets[i].choice)
-                widgets[i].choice.$.parent().parent().hide(animationDuration);
-        }
+        // //call the parent to hide the div containing both label and button set
+        // for (var i = 0; i < widgets.length; i++) {
+        //     if (widgets[i].rangedfloat)
+        //         widgets[i].rangedfloat.$.parent().parent().hide(animationDuration);
+        //     if (widgets[i].color)
+        //         widgets[i].color.$.parent().parent().hide(animationDuration);
+        //     if (widgets[i].choice)
+        //         widgets[i].choice.$.parent().parent().hide(animationDuration);
+        // }
 
-        $("#texCanvasWrapper").hide(animationDuration);
+        $("#texCanvasWrapper1").hide(animationDuration);
         $("#texInfoContainer").hide(animationDuration);
     }
 
     function showWidgets() {
-        //call the parent to show the div containing both label and button set
-        for (var i = 0; i < widgets.length; i++) {
-            if (widgets[i].rangedfloat)
-                widgets[i].rangedfloat.$.parent().parent().show(animationDuration);
-            if (widgets[i].color)
-                widgets[i].color.$.parent().parent().show(animationDuration);
-            if (widgets[i].choice)
-                widgets[i].choice.$.parent().parent().show(animationDuration);
-        }
+        // //call the parent to show the div containing both label and button set
+        // for (var i = 0; i < widgets.length; i++) {
+        //     if (widgets[i].rangedfloat)
+        //         widgets[i].rangedfloat.$.parent().parent().show(animationDuration);
+        //     if (widgets[i].color)
+        //         widgets[i].color.$.parent().parent().show(animationDuration);
+        //     if (widgets[i].choice)
+        //         widgets[i].choice.$.parent().parent().show(animationDuration);
+        // }
 
-        $("#texCanvasWrapper").show(animationDuration);
+        $("#texCanvasWrapper1").show(animationDuration);
         $("#texInfoContainer").show(animationDuration);
     }
 
     plugin.Manager.install(plug);
 
-    var doLoadHardcodedZipFile = true;
-    doLoadHardcodedZipFile = false;
-    if(doLoadHardcodedZipFile)
-    {
-        // $(window).load happens after $(window).ready
-        // 
-        // a. loadMeshDataFromFile triggers "MeshFileOpened" event
-        // b. Scene::$(document).on("MeshFileOpened responds on it and calls addLayer
-        // the window needs to be fully loaded so that the trigger is intercepted in b. and addLayer is called
-        // 
-        // https://stackoverflow.com/questions/20418169/difference-between-window-load-and-window-ready?lq=1
-        // https://stackoverflow.com/questions/3698200/window-onload-vs-document-ready
+    $(document).ready(function () {
+        // TBD
+        // at this point
+        // not defined - tab-Texture, texCanvasWrapper1
+        // defined - mlj-tools-pane
         //
-        // $(window).ready(function () {
-        $(window).load(function () {
+        // let container2 = document.getElementById('mlj-tools-pane');
+        // console.log('container2', container2); 
+        
+    });
+    
+    // $(window).load happens after $(window).ready   
+    // $(window).ready(function () {
+    $(window).load(function () {
+
+        // at this point
+        // defined - tab-Texture, texCanvasWrapper1, mlj-tools-pane
+
+        let container2 = document.getElementById('mlj-tools-pane');
+        setTexControls(container2);
+        
+        var doLoadHardcodedZipFile = true;
+        doLoadHardcodedZipFile = false;
+        if(doLoadHardcodedZipFile)
+        {
+            // a. loadMeshDataFromFile triggers "MeshFileOpened" event
+            // b. Scene::$(document).on("MeshFileOpened responds on it and calls addLayer
+            // the window needs to be fully loaded so that the trigger is intercepted in b. and addLayer is called
+            // 
+            // https://stackoverflow.com/questions/20418169/difference-between-window-load-and-window-ready?lq=1
+            // https://stackoverflow.com/questions/3698200/window-onload-vs-document-ready
+            //
             // txtFile needs to in the same dir as index.html
             // https://stackoverflow.com/questions/8390855/how-to-instantiate-a-file-object-in-javascript
-            // var txtFile = "foo1.zip"
-            // var txtFile = "3543_W18_shimi.SM.zip"
-            // var txtFile = "2910_w47_shertzer_section0.6a_reduceTextureIndices.zip"
-            // var txtFile = "2910_w47_shertzer_section0.6a_reduceTextureIndices.floor0.zip"
-            // var txtFile = "2910_w47_shertzer_section0.6a_reduceTextureIndices.floor0_sm.zip"
-            var txtFile = "2910_w47_shertzer_section1.6a_reduceTextureIndices.floor1_sm.zip";
-            
+            var txtFile = "meshModel.zip";
+
             var file1 = new File([""], txtFile, {type: "application/zip"})
-            MLJ.core.MeshFile.openMeshFile(file1);
-        });
-    }
+
+            // The size is incorrectly set to 0, which causes the read to fail
+            console.log('file1', file1); 
+
+            MLJ.core.MeshFile.openSingleMeshFile(file1);
+            
+        }
+    });
     
 })(MLJ.core.plugin, MLJ.core, MLJ.core.Scene);
