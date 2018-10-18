@@ -428,6 +428,7 @@ var positionZ0 = 4282;
 
         let container1 = document.getElementById('_3D');
         _controls = new THREE.OrbitControls3Dpane(_camera, container1);
+        // _controls = new THREE.TrackballControls(_camera, container1);
 
         _controls.rotateSpeed = 2.0;
         _controls.zoomSpeed = 1.2;
@@ -1320,7 +1321,7 @@ var positionZ0 = 4282;
     this.render = function (fromReqAnimFrame) {
 
         // if(_controls.isKeyDown)
-        if(_controls.isMouseDown)
+        // if(_controls.isMouseDown)
         {
             _this.findIntersections();
         }

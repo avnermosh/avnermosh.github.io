@@ -199,6 +199,7 @@ var animationDuration = 200;
         // let container2 = document.getElementById('mlj-tools-pane');
         
         texControls = new THREE.OrbitControls(texCamera, container2);
+        // texControls = new THREE.TrackballControls(texCamera, container2);
         
         texControls.staticMoving = false;
         texControls.noRoll = true;

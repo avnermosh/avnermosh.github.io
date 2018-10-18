@@ -667,6 +667,8 @@ THREE.TrackballControls = function ( object, domElement ) {
         event.preventDefault();
         event.stopPropagation();
 
+        console.log('event.touches.length', event.touches.length);
+        
         switch ( event.touches.length ) {
 
             case 1:
