@@ -4,17 +4,41 @@
  * and open the template in the editor.
  */
 
+var doEnableMultipleTabs = false;
+// var doEnableMultipleTabs = true;
+
 (function (component) {
 
     MLJ.gui.TabbedPane = function () {
 
         var _tabs = [];
         var _$tabbedPane = $('<div id="mlj-tabbed-pane"></div>');
+        if(doEnableMultipleTabs)
+        {
+            var _$tabsBar = $('<ul id="mlj-tabs-bar"></ui>');
+        }
 
         var _$texPane = $('<div/>').css({
             position: "relative",
             width: "100%"  
         });
+
+        if(doEnableMultipleTabs)
+        {
+            var _$filterWrapp = $('<div/>').css({
+                overflow: "auto",
+                width: "100%"
+            });
+
+            //Accordion for filters pane
+            var _filtersAccord = new component.Accordion({
+                heightStyle: 'content',
+                collapsible: true,
+                active: false
+            });
+            _filtersAccord.$.attr('id', 'accordion-filters');
+        }
+
 
         function Tab(name) {
             this.name = name;
@@ -35,16 +59,43 @@
         }
 
         function resize() {
+            if(doEnableMultipleTabs)
+            {
+                $("#tab-Filters").outerHeight(
+                    _$tabbedPane.height() - _$tabsBar.outerHeight());
+
+                _$filterWrapp.outerHeight($("#tab-Filters").height()
+                                          - $('#mlj-search-widget').height());
+            }
+
             _$tabbedPane.outerHeight(_$tabbedPane.parent().height());
+
             $("#tab-Texture").outerHeight(_$tabbedPane.height());
+
             _$texPane.outerHeight($("#tab-Texture").height());
         }
 
         function init() {
+            if(doEnableMultipleTabs)
+            {
+                _$tabbedPane.append(_$tabsBar);
+                var filterTab = new Tab("Filters");
+                filterTab
+                    .appendContent(_$filterWrapp);
+                _$filterWrapp.append(_filtersAccord.$);
+            }
+
             var textureTab = new Tab("Texture");
             textureTab.appendContent(_$texPane);
 
-            _tabs.push(textureTab);
+            if(doEnableMultipleTabs)
+            {
+                _tabs.push(textureTab, filterTab);
+            }
+            else
+            {
+                _tabs.push(textureTab);
+            }
 
             _$tabbedPane.on('tabsactivate', function (event, ui) {
                 resize();
@@ -56,6 +107,10 @@
                 var tab;
                 for (var i = 0, m = _tabs.length; i < m; i++) {
                     tab = _tabs[i];
+                    if(doEnableMultipleTabs)
+                    {
+                        _$tabsBar.append(tab.$tab);
+                    }
                     _$tabbedPane.append(tab.$content());
                 }
 
@@ -74,6 +129,13 @@
         this._refresh = function () {
             _$tabbedPane.tabs("refresh");
         };
+
+        if(doEnableMultipleTabs)
+        {
+            this.getFiltersAccord = function () {
+                return _filtersAccord;
+            };
+        }
 
         this.getTexturePane = function () {
             return _$texPane;

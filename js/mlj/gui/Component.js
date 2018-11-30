@@ -72,6 +72,10 @@ MLJ.gui.component.Component = function (html, flags) {
         _this._disabled(bool);
     };
 
+    this.isDisabled = function () {
+        return _this._isDisabled();
+    };
+
     $(window).ready(function () {
         _this._make();
     });
@@ -325,6 +329,14 @@ MLJ.gui.component.Button = function (flags) {
         // since if it's open it will remain on screen indefinitely
         if (bool) this.$.tooltip("close");
         this.$.button({disabled: bool});
+    };
+
+    this._isDisabled = function () {
+        console.log('BEG this._isDisabled');
+        let isDisabled1 = this.$.prop('disabled');
+        console.log('isDisabled1', isDisabled1);
+        
+        return isDisabled1;
     };
 
     MLJ.gui.component.Component.call(this, _html, flags);

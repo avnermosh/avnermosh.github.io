@@ -74,32 +74,17 @@ MLJ.core.ImageFile = {
      */
     this.openImageFile = function (toOpen) {
         console.log('BEG openImageFile'); 
-        // console.log('toOpen', toOpen); 
 
+        console.log('toOpen', toOpen); 
+
+        // toOpen is a FileList
+        // typeOfToOpen is object
+        // let typeOfToOpen = typeof toOpen;
+        
         // console.time("Read image file");
 
-        $(toOpen).each(function (key, file) {
-
-            if (!(file instanceof File)) {
-                console.error("MLJ.ImageFile.openImageFile(file): the parameter 'file' must be a File instace.");
-                return;
-            }
-
-            //Add file to opened list
-            _openedList.set(file.name, file);
-            //Extract file extension
-            var pointPos = file.name.lastIndexOf('.');
-            var extension = file.name.substr(pointPos);
-
-            //Validate file extension
-            if (!isExtensionValid(extension)) {
-                console.error("MeshLabJs allows file format '.jpg', '.png'. \nTry again.");
-                return;
-            }
-
-            console.log('file.name', file.name);
-            
-        });
+        MLJ.core.Scene3D.openImageFile(toOpen);
+        
     };
 
     

@@ -30,12 +30,20 @@
  * MLJ.core.plugin.Manager
  * @author Stefano Gabriele
  */
+
+var doEnableMultipleTabs = false;
+// var doEnableMultipleTabs = true;
+
 MLJ.core.plugin.Manager = {
 };
 
 (function (widget, gui) {
 
     var _texture = new MLJ.util.AssociativeArray();
+    if(doEnableMultipleTabs)
+    {
+        var _layering = new MLJ.util.AssociativeArray();
+    }
 
     /**
      * Installs a new plugin in MeshLabJS
@@ -51,8 +59,21 @@ MLJ.core.plugin.Manager = {
         for (var i = 0; i < arguments.length; i++) {
             plugin = arguments[i];
             if (plugin instanceof MLJ.core.plugin.Plugin) {
-                if (plugin instanceof MLJ.core.plugin.Texturing){
-                    _texture.set(plugin.getName(), plugin);                    
+
+                if(doEnableMultipleTabs)
+                {
+                    if (plugin instanceof MLJ.core.plugin.Texturing){
+                        _texture.set(plugin.getName(), plugin);                    
+                    }
+                    else if (plugin instanceof MLJ.core.plugin.Filter){
+                        _layering.set(plugin.getName(), plugin);                    
+                    }
+                }
+                else
+                {
+                    if (plugin instanceof MLJ.core.plugin.Texturing){
+                        _texture.set(plugin.getName(), plugin);                    
+                    }
                 }
             } else {
                 console.error("The parameter must be an instance of MLJ.core.Plugin");
@@ -77,6 +98,14 @@ MLJ.core.plugin.Manager = {
         ptr = _texture.iterator();
         while (ptr.hasNext()) {
             ptr.next()._main();
+        }
+
+        if(doEnableMultipleTabs)
+        {
+            ptr = _layering.iterator();
+            while (ptr.hasNext()) {
+                ptr.next()._main();
+            }
         }
 
     };

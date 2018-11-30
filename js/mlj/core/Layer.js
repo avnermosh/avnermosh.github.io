@@ -24,7 +24,12 @@ MLJ.core.Layer = function (id, name)
     this.name = name;
     this.id = id;
 
-    // structureMeshGroup stores the immutable sturcture related meshes
+    // pivotGroup stores structureMeshGroup, overlayMeshGroup
+    // this.pivotGroup = new THREE.Object3D();
+    this.pivotGroup = new THREE.Group();
+    this.pivotGroup.name = "pivot";
+    
+    // structureMeshGroup stores the immutable structure related meshes
     this.structureMeshGroup = new THREE.Object3D();
     this.structureMeshGroup.name = "structure";
     
@@ -32,13 +37,18 @@ MLJ.core.Layer = function (id, name)
     this.overlayMeshGroup = new THREE.Object3D();
     this.overlayMeshGroup.name = "overlay";
 
+    this.floorInfoArray = new MLJ.util.AssociativeArray();
+
+    
     // stickyNoteGroup stores the mutable overlay related meshes
     this.stickyNoteGroup = new THREE.Object3D();
     this.stickyNoteGroup.name = "stickyNotes";
 
     this.noteArray = new MLJ.util.AssociativeArray();
 
-    MLJ.core.Scene.setDraggableControl( this.structureMeshGroup, this.overlayMeshGroup );
+    MLJ.core.Scene3D.setEdit3dModelControl( this.pivotGroup,
+                                            this.structureMeshGroup,
+                                            this.overlayMeshGroup );
 
     /**
      * @type {String} - Set if a mesh is read from a file
@@ -63,7 +73,7 @@ MLJ.core.Layer = function (id, name)
     this.addStickyNote = function () {
         console.log('BEG addStickyNote');
 
-        let selectedImageFilename = MLJ.core.Scene.getSelectedImageFilename();
+        let selectedImageFilename = MLJ.core.Scene3D.getSelectedImageFilename();
 
         if(selectedImageFilename)
         {
@@ -100,7 +110,12 @@ MLJ.core.Layer = function (id, name)
         }
         
     };
-    
+
+   
+    this.getPivotGroup = function () {
+        return _this.pivotGroup;
+    };
+
     this.getStructureMeshGroup = function () {
         return _this.structureMeshGroup;
     };
@@ -124,8 +139,20 @@ MLJ.core.Layer = function (id, name)
         
 //         var container = document.getElementsByTagName('canvas')[0];
 //         let trackballControls = new THREE.TrackballControls(_this.structureMeshGroup, container);
-//         MLJ.core.Scene.setTrackballControls(trackballControls);
+//         MLJ.core.Scene3D.setTrackballControls3D(trackballControls);
         
+    };
+
+    this.getFloorInfoArray = function () {
+        return _this.floorInfoArray;
+    };
+    
+    this.getFloorInfoByName = function (floorName) {
+        return _this.floorInfoArray.getByKey(floorName);
+    };
+
+    this.addFloorInfo = function (floorInfoName, floorInfo) {
+        _this.floorInfoArray.set(floorInfoName, floorInfo);
     };
 
     this.getOverlayMeshGroup = function () {
@@ -170,7 +197,7 @@ MLJ.core.Layer = function (id, name)
 
     this.createRectangleMesh = function (intersectedStructure) {
 
-        var structureRectangleVertices = MLJ.core.Scene.getRectangleVertices(intersectedStructure);
+        var structureRectangleVertices = MLJ.core.Scene3D.getRectangleVertices(intersectedStructure);
 
         if(Object.keys(structureRectangleVertices).length !== 4)
         {
@@ -211,9 +238,9 @@ MLJ.core.Layer = function (id, name)
         
         userData.urlArray.set(imageFilename, imageInfo);
 
-        let imageInfoVec = MLJ.core.Scene.getImageInfoVec();
+        let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
         imageInfoVec.set(imageFilename, imageInfo);
-        MLJ.core.Scene.setImageInfoVec(imageInfoVec);
+        MLJ.core.Scene3D.setImageInfoVec(imageInfoVec);
         
         var rectangleMeshMaterial = new THREE.MeshPhongMaterial( {
 	    opacity: 0.5,
@@ -287,23 +314,57 @@ MLJ.core.Layer = function (id, name)
      */
     this.dispose = function () {
 
+        if(_this.pivotGroup)
+        {
+            MLJ.core.Scene3D.removeFromScene3D( _this.pivotGroup );
+            delete _this.pivotGroup;
+            _this.pivotGroup = null;
+        }
+        
         if(_this.structureMeshGroup)
         {
-            MLJ.core.Scene.removeFromScene( _this.structureMeshGroup );
+            MLJ.core.Scene3D.removeFromScene3D( _this.structureMeshGroup );
             delete _this.structureMeshGroup;
             _this.structureMeshGroup = null;
         }
         
+        if(_this.floorInfoArray)
+        {
+            // clear the array
+            while(1) {
+                // clear the next array entry
+                let floorInfoName = _this.floorInfoArray.getLastKey();
+                let floorInfo = _this.floorInfoArray.remove(floorInfoName);
+                if(floorInfo)
+                {
+                    // https://stackoverflow.com/questions/40694372/what-is-the-right-way-to-remove-a-mesh-completely-from-the-scene-in-three-js
+                    floorInfo.geometry.dispose();
+                    floorInfo.material.dispose();
+                }
+                else
+                {
+                    // no more elements in the array
+                    break;
+                }
+            }
+            // sanity check
+            if(_this.floorInfoArray.size() > 0)
+            {
+                throw new Error("Reached error condition: '_this.floorInfoArray.size() > 0'");
+            }
+
+        }
+        
         if(_this.overlayMeshGroup)
         {
-            MLJ.core.Scene.removeFromScene( _this.overlayMeshGroup );
+            MLJ.core.Scene3D.removeFromScene3D( _this.overlayMeshGroup );
             delete _this.overlayMeshGroup;
             _this.overlayMeshGroup = null;
         }
 
         if(_this.stickyNoteGroup)
         {
-            MLJ.core.Scene.removeFromScene( _this.stickyNoteGroup );
+            MLJ.core.Scene3D.removeFromScene3D( _this.stickyNoteGroup );
             delete _this.stickyNoteGroup;
             _this.stickyNoteGroup = null;
         }

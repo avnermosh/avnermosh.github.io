@@ -41,7 +41,7 @@
     let texturePaneTo3dPaneWidthRatio = Math.floor( 100 * (texturePaneWidth / window.innerWidth) );
     let texturePaneTo3dPaneWidthRatioStr = texturePaneTo3dPaneWidthRatio + "%";
 
-    var _$wrapper = $('<div></div>')
+    var _$texturePaneWrapper = $('<div></div>')
             .css({
                 width: texturePaneTo3dPaneWidthRatioStr,
                 height: "100%"
@@ -63,8 +63,11 @@
             })
             .data("visible", true);
 
-    var _$3D = $('<div id="_3D"></div>');
+    var _3DWrapper = $('<div id="_3DWrapper"></div>');
 
+    var _3D = $('<div id="_3D"></div>');
+    var _3DtopDown = $('<div id="_3DtopDown"></div>');
+    
     function makeTitle(title) {
         var _PiP = new MLJ.gui.component.PiP();
 
@@ -114,13 +117,16 @@
     
     this.makeGUI = function (title) {
         _$border.append(_$hideBtn);
-        _$wrapper.append(_$pane, _$border);
+        _$texturePaneWrapper.append(_$pane, _$border);
 
         _$pane.resizable({
             handles: "e"
         });
 
-        $('body').append(_$3D, _$wrapper, makeTitle(title));
+        _3DWrapper.append(_3D);
+        _3DWrapper.append(_3DtopDown);
+        
+        $('body').append(_3DWrapper, _$texturePaneWrapper, makeTitle(title));
         prepareDontMissDND();
         
         _$pane.append(MLJ.gui.getWidget("SceneBar")._make());
@@ -138,15 +144,29 @@
         });
 
         $pos1.append(MLJ.gui.getWidget("TabbedPane")._make());
-        
-        _$3D.css({
+
+        _3DWrapper.css({
             position: "absolute",
             width: $(window).width() - (_$pane.outerWidth() + _$pane.offset().left),
             left: _$pane.outerWidth() + _$pane.offset().left,
             height: "100%",
             top: 0
         });
+        
+        _3D.css({
+            position: "absolute",
+            width: "100%",
+            height: "50%",
+            top: 0
+        });
 
+        _3DtopDown.css({
+            position: "absolute",
+            width: "100%",
+            height: "50%",
+            top: "50%"
+        });
+        
         $(document).keydown(function (event) {
             if ((event.ctrlKey || event.metaKey) && event.which === 70) {
                 event.preventDefault();
@@ -159,16 +179,26 @@
     $(window).resize(function (event) {
         MLJ.gui.getWidget("TabbedPane")._refresh();
 
-        _$3D.css({
+        _3DWrapper.css({
             width: $(window).width() - (_$pane.outerWidth() + _$pane.offset().left),
             left: _$pane.outerWidth() + _$pane.offset().left
         });
+        
+        _3D.css({
+            width: "100%"
+        });
+
+        _3DtopDown.css({
+            width: "100%"
+        });
+        
+        
     });
 
     _$hideBtn.click(function () {
 
         if (_$pane.data("visible")) {
-            _$wrapper.animate({left: -_$pane.outerWidth()}, {
+            _$texturePaneWrapper.animate({left: -_$pane.outerWidth()}, {
                 duration: 500,
                 start: function () {
                 },
@@ -194,7 +224,7 @@
             _$pane.data("visible", false);
 
         } else {
-            _$wrapper.animate({left: 0}, {
+            _$texturePaneWrapper.animate({left: 0}, {
                 duration: 500,
                 start: function () {
                 },

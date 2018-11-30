@@ -27,69 +27,6 @@
  */
 
 
-/**         
- * @class Creates a new filter
- * @description
- * This class provides the basic method for adding new processing functionalities
- * to meshlabjs. The main idea is that a filter is a kind of blackbox processing 
- * function that take in input meshes (eventually none) parameters and give back 
- * processed meshes. When you add a filter to meshlab it will end up in the filter 
- * list tab.
- * You have to redefine three functions:
- *  * the constructor
- *  * the {@link _init} where you define the parameters  
- *  * the {@link _applyTo} where you define the behaviour of the function 
- * @param {Object} parameters The object contains the initialization parameters 
- * to create filter plugin
- * 
- * <code> parameters = {<br>
- * &nbsp; name: //the name of filter<br> 
- * &nbsp; tooltip: //the filter description shown if mouse pointer is 
- * over its name<br>
- * &nbsp; arity: //An integer:<br>
- * &nbsp;&nbsp;&nbsp;&nbsp; //0 for a creation filter<br>
- * &nbsp;&nbsp;&nbsp;&nbsp; //-1 special value for the deletion filter, doesn't trigger 
- * &nbsp;&nbsp;&nbsp;&nbsp;      a layer update event
- * &nbsp;&nbsp;&nbsp;&nbsp; //1 for a generic single mesh filter, e.g. a filter 
- * &nbsp;&nbsp;&nbsp;&nbsp;     that takes a mesh, some parameters and modify just that single mesh. <br>
- * &nbsp;&nbsp;&nbsp;&nbsp; //2 for a filter that take one or more mesh and/or create other layers.
- * &nbsp;&nbsp;&nbsp;&nbsp; //3 for a filter that works on all visible layers. 
- * 
- * defines its own meshes<br>
- * }
- * </code>
- * @memberOf MLJ.core.plugin 
- * @author Stefano Gabriele 
- * @example
- * <caption>Refine Filter</caption>
- * (function (plugin, scene) {
- *
- *      var filter = new plugin.Filter({
- *          name: "Refine",
- *          tooltip: "Apply a subdvision surface refinement step, using various approach (midpoint/loop)",
- *          arity: 1
- *      });
- *
- *      var iterWdg;
- *      filter._init = function (builder) {
- *
- *          iterWdg = builder.Integer({
- *              max: 5, min: 1, step: 1, defval: 1,
- *              label: "Step",
- *              tooltip: "How many refinement iterations are applied to the mesh"
- *          });
- *
- *      };
- *
- *      filter._applyTo = function (layer) {
- *          Module.RefineMesh(layer.ptrMesh,iterWdg.getValue());
- *      };
- *
- *      plugin.install(filter);
- *
- * })(MLJ.core.plugin, MLJ.core.Scene);
- */
-
 MLJ.core.plugin.Filter = function (parameters) {
 
     MLJ.core.plugin.Plugin.call(this, parameters.name, parameters);

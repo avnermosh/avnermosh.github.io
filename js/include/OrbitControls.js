@@ -541,7 +541,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     function handleKeyDown( event ) {
 
-        if( MLJ.core.Scene.getEdit3dModelOverlayFlag() )
+        if( MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
             // Do nothing. In editing mode.
             return;
@@ -679,7 +679,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     function onMouseDown( event ) {
 
-        if( MLJ.core.Scene.getEdit3dModelOverlayFlag() )
+        if( MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
             // Do nothing. In editing mode.
             return;

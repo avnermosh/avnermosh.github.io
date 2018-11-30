@@ -65,7 +65,7 @@ var animationDuration = 200;
                 continue;
             }
             
-            let selectedImageFilename = MLJ.core.Scene.getSelectedImageFilename();
+            let selectedImageFilename = MLJ.core.Scene3D.getSelectedImageFilename();
             
             if(note.getImageFilename() === selectedImageFilename)
             {
@@ -104,7 +104,7 @@ var animationDuration = 200;
         scene.render();
 
         $("#texCanvasWrapper1").append(texRenderer1.domElement);
-        if(MLJ.core.Scene.isStickyNotesEnabled())
+        if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
             $("#texCanvasWrapper1").append(texLabelRenderer.domElement);
         }
@@ -129,9 +129,9 @@ var animationDuration = 200;
 
                     var map2 = layer.texture[0].data.material.map;
 
-                    let blobs = MLJ.core.Scene.getBlobs();
-                    let imageInfoVec = MLJ.core.Scene.getImageInfoVec();
-                    let selectedThumbnailImageFilename = MLJ.core.Scene.getSelectedThumbnailImageFilename();
+                    let blobs = MLJ.core.Scene3D.getBlobs();
+                    let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
+                    let selectedThumbnailImageFilename = MLJ.core.Scene3D.getSelectedThumbnailImageFilename();
                     let imageInfo = imageInfoVec.getByKey(selectedThumbnailImageFilename);
 
                     switch (Number(imageInfo.imageOrientation)) {
@@ -177,7 +177,7 @@ var animationDuration = 200;
 
         //Always render, if nothing is shown, then no layer is selected
         texRenderer1.render(texScene, texCamera);
-        if(MLJ.core.Scene.isStickyNotesEnabled())
+        if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
             texLabelRenderer.render(texScene, texCamera);
         }
@@ -241,7 +241,7 @@ var animationDuration = 200;
         let container2 = document.getElementsByTagName('canvas')[0];
         setTexControls(container2);
         
-        if(MLJ.core.Scene.isStickyNotesEnabled())
+        if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
             texLabelRenderer = new THREE.CSS2DRenderer();
             texLabelRenderer.setSize( texRenderer1.getSize().width, texRenderer1.getSize().height );
@@ -261,7 +261,7 @@ var animationDuration = 200;
 
     function render() {
         texRenderer1.render(texScene, texCamera);
-        if(MLJ.core.Scene.isStickyNotesEnabled())
+        if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
             texLabelRenderer.render(texScene, texCamera);
         }
@@ -270,7 +270,7 @@ var animationDuration = 200;
     $(window).resize(function () {
         resizeCanvas();
         texRenderer1.render(texScene, texCamera);
-        if(MLJ.core.Scene.isStickyNotesEnabled())
+        if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
             texLabelRenderer.render(texScene, texCamera);
         }
@@ -287,7 +287,7 @@ var animationDuration = 200;
         if (ui.newPanel.attr('id') === MLJ.widget.TabbedPane.getTexturePane().parent().attr('id')) {
             resizeCanvas();
             texRenderer1.render(texScene, texCamera);
-            if(MLJ.core.Scene.isStickyNotesEnabled())
+            if(MLJ.core.Scene3D.isStickyNotesEnabled())
             {
                 texLabelRenderer.render(texScene, texCamera);
             }
@@ -325,7 +325,7 @@ var animationDuration = 200;
 
         texRenderer1.setSize(paneWidth, paneHeight);
 
-        if(MLJ.core.Scene.isStickyNotesEnabled())
+        if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
             texLabelRenderer.setSize(paneWidth, paneHeight);
         }
@@ -409,4 +409,4 @@ var animationDuration = 200;
         }
     });
     
-})(MLJ.core.plugin, MLJ.core, MLJ.core.Scene);
+})(MLJ.core.plugin, MLJ.core, MLJ.core.Scene3D);

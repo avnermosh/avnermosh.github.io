@@ -82,7 +82,7 @@ MLJ.gui.getWidget = function (name) {
  */
 MLJ.gui.disableOnNoHistoryToRedo = function (component) {
     $(document).on("Redo", function (ev, timeStamp) {
-        if(timeStamp<MLJ.core.Scene.layerSetHistory.length)
+        if(timeStamp<MLJ.core.Scene3D.layerSetHistory.length)
             component.disabled(false);
         else
             component.disabled(true);

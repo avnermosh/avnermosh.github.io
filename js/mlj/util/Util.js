@@ -38,13 +38,22 @@ MLJ.util = {};
 // https://www.imagemagick.org/script/color.php
 // online color chooser
 // https://www.htmlcsscolor.com/hex/00AA00
+// color names
+// https://www.htmlcsscolor.com/#wheel
 MLJ.util.redColor = 0xff0000;
 MLJ.util.greenColor = 0x00ff00;
 MLJ.util.whiteColor = 0xffffff;
 MLJ.util.yellowColor = 0xffff00;
 MLJ.util.blueColor = 0x0000ff;
 MLJ.util.islamicGreenColor = 0x00aa00;
-
+MLJ.util.Gold = 0xFFD700;
+MLJ.util.LavenderBlush1 = 0xFFF0F5;
+MLJ.util.Orchid = 0xDA70D6;
+MLJ.util.Orchid1 = 0xFF83FA;
+MLJ.util.Orchid2 = 0xEE7AE9;
+MLJ.util.Orchid3 = 0xCD69C9;
+MLJ.util.darkOrangeColor = 0xFF8C00;
+MLJ.util.sandyBrownColor = 0xF4A460;
 
 // https://www.abeautifulsite.net/adding-and-removing-elements-on-the-fly-using-javascript
 // add html elemnt dynamically

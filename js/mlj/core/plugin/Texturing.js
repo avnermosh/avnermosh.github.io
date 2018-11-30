@@ -33,7 +33,7 @@ MLJ.core.plugin.Texturing = function (parameters, defaults) {
         globalIndex++;
 
         // update parameter
-        var layer = MLJ.core.Scene.getSelectedLayer();
+        var layer = MLJ.core.Scene3D.getSelectedLayer();
         if (layer === undefined)
             return;
 
@@ -54,7 +54,7 @@ MLJ.core.plugin.Texturing = function (parameters, defaults) {
     $(document).on("SceneLayerAdded", function (event, layer) {
         //The panel will be shown only when the first mesh is loaded
         //it is the only way to hide
-        if (MLJ.core.Scene.getLayers().size() === 1)
+        if (MLJ.core.Scene3D.getLayers().size() === 1)
         {
             pane.$.show();
         }
@@ -75,13 +75,13 @@ MLJ.core.plugin.Texturing = function (parameters, defaults) {
 
     $(document).on("Texture2FileOpened", function (event, texture3) {
 
-        var layer = MLJ.core.Scene.getSelectedLayer();
+        var layer = MLJ.core.Scene3D.getSelectedLayer();
         if (layer === undefined)
             return;
 
         layer.texture[0] = texture3;
         
-        if (MLJ.core.Scene.getLayers().size() === 1)
+        if (MLJ.core.Scene3D.getLayers().size() === 1)
         {
             pane.$.show();
         }

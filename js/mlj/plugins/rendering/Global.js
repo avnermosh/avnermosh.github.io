@@ -3,7 +3,7 @@
     var DEFAULTS = {
         DefaultUpColor: new THREE.Color('#00000f'),
         DefaultDownColor: new THREE.Color('#8080ff'),
-        FieldOfView : scene.getCamera()
+        FieldOfView : scene.getCamera3D()
     };
     var plug = new plugin.Texturing({
         name: "Global",        
@@ -32,9 +32,9 @@
             defval: DEFAULTS.FieldOfView,
             bindTo: (function() {
                 var bindToFun = function (size, overlay) {
-                   scene.getCamera().fov=fovWidget.getValue();
-                   scene.getCamera().updateProjectionMatrix();
-                   MLJ.core.Scene.render();
+                   scene.getCamera3D().fov=fovWidget.getValue();
+                   scene.getCamera3D().updateProjectionMatrix();
+                   MLJ.core.Scene3D.render();
                 };
                 bindToFun.toString = function () { return 'FieldOfView'; }
                 return bindToFun;
@@ -110,7 +110,7 @@
 
     };
     plug._applyTo = function (layer, on) {
-        //alert(scene.getCamera());
+        //alert(scene.getCamera3D());
     }
     plug.getBackfaceCullingValue = function (type) {
         return cullingWidget.getValue();
@@ -121,4 +121,4 @@
     };
     plugin.Manager.install(plug);
 
-})(MLJ.core.plugin, MLJ.core, MLJ.core.Scene);
+})(MLJ.core.plugin, MLJ.core, MLJ.core.Scene3D);

@@ -4,7 +4,8 @@
  * Running this will allow you to drag three.js objects around the screen.
  */
 
-THREE.Edit3dModelOverlayTrackballControls = function ( structureMeshGroup,
+THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
+                                                       structureMeshGroup,
                                                        overlayMeshGroup,
                                                        intersectionInfo,
                                                        selectedOverlayVertexHelperGroup,
@@ -162,6 +163,8 @@ THREE.Edit3dModelOverlayTrackballControls = function ( structureMeshGroup,
 
     function resizeOverlayRect() {
 
+        // console.log('BEG resizeOverlayRect'); 
+
         let _selectedOverlayRectObj_position = MLJ.util.getNestedObject(_selectedOverlayRectObj, ['position']);
         if(!_selectedOverlayRectObj_position)
         {
@@ -171,6 +174,9 @@ THREE.Edit3dModelOverlayTrackballControls = function ( structureMeshGroup,
         // arg1 - distance between intersection point and the origin of _selectedOverlayRectObj
         // arg2 - distance between vertexHelper and the origin of _selectedOverlayRectObj
         var arg1 = new THREE.Vector3();
+
+        _selectedOverlayRectObj.position.add(pivotGroup.position);
+        
         arg1.copy(_intersection.point).sub(_selectedOverlayRectObj.position);
 
         var arg2 = new THREE.Vector3();
@@ -185,10 +191,8 @@ THREE.Edit3dModelOverlayTrackballControls = function ( structureMeshGroup,
         let scaleZ = 1.0;
         if(arg2.z != 0){scaleZ = arg1.z / arg2.z;}
 
-        var arg = new THREE.Vector3(scaleX, scaleY, scaleZ);
-
-        var increaseRatio = new THREE.Vector3(Math.abs(arg.x), Math.abs(arg.y), Math.abs(arg.z));
-
+        var increaseRatio = new THREE.Vector3(Math.abs(scaleX), Math.abs(scaleY), Math.abs(scaleZ));
+        
         // clamp scale
         let scaleMin = new THREE.Vector3(0.2, 0.2, 0.2);
         let scaleMax = new THREE.Vector3(1, 1, 1);
@@ -196,11 +200,9 @@ THREE.Edit3dModelOverlayTrackballControls = function ( structureMeshGroup,
         increaseRatio.clamp(scaleMin, scaleMax);
         // console.log('increaseRatio', increaseRatio);
 
-        _selectedOverlayRectObj.scale.set(increaseRatio.x, increaseRatio.y, increaseRatio.z);
+        _selectedOverlayRectObj.scale.copy(increaseRatio);
 
-        let scale1 = new THREE.Vector3(0, 0, 0);
-        scale1.copy(_selectedOverlayRectObj.scale);
-        _selectedOverlayRectObj.material.userData.scale = scale1;
+        _selectedOverlayRectObj.material.userData.scale.copy(_selectedOverlayRectObj.scale);
 
         clampOverlayRectPosition();
         
@@ -210,61 +212,74 @@ THREE.Edit3dModelOverlayTrackballControls = function ( structureMeshGroup,
 
     function onDocumentMouseDown( event ) {
 
-        if( !MLJ.core.Scene.getEdit3dModelOverlayFlag() )
+        // console.log('BEG onDocumentMouseDown');
+        
+        if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
             // Do nothing. Not in editing mode.
             return;
         }
 
-        if(event.button === STATE.INSERT_UPDATE_OVERLAY_RECT)
-        {
-            event.preventDefault();
+        switch ( event.button ) {
 
-            _mouse = MLJ.core.Scene.getMouse();
-            _camera = MLJ.core.Scene.getCamera();
-            _raycaster.setFromCamera( _mouse, _camera );
-            
-            // _selectedStructureObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedStructure', 'object']);
-            _selectedOverlayRectObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayRect', 'object']);
-            _selectedOverlayVertexObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayVertex', 'object']);
+            case STATE.INSERT_UPDATE_OVERLAY_RECT:
 
-           
-            if(_selectedOverlayRectObj || _selectedOverlayVertexObj)
-            {
-                if(_selectedOverlayRectObj)
+                event.preventDefault();
+
+                _mouse = MLJ.core.Scene3D.getMouse3D();
+                _camera = MLJ.core.Scene3D.getCamera3D();
+                _raycaster.setFromCamera( _mouse, _camera );
+                
+                // _selectedStructureObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedStructure', 'object']);
+                _selectedOverlayRectObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayRect', 'object']);
+                _selectedOverlayVertexObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayVertex', 'object']);
+
+                
+                if(_selectedOverlayRectObj || _selectedOverlayVertexObj)
                 {
-                    let intersects = _raycaster.intersectObjects( structureMeshGroup.children, true );
-                    if(intersects.length > 0)
+                    if(_selectedOverlayRectObj)
                     {
-                        _intersection = intersects[0];
+                        let intersects = _raycaster.intersectObjects( structureMeshGroup.children, true );
+                        if(intersects.length > 0)
+                        {
+                            _intersection = intersects[0];
 
-                        _selectedStructureObj = _intersection.object;
+                            _selectedStructureObj = _intersection.object;
 
-                        // set _offset to be the offset between the intersection point and the origin 
-                        _offset.copy( _intersection.point ).sub( _selectedOverlayRectObj.position );
+                            // set _offset to be the offset between the intersection point and the origin 
+                            _offset.copy( _intersection.point ).sub( _selectedOverlayRectObj.position );
+                        }
+                    }
+
+                    _domElement.style.cursor = 'move';
+
+                    scope.dispatchEvent( { type: 'dragstart', object: _selectedOverlayRectObj } );
+                }
+                else
+                {
+                    var intersectedStructureObjectId = MLJ.util.getNestedObject(intersectionInfo, ['intersectedStructure', 'object', 'id']);
+                    if( intersectedStructureObjectId )
+                    {
+                        MLJ.core.Scene3D.insertRectangularMesh();
                     }
                 }
 
-                _domElement.style.cursor = 'move';
-
-                scope.dispatchEvent( { type: 'dragstart', object: _selectedOverlayRectObj } );
-            }
-            else
-            {
-                var intersectedStructureObjectId = MLJ.util.getNestedObject(intersectionInfo, ['intersectedStructure', 'object', 'id']);
-                if( intersectedStructureObjectId )
-                {
-                    MLJ.core.Scene.insertRectangularMesh();
-                }
-            }
-            
+                break;
+                
+            case STATE.DELETE_OVERLAY_RECT:
+                
+                MLJ.core.Scene3D.deleteRectangularMesh();
+                
+                break;
         }
-
+                
     }
 
     function onDocumentMouseMove( event ) {
 
-        if( !MLJ.core.Scene.getEdit3dModelOverlayFlag() )
+        // console.log('BEG onDocumentMouseMove');
+        
+        if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
             // Do nothing. Not in editing mode.
             return;
@@ -274,16 +289,13 @@ THREE.Edit3dModelOverlayTrackballControls = function ( structureMeshGroup,
 
         var rect = _domElement.getBoundingClientRect();
 
-        _mouse = MLJ.core.Scene.getMouse();
-        _camera = MLJ.core.Scene.getCamera();
+        _mouse = MLJ.core.Scene3D.getMouse3D();
+        _camera = MLJ.core.Scene3D.getCamera3D();
         
         _raycaster.setFromCamera( _mouse, _camera );
 
-
         // if ( _selectedOverlayRectObj && scope.enabled ) {
         if ( _selectedOverlayRectObj || _selectedOverlayVertexObj ) {
-
-//             _selectedOverlayRectObj.rotation.y += 0.05;
 
             var intersects2 = _raycaster.intersectObjects( [_selectedStructureObj] );
             if(intersects2.length > 0)
@@ -343,8 +355,9 @@ THREE.Edit3dModelOverlayTrackballControls = function ( structureMeshGroup,
     }
 
     function onDocumentMouseCancel( event ) {
+        // console.log('BEG onDocumentMouseCancel');
 
-        if( !MLJ.core.Scene.getEdit3dModelOverlayFlag() )
+        if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
             // Do nothing. Not in editing mode.
             return;

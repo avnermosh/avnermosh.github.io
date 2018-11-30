@@ -511,7 +511,7 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 
         }
 
-	 // Update MLJ.core.Scene._imageInfoVec
+	 // Update MLJ.core.Scene3D._imageInfoVec
          if( imageFilenameArray.length !== imageOrientationArray.length )
          {
              console.error( 'The number of image file names  and image orientations differ. ' +
@@ -520,7 +520,7 @@ THREE.MTLLoader.MaterialCreator.prototype = {
          }
          else
          {
-             let imageInfoVec = MLJ.core.Scene.getImageInfoVec();
+             let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
              
              params.userData.urlArray = new MLJ.util.AssociativeArray();
 
@@ -537,7 +537,7 @@ THREE.MTLLoader.MaterialCreator.prototype = {
                  imageInfoVec.set(imageFilename, imageInfo);
              }             
 
-             MLJ.core.Scene.setImageInfoVec(imageInfoVec);
+             MLJ.core.Scene3D.setImageInfoVec(imageInfoVec);
          }
 
 
