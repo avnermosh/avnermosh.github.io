@@ -53,7 +53,29 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
     // Other stuff
     ////////////////////////////////////////////////////
 
+    function onDocumentTouchMove3DtopDown( event ) {
+        // console.log('BEG onDocumentTouchMove3DtopDown'); 
+        if(_controls3DtopDown.isTouchDown)
+        {
+            event.preventDefault();
+
+            console.log('event.touches.length', event.touches.length); 
+            if( event.touches.length > 0 )
+            {
+                _mouse3DtopDown.x = ( ( event.touches[0].clientX - get3DtopDownOffset().left - _renderer3DtopDown.domElement.offsetLeft ) /
+                                      _renderer3DtopDown.domElement.clientWidth ) * 2 - 1;
+                
+                _mouse3DtopDown.y = - ( ( event.touches[0].clientY - get3DtopDownOffset().top - _renderer3DtopDown.domElement.offsetTop ) /
+                                        _renderer3DtopDown.domElement.clientHeight ) * 2 + 1;
+
+            }
+            
+            MLJ.core.Scene3DtopDown.render();
+        }
+    }
+
     function onDocumentMouseMove3DtopDown( event ) {
+        // console.log('Beg onDocumentMouseMove3DtopDown'); 
         if(_controls3DtopDown.isMouseDown)
         {
             event.preventDefault();
@@ -202,9 +224,12 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         var direction = new THREE.Vector3().subVectors(targetPos, sourcePos);
         let arrowLength = direction.length();
         _arrowCameraDirection = new THREE.ArrowHelper(direction.clone().normalize(), sourcePos, arrowLength, 0x00ff00);
+        _arrowCameraDirection.line.material.linewidth = 20;
+        console.log('_arrowCameraDirection', _arrowCameraDirection);
+        
         _scene3DtopDown.add(_arrowCameraDirection);
 
-        let geometry2 = new THREE.BoxGeometry( 20, 1, 20 );
+        let geometry2 = new THREE.BoxGeometry( 40, 40, 40 );
         let material2 = new THREE.MeshBasicMaterial( {color: MLJ.util.yellowColor} );
         _cube_scene3DcameraLookAtIntersectionPoint = new THREE.Mesh( geometry2, material2 );
         _cube_scene3DcameraLookAtIntersectionPoint.position.set( 0, 0, 0 );
@@ -307,6 +332,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         canvas3DtopDown.addEventListener( 'mousemove', onDocumentMouseMove3DtopDown, false );
         canvas3DtopDown.addEventListener( 'mouseup', onDocumentMouseUp3DtopDown, false );
         
+        canvas3DtopDown.addEventListener( 'touchmove', onDocumentTouchMove3DtopDown, false );
         
         _controls3DtopDown.addEventListener('change', function () {
             MLJ.core.Scene3DtopDown.render();
@@ -450,6 +476,12 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         _controls3DtopDown = controls;
     };
 
+    ///////////////////////////////////////////////
+    // Update the scene3D intersection point in Scene3DtopDown
+    //  _cube_scene3DcameraLookAtIntersectionPoint - in yellow color
+    //  _cube_scene3DcameraMouseIntersectionPoint - in darkOrange color
+    ///////////////////////////////////////////////
+    
     this.setScene3DintersectionPoint = function(scene3dCameraLookAtIntersectionPoint, scene3dMouseIntersectionPoint) {
 
         if(scene3dCameraLookAtIntersectionPoint)
@@ -484,7 +516,8 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
             if(_selectedFloorInfo)
             {
                 let intersectionHeight = _selectedFloorInfo["height"];
-                let height = _selectedFloorInfo["height"] + heightOffset;
+                // adding 1000 (10 m) so that the cube can be seen (above the wall)
+                let height = _selectedFloorInfo["height"] + heightOffset + 1000;
                 _cube_scene3DcameraMouseIntersectionPoint.position.setY(height);
             }
             else
@@ -513,8 +546,8 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         // console.log('direction', direction);
         // console.log('camera3D.position', camera3D.position);
         // console.log('rotation', rotation);
-        
-        let arrowLength = 100;
+
+        let arrowLength = 1000;
 
         if(_arrowCameraDirection)
         {
@@ -526,6 +559,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
     };
     
     this.findIntersections = function () {
+        // console.log('BEG findIntersections1'); 
 
         _raycaster3DtopDown.setFromCamera( _mouse3DtopDown, _camera3DtopDown );
 
@@ -533,7 +567,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         if(intersects.length > 0)
         {
             _intersectionPointCurr = intersects[0].point;
-            console.log('_intersectionPointCurr', _intersectionPointCurr); 
+            // console.log('_intersectionPointCurr', _intersectionPointCurr); 
 
             let intersectionHeight = _selectedFloorInfo["height"];
             _intersectionPointCurr.setY(intersectionHeight);
@@ -580,7 +614,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         // if(_controls3D.isKeyDown)
         // TBD change to only when clicking on the mouse? (and not while clicking and moving it?)
         // (to prevent from constantly changing the images when navigating the view?)
-        if(_controls3DtopDown.isMouseDown)
+        if(_controls3DtopDown.isMouseDown || _controls3DtopDown.isTouchDown)
         {
             _this.findIntersections();
         }

@@ -86,6 +86,23 @@ var cameraLookAtIntersectionPoint = undefined;
     var _zipLoaderInstance = -1;
     var _materialBlue = new THREE.LineBasicMaterial({color: 0x0000ff, linewidth: 5});
 
+    function onDocumentTouchMove3D( event ) {
+        event.preventDefault();
+
+        if( event.touches.length > 0 )
+        {
+            _mouse3D.x = ( ( event.touches[0].clientX - get3DOffset().left - _renderer3D.domElement.offsetLeft ) /
+                           _renderer3D.domElement.clientWidth ) * 2 - 1;
+            
+            _mouse3D.y = - ( ( event.touches[0].clientY - get3DOffset().top - _renderer3D.domElement.offsetTop ) /
+                             _renderer3D.domElement.clientHeight ) * 2 + 1;
+
+            // console.log('_mouse3D', _mouse3D);
+            
+            MLJ.core.Scene3D.render();
+        }
+    }
+
     function onDocumentMouseMove3D( event ) {
         event.preventDefault();
 
@@ -1326,7 +1343,7 @@ var cameraLookAtIntersectionPoint = undefined;
         if(_intersectionInfo.intersectedStructure)
         {
             ///////////////////////////////////////////////
-            // Update the scene3D intersection point in Scene3DtopDown
+            // Update the scene3D intersection points in Scene3DtopDown
             ///////////////////////////////////////////////
 
             MLJ.core.Scene3DtopDown.setScene3DintersectionPoint(cameraLookAtIntersectionPoint,
@@ -1427,7 +1444,7 @@ var cameraLookAtIntersectionPoint = undefined;
     this.render = function (fromReqAnimFrame) {
 
         // if(_controls3D.isKeyDown)
-        if(_controls3D.isMouseDown)
+        if(_controls3D.isMouseDown || _controls3D.isTouchDown)
         {
             _this.findIntersections();
         }

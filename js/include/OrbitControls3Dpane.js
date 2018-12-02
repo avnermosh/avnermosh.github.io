@@ -112,6 +112,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     this.isKeyDown = false;
     this.isMouseDown = false;
+    this.isTouchDown = false;
     
     //
     // public methods
@@ -319,6 +320,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         scope.domElement.removeEventListener( 'mousedown', onMouseDown, false );
         scope.domElement.removeEventListener( 'wheel', onMouseWheel, false );
 
+	scope.domElement.removeEventListener( 'touchstart', onTouchStart, false );
+	scope.domElement.removeEventListener( 'touchend', onTouchEnd, false );
+	scope.domElement.removeEventListener( 'touchmove', onTouchMove, false );
+
         document.removeEventListener( 'mousemove', onMouseMove, false );
         document.removeEventListener( 'mouseup', onMouseUp, false );
 
@@ -339,7 +344,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     var startEvent = { type: 'start' };
     var endEvent = { type: 'end' };
 
-    var STATE = { NONE: - 1, ROTATE: 0, DOLLY: 1, PAN: 2 };
+    var STATE = { NONE: - 1, ROTATE: 0, DOLLY: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_DOLLY_PAN: 4 };
 
     var state = STATE.NONE;
 
@@ -737,6 +742,105 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         scope.isKeyDown = false;
     }
     
+    function handleTouchStartRotate( event ) {
+
+	console.log( 'BEG handleTouchStartRotate' );
+
+	rotateStart.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+
+    }
+
+    function handleTouchStartDollyPan( event ) {
+
+	console.log( 'BEG handleTouchStartDollyPan' );
+
+	if ( scope.enableZoom ) {
+
+	    var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+	    var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+
+	    var distance = Math.sqrt( dx * dx + dy * dy );
+
+	    dollyStart.set( 0, distance );
+
+	}
+
+	if ( scope.enablePan ) {
+
+	    var x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
+	    var y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+
+	    panStart.set( x, y );
+
+	}
+
+    }
+
+    function handleTouchMoveRotate( event ) {
+
+	console.log( 'BEG handleTouchMoveRotate' );
+
+	rotateEnd.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+
+	rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( scope.rotateSpeed );
+
+	var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+
+	rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
+
+	rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
+
+	rotateStart.copy( rotateEnd );
+
+	scope.update();
+
+    }
+
+    function handleTouchMoveDollyPan( event ) {
+
+	console.log( 'BEG handleTouchMoveDollyPan' );
+
+	if ( scope.enableZoom ) {
+
+	    var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+	    var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+
+	    var distance = Math.sqrt( dx * dx + dy * dy );
+
+	    dollyEnd.set( 0, distance );
+
+	    dollyDelta.set( 0, Math.pow( dollyEnd.y / dollyStart.y, scope.zoomSpeed ) );
+
+	    dollyIn( dollyDelta.y );
+
+	    dollyStart.copy( dollyEnd );
+
+	}
+
+	if ( scope.enablePan ) {
+
+	    var x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
+	    var y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+
+	    panEnd.set( x, y );
+
+	    panDelta.subVectors( panEnd, panStart ).multiplyScalar( scope.panSpeed );
+
+	    pan( panDelta.x, panDelta.y );
+
+	    panStart.copy( panEnd );
+
+	}
+
+	scope.update();
+
+    }
+
+    function handleTouchEnd( event ) {
+
+	console.log( 'BEG handleTouchEnd' );
+
+    }
 
     //
     // event handlers - FSM: listen for events and reset state
@@ -823,7 +927,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function onMouseMove( event ) {
         // console.log('BEG onMouseMove'); 
-        // console.log('scope.isMouseDown', scope.isMouseDown);
         
         if ( scope.enabled === false )
         {
@@ -917,10 +1020,139 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     }
 
+    function onTouchStart( event ) {
+
+        // console.log('BEG onTouchStart');
+        scope.isTouchDown = true;
+
+	if ( scope.enabled === false ) return;
+
+	// event.preventDefault();
+        console.log('event.touches.length1', event.touches.length);
+
+	switch ( event.touches.length ) {
+
+	    case 1:	// one-fingered touch: rotate
+                console.log('foo1'); 
+		if ( scope.enableRotate === false )
+                {
+                    return;
+                }
+
+		handleTouchStartRotate( event );
+
+		state = STATE.TOUCH_ROTATE;
+
+		break;
+
+	    case 2:	// two-fingered touch: dolly-pan
+                console.log('foo2'); 
+
+		if ( scope.enableZoom === false && scope.enablePan === false )
+                {
+                    return;
+                }
+
+		handleTouchStartDollyPan( event );
+
+		state = STATE.TOUCH_DOLLY_PAN;
+
+		break;
+
+	    default:
+                console.log('foo3'); 
+
+		state = STATE.NONE;
+
+	}
+
+	if ( state !== STATE.NONE ) {
+            console.log('foo2'); 
+
+	    scope.dispatchEvent( startEvent );
+
+	}
+
+    }
+
+    function onTouchMove( event ) {
+        console.log('BEG onTouchMove');
+        
+	if ( scope.enabled === false )
+        {
+            return;
+        }
+
+	// event.preventDefault();
+	event.stopPropagation();
+
+	switch ( event.touches.length ) {
+
+	    case 1: // one-fingered touch: rotate
+
+		if ( scope.enableRotate === false )
+                {
+                    return;
+                }
+		if ( state !== STATE.TOUCH_ROTATE )
+                {
+                    // is this needed?
+                    return; 
+                }
+
+		handleTouchMoveRotate( event );
+
+		break;
+
+	    case 2: // two-fingered touch: dolly-pan
+
+		if ( scope.enableZoom === false && scope.enablePan === false )
+                {
+                    return;
+                }
+                
+		if ( state !== STATE.TOUCH_DOLLY_PAN )
+                {
+                    // is this needed?
+                    return;
+                }
+
+		handleTouchMoveDollyPan( event );
+
+		break;
+
+	    default:
+
+		state = STATE.NONE;
+
+	}
+
+    }
+
+    function onTouchEnd( event ) {
+
+        console.log('BEG onTouchEnd');
+        scope.isTouchDown = false;
+        
+	if ( scope.enabled === false )
+        {
+            return;
+        }
+
+	handleTouchEnd( event );
+
+	scope.dispatchEvent( endEvent );
+
+	state = STATE.NONE;
+
+    }
 
     function onContextMenu( event ) {
 
-        if ( scope.enabled === false ) return;
+        if ( scope.enabled === false )
+        {
+            return;
+        }
 
         event.preventDefault();
 
@@ -932,6 +1164,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     scope.domElement.addEventListener( 'mousedown', onMouseDown, false );
     scope.domElement.addEventListener( 'wheel', onMouseWheel, false );
+
+    scope.domElement.addEventListener( 'touchstart', onTouchStart, false );
+    scope.domElement.addEventListener( 'touchend', onTouchEnd, false );
+    scope.domElement.addEventListener( 'touchmove', onTouchMove, false );
 
     window.addEventListener( 'keydown', onKeyDown, false );
     window.addEventListener( 'keyup', onKeyUp, false );
