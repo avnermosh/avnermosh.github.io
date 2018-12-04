@@ -257,9 +257,8 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         _controls3DtopDown.dynamicDampingFactor = 0.3;
 
         // Set rotate related parameters
-        // _controls3DtopDown.rotateSpeed = 2.0;
-        _controls3DtopDown.enableRotate = false;
         // No rotation.
+        _controls3DtopDown.enableRotate = false;
         _controls3DtopDown.minPolarAngle = 0; // radians
         _controls3DtopDown.maxPolarAngle = 0; // radians
         // No orbit horizontally.
@@ -267,15 +266,15 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         _controls3DtopDown.maxAzimuthAngle = 0; // radians
 
         // Set zoom related parameters
-        _controls3DtopDown.zoomSpeed = 1.2;
         _controls3DtopDown.enableZoom = true;
+        _controls3DtopDown.zoomSpeed = 1.2;
 
         
         // Set pan related parameters
+        _controls3DtopDown.enablePan = true;
         _controls3DtopDown.panSpeed = 2.0;
-        // _controls3DtopDown.enablePan = true;
-        // // if true, pan in screen-space
-        // _controls3DtopDown.screenSpacePanning = false;
+        // if true, pan in screen-space
+        _controls3DtopDown.screenSpacePanning = false;
         // // pixels moved per arrow key push
         // _controls3DtopDown.keyPanSpeed = 7.0;
 
@@ -574,8 +573,8 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
 
             let height = _selectedFloorInfo["height"] + heightOffset;
 
-            console.log('_intersectionPointPrev', _intersectionPointPrev);
-            console.log('_intersectionPointCurr', _intersectionPointCurr);
+//             console.log('_intersectionPointPrev', _intersectionPointPrev);
+//             console.log('_intersectionPointCurr', _intersectionPointCurr);
             
             var dist1 = _intersectionPointCurr.distanceTo( _intersectionPointPrev );
             let epsilon = 1.0;

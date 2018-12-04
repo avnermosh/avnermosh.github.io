@@ -689,7 +689,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function handleMouseWheel( event ) {
 
-        // console.log( 'handleMouseWheel' );
+        console.log( 'handleMouseWheel' );
 
         if ( event.deltaY < 0 ) {
 
@@ -989,6 +989,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     }
 
     function onMouseWheel( event ) {
+        console.log('BEG onMouseWheel'); 
 
         if ( scope.enabled === false || scope.enableZoom === false || ( state !== STATE.NONE && state !== STATE.ROTATE ) ) return;
 

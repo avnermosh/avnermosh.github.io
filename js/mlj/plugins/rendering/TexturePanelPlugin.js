@@ -184,7 +184,30 @@ var animationDuration = 200;
 
     };
 
+    function onDocumentTouchMove2D( event ) {
+        console.log('BEG onDocumentTouchMove2D'); 
+        // if(_controls2D.isTouchDown)
+        {
+            event.preventDefault();
+
+            if( event.touches.length > 0 )
+            {
+                render();
+            }
+        }
+    }
+
+    function onDocumentMouseMove2D( event ) {
+        console.log('BEG onDocumentMouseMove2D'); 
+        event.preventDefault();
+
+        render();
+        // texRenderer1.render(texScene, texCamera);
+    }
+
     function setTexControls(container2) {
+        console.log('BEG setTexControls');
+        
         // // NOT OK - orbit control responds but on all the scene
         // texControls = new THREE.OrbitControls(texCamera);
 
@@ -200,15 +223,43 @@ var animationDuration = 200;
         
         texControls = new THREE.OrbitControls(texCamera, container2);
         // texControls = new THREE.TrackballControls(texCamera, container2);
+
         
-        texControls.staticMoving = false;
-        texControls.noRoll = true;
-        texControls.noRotate = true;
-        texControls.noPan = false;
+        //////////////////////////////////////
+        // Set rotate related parameters
+        //////////////////////////////////////
+
+        // No rotation.
+        texControls.enableRotate = false;
+        texControls.minPolarAngle = 0; // radians
+        texControls.maxPolarAngle = 0; // radians
+        // No orbit horizontally.
+        texControls.minAzimuthAngle = 0; // radians
+        texControls.maxAzimuthAngle = 0; // radians
+
+        
+        //////////////////////////////////////
+        // Set zoom related parameters
+        //////////////////////////////////////
+
+        texControls.enableZoom = true;
+        texControls.zoomSpeed = 0.8;
         texControls.minDistance = texCamera.near;
         texControls.maxDistance = texCamera.far;
-        texControls.zoomSpeed = 0.8;
+
+        
+        //////////////////////////////////////
+        // Set pan related parameters
+        //////////////////////////////////////
+
+        texControls.enablePan = true;
         texControls.panSpeed = 0.6;
+
+        texControls.staticMoving = false;
+        
+        texControls.addEventListener( 'mousemove', onDocumentMouseMove2D, false );
+        texControls.addEventListener( 'touchmove', onDocumentTouchMove2D, false );
+
         texControls.addEventListener('change', render);
     };
     

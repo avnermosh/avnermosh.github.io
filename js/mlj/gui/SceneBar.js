@@ -95,6 +95,9 @@
                 icon: "img/icons/IcoMoon-Free-master/PNG/48px/0047-stack.png"
             });
             MLJ.gui.disabledOnSceneEmpty(layersComboWidget);
+
+                         // nextImage,
+                         // layersComboWidget);
             
             _toolBar.add(openMeshFileButton,
                          saveMeshFileButton,
@@ -102,8 +105,7 @@
                          _openImageFileButton,
                          addStickyNoteButton,
                          resetTrackball3D,
-                         nextImage,
-                         layersComboWidget);
+                         nextImage);
             
             // SCENE BAR EVENT HANDLERS
             openMeshFileButton.onChange(function (input) {
@@ -178,8 +180,8 @@
         };
 
         this.getOpenImageFileButton = function () {
-            console.log('BEG getOpenImageFileButton'); 
-            console.log('_openImageFileButton', _openImageFileButton); 
+//             console.log('BEG getOpenImageFileButton'); 
+//             console.log('_openImageFileButton', _openImageFileButton); 
             return _openImageFileButton;
         };
         

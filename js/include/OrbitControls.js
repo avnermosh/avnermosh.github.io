@@ -523,7 +523,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     function handleMouseWheel( event ) {
 
-	// console.log( 'handleMouseWheel' );
+	console.log( 'handleMouseWheel' );
 
 	if ( event.deltaY < 0 ) {
 
@@ -685,7 +685,11 @@ THREE.OrbitControls = function ( object, domElement ) {
             return;
         }
         
-	if ( scope.enabled === false ) return;
+	if ( scope.enabled === false )
+        {
+            return;
+        }
+            
 
 	event.preventDefault();
 
@@ -695,7 +699,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		if ( event.ctrlKey || event.metaKey ) {
 
-		    if ( scope.enablePan === false ) return;
+		    if ( scope.enablePan === false )
+                    {
+                        return;
+                    }
+
 
 		    handleMouseDownPan( event );
 
@@ -703,7 +711,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		} else {
 
-		    if ( scope.enableRotate === false ) return;
+		    if ( scope.enableRotate === false )
+                    {
+                        return;
+                    }
+                        
 
 		    handleMouseDownRotate( event );
 
@@ -715,7 +727,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	    case scope.mouseButtons.MIDDLE:
 
-		if ( scope.enableZoom === false ) return;
+		if ( scope.enableZoom === false )
+                {
+                    return;
+                }
+                    
 
 		handleMouseDownDolly( event );
 
@@ -725,7 +741,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	    case scope.mouseButtons.RIGHT:
 
-		if ( scope.enablePan === false ) return;
+		if ( scope.enablePan === false )
+                {
+                    return;
+                }
+                    
 
 		handleMouseDownPan( event );
 
@@ -748,7 +768,10 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     function onMouseMove( event ) {
 
-	if ( scope.enabled === false ) return;
+	if ( scope.enabled === false )
+        {
+            return;
+        }
 
 	event.preventDefault();
 
@@ -756,7 +779,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	    case STATE.ROTATE:
 
-		if ( scope.enableRotate === false ) return;
+		if ( scope.enableRotate === false )
+                {
+                    return;
+                }
+                    
 
 		handleMouseMoveRotate( event );
 
@@ -764,7 +791,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	    case STATE.DOLLY:
 
-		if ( scope.enableZoom === false ) return;
+		if ( scope.enableZoom === false )
+                {
+                    return;
+                }
+                    
 
 		handleMouseMoveDolly( event );
 
@@ -772,7 +803,10 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	    case STATE.PAN:
 
-		if ( scope.enablePan === false ) return;
+		if ( scope.enablePan === false )
+                {
+                    return;
+                }
 
 		handleMouseMovePan( event );
 
@@ -784,7 +818,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     function onMouseUp( event ) {
 
-	if ( scope.enabled === false ) return;
+	if ( scope.enabled === false )
+        {
+            return;
+        }
+            
 
 	handleMouseUp( event );
 
@@ -798,8 +836,13 @@ THREE.OrbitControls = function ( object, domElement ) {
     }
 
     function onMouseWheel( event ) {
+        console.log('BEG onMouseWheel'); 
 
-	if ( scope.enabled === false || scope.enableZoom === false || ( state !== STATE.NONE && state !== STATE.ROTATE ) ) return;
+	if ( scope.enabled === false || scope.enableZoom === false || ( state !== STATE.NONE && state !== STATE.ROTATE ) )
+        {
+            return;
+        }
+
 
 	event.preventDefault();
 	event.stopPropagation();
@@ -814,7 +857,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     function onKeyDown( event ) {
 
-	if ( scope.enabled === false || scope.enableKeys === false || scope.enablePan === false ) return;
+	if ( scope.enabled === false || scope.enableKeys === false || scope.enablePan === false )
+        {
+            return;
+        }
+            
 
 	handleKeyDown( event );
 
@@ -824,7 +871,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
         console.log('BEG onTouchStart');
         
-	if ( scope.enabled === false ) return;
+	if ( scope.enabled === false )
+        {
+            return;
+        }
+            
 
 	// event.preventDefault();
         console.log('event.touches.length1', event.touches.length);
@@ -833,7 +884,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	    case 1:	// one-fingered touch: rotate
                 console.log('foo1'); 
-		if ( scope.enableRotate === false ) return;
+		if ( scope.enableRotate === false )
+                {
+                    return;
+                }
+                    
 
 		handleTouchStartRotate( event );
 
@@ -844,7 +899,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 	    case 2:	// two-fingered touch: dolly-pan
                 console.log('foo2'); 
 
-		if ( scope.enableZoom === false && scope.enablePan === false ) return;
+		if ( scope.enableZoom === false && scope.enablePan === false )
+                {
+                    return;
+                }
+                    
 
 		handleTouchStartDollyPan( event );
 
@@ -870,18 +929,30 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     function onTouchMove( event ) {
         console.log('BEG onTouchMove');
-        
-	if ( scope.enabled === false ) return;
+
+        console.log('scope.enabled', scope.enabled); 
+	if ( scope.enabled === false )
+        {
+            return;
+        }
 
 	// event.preventDefault();
 	event.stopPropagation();
 
+        console.log('event.touches.length', event.touches.length); 
 	switch ( event.touches.length ) {
 
 	    case 1: // one-fingered touch: rotate
 
-		if ( scope.enableRotate === false ) return;
-		if ( state !== STATE.TOUCH_ROTATE ) return; // is this needed?
+		if ( scope.enableRotate === false )
+                {
+                    return;
+                }
+		if ( state !== STATE.TOUCH_ROTATE )
+                {
+                    // is this needed?
+                    return;
+                }
 
 		handleTouchMoveRotate( event );
 
@@ -889,8 +960,15 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	    case 2: // two-fingered touch: dolly-pan
 
-		if ( scope.enableZoom === false && scope.enablePan === false ) return;
-		if ( state !== STATE.TOUCH_DOLLY_PAN ) return; // is this needed?
+		if ( scope.enableZoom === false && scope.enablePan === false )
+                {
+                    return;
+                }
+		if ( state !== STATE.TOUCH_DOLLY_PAN )
+                {
+                    // is this needed?
+                    return;
+                }
 
 		handleTouchMoveDollyPan( event );
 
@@ -907,7 +985,11 @@ THREE.OrbitControls = function ( object, domElement ) {
     function onTouchEnd( event ) {
 
         console.log('BEG onTouchEnd');
-	if ( scope.enabled === false ) return;
+	if ( scope.enabled === false )
+        {
+            return;
+        }
+            
 
 	handleTouchEnd( event );
 
@@ -919,7 +1001,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     function onContextMenu( event ) {
 
-	if ( scope.enabled === false ) return;
+	if ( scope.enabled === false )
+        {
+            return;
+        }
+            
 
 	event.preventDefault();
 

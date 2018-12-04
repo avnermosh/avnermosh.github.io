@@ -87,19 +87,22 @@ var cameraLookAtIntersectionPoint = undefined;
     var _materialBlue = new THREE.LineBasicMaterial({color: 0x0000ff, linewidth: 5});
 
     function onDocumentTouchMove3D( event ) {
-        event.preventDefault();
-
-        if( event.touches.length > 0 )
+        if(_controls3D.isTouchDown)
         {
-            _mouse3D.x = ( ( event.touches[0].clientX - get3DOffset().left - _renderer3D.domElement.offsetLeft ) /
-                           _renderer3D.domElement.clientWidth ) * 2 - 1;
-            
-            _mouse3D.y = - ( ( event.touches[0].clientY - get3DOffset().top - _renderer3D.domElement.offsetTop ) /
-                             _renderer3D.domElement.clientHeight ) * 2 + 1;
+            event.preventDefault();
 
-            // console.log('_mouse3D', _mouse3D);
-            
-            MLJ.core.Scene3D.render();
+            if( event.touches.length > 0 )
+            {
+                _mouse3D.x = ( ( event.touches[0].clientX - get3DOffset().left - _renderer3D.domElement.offsetLeft ) /
+                               _renderer3D.domElement.clientWidth ) * 2 - 1;
+                
+                _mouse3D.y = - ( ( event.touches[0].clientY - get3DOffset().top - _renderer3D.domElement.offsetTop ) /
+                                 _renderer3D.domElement.clientHeight ) * 2 + 1;
+
+                // console.log('_mouse3D', _mouse3D);
+                
+                MLJ.core.Scene3D.render();
+            }
         }
     }
 
@@ -443,8 +446,13 @@ var cameraLookAtIntersectionPoint = undefined;
         _controls3D.staticMoving = true;
         _controls3D.dynamicDampingFactor = 0.3;
 
+        
+        //////////////////////////////////////
         // Set rotate related parameters
+        //////////////////////////////////////
+
         _controls3D.enableRotate = true;
+        // _controls3D.enableRotate = false;
         _controls3D.rotateSpeed = 2.0;
         // How far you can orbit vertically, upper and lower limits.
         _controls3D.minPolarAngle = Math.PI/2; // radians
@@ -454,18 +462,31 @@ var cameraLookAtIntersectionPoint = undefined;
         _controls3D.minAzimuthAngle = - Infinity; // radians
         _controls3D.maxAzimuthAngle = Infinity; // radians
 
+        
+        //////////////////////////////////////
         // Set zoom related parameters
+        //////////////////////////////////////
+
         _controls3D.enableZoom = true;
         _controls3D.zoomSpeed = 1.2;
-        // How far you can dolly in and out ( PerspectiveCamera only )
-        // Not relevant for the implementation of OrbitControls3Dpane
+
+        // How far you can zoom in and out
+        // Relevant for the implementation of OrbitControls3Dpane with PerspectiveCamera
         // (zoom was changed from dollying to use the fov and digital zoom)
-        _controls3D.minDistance = 0.1;
-        _controls3D.maxDistance = Infinity;
         _controls3D.minZoom = 0.5;
         _controls3D.maxZoom = Infinity;
 
+        // How far you can dolly in and out
+        // Not relevant for the implementation of OrbitControls3Dpane with PerspectiveCamera
+        // (zoom was changed from dollying to use the fov and digital zoom)
+        // _controls3D.minDistance = 0.1;
+        // _controls3D.maxDistance = Infinity;
+
+        
+        //////////////////////////////////////
         // Set pan related parameters
+        //////////////////////////////////////
+
         _controls3D.enablePan = true;
         _controls3D.screenSpacePanning = true;
         // pixels moved per arrow key push
@@ -526,6 +547,8 @@ var cameraLookAtIntersectionPoint = undefined;
         canvas3D.addEventListener('mousewheel', _controls3D.update.bind(_controls3D), false);
         canvas3D.addEventListener('DOMMouseScroll', _controls3D.update.bind(_controls3D), false); // firefox
         canvas3D.addEventListener( 'mousemove', onDocumentMouseMove3D, false );
+
+        canvas3D.addEventListener( 'touchmove', onDocumentTouchMove3D, false );
         
         _controls3D.addEventListener('change', function () {
             MLJ.core.Scene3D.render();
@@ -825,7 +848,7 @@ var cameraLookAtIntersectionPoint = undefined;
     };
 
     this.setCamera3Dposition = function (position) {
-        console.log('position0', position);
+//         console.log('position0', position);
 
         _axisHelper1.position.copy( position );
         // _originAxisHelper.position.copy( position );
