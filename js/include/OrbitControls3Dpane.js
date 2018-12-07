@@ -21,7 +21,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     console.log('domElement', domElement);
 
-    var CONTROL_TYPE = { NONE: -1, _3D: 0, _3D_TOP_DOWN: 1 };
+    var CONTROL_TYPE = { NONE: -1, _3D: 0, _3D_TOP_DOWN: 1, _TEXTURE_2D: 2 };
     this.controllerType = CONTROL_TYPE.NONE;
 
     this.domElement = ( domElement !== undefined ) ? domElement : document;
@@ -35,6 +35,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     else if(this.domElement.id === '_3DtopDown')
     {
         this.controllerType = CONTROL_TYPE._3D_TOP_DOWN;
+    }
+    else if(this.domElement.id === 'mlj-tools-pane')
+    {
+        this.controllerType = CONTROL_TYPE._TEXTURE_2D;
     }
     else
     {
@@ -60,13 +64,16 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     this.minZoom = 0;
     this.maxZoom = Infinity;
 
+    // How far you can orbit vertically, upper and lower limits.
+    // Range is 0 to Math.PI radians.
     this.minPolarAngle = 0; // radians
     this.maxPolarAngle = Math.PI; // radians
 
+    // How far you can orbit horizontally, upper and lower limits.
+    // If set, must be a sub-interval of the interval [ -Math.PI, Math.PI ].
     this.minAzimuthAngle = - Infinity; // radians
     this.maxAzimuthAngle = Infinity; // radians
     
-
     // Set to true to enable damping (inertia)
     // If damping is enabled, you must call controls.update() in your animation loop
     this.enableDamping = false;
@@ -212,6 +219,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 case CONTROL_TYPE._3D_TOP_DOWN:
                     break;
+
+                case CONTROL_TYPE._TEXTURE_2D:
+                    break;
+                    
             }
             
             offset.copy( position ).sub( scope.target );
@@ -302,6 +313,9 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                         
                     case CONTROL_TYPE._3D_TOP_DOWN:
                         // console.log('scope.object.position', scope.object.position); 
+                        break;
+
+                    case CONTROL_TYPE._TEXTURE_2D:
                         break;
                 }
 
@@ -589,10 +603,20 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         // console.log( 'BEG handleMouseDownPan' );
         // console.log('scope.domElement.id', scope.domElement.id); 
 
-        if(scope.domElement.id === '_3D' && doUsePanForChangeSettingIn_3D)
-        {
-            scope.changeSettings();
-            return;
+        switch ( this.controllerType ) {
+
+            case CONTROL_TYPE._3D:
+                if(doUsePanForChangeSettingIn_3D)
+                {
+                    scope.changeSettings();
+                    return;
+                }
+                
+                break;
+
+            case CONTROL_TYPE._3D_TOP_DOWN:
+            case CONTROL_TYPE._TEXTURE_2D:
+                break;
         }
 
         panStart.set( event.clientX, event.clientY );
@@ -611,14 +635,22 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
 
-        if(scope.domElement.id === '_3D' && doDisableRotateUpIn_3D)
-        {
-            // Disable rotateUp
-            // rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
-        }
-        else
-        {
-            rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
+        switch ( this.controllerType ) {
+
+            case CONTROL_TYPE._3D:
+                if(doDisableRotateUpIn_3D)
+                {
+                    // Disable rotateUp
+                    // rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
+                }
+                
+                break;
+
+            case CONTROL_TYPE._3D_TOP_DOWN:
+            case CONTROL_TYPE._TEXTURE_2D:
+
+                rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
+                break;
         }
 
         rotateStart.copy( rotateEnd );
@@ -664,9 +696,18 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     function handleMouseMovePan( event ) {
 
         // console.log( 'BEG handleMouseMovePan' );
-        if(scope.domElement.id === '_3D' && doUsePanForChangeSettingIn_3D)
-        {
-            return;
+        switch ( this.controllerType ) {
+
+            case CONTROL_TYPE._3D:
+                if(doUsePanForChangeSettingIn_3D)
+                {
+                    return;
+                }
+                break;
+
+            case CONTROL_TYPE._3D_TOP_DOWN:
+            case CONTROL_TYPE._TEXTURE_2D:
+                break;
         }
 
         panEnd.set( event.clientX, event.clientY );
@@ -799,7 +840,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     function handleTouchMoveDollyPan( event ) {
 
 	console.log( 'BEG handleTouchMoveDollyPan' );
-
+        
 	if ( scope.enableZoom ) {
 
 	    var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
@@ -939,7 +980,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
             case STATE.ROTATE:
 
-                if ( scope.enableRotate === false ) return;
+                if ( scope.enableRotate === false )
+                {
+                    return;
+                }
 
                 handleMouseMoveRotate( event );
 
@@ -947,7 +991,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
             case STATE.DOLLY:
 
-                if ( scope.enableZoom === false ) return;
+                if ( scope.enableZoom === false )
+                {
+                    return;
+                }
 
                 handleMouseMoveDolly( event );
 
@@ -955,7 +1002,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
             case STATE.PAN:
 
-                if ( scope.enablePan === false ) return;
+                if ( scope.enablePan === false )
+                {
+                    return;
+                }
                 // console.log('scope.enablePan', scope.enablePan); 
                 handleMouseMovePan( event );
 
@@ -991,7 +1041,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     function onMouseWheel( event ) {
         console.log('BEG onMouseWheel'); 
 
-        if ( scope.enabled === false || scope.enableZoom === false || ( state !== STATE.NONE && state !== STATE.ROTATE ) ) return;
+        if ( scope.enabled === false || scope.enableZoom === false || ( state !== STATE.NONE && state !== STATE.ROTATE ) )
+        {
+            return;
+        }
 
         event.preventDefault();
         event.stopPropagation();
@@ -1007,7 +1060,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     function onKeyDown( event ) {
             // console.log('BEG onKeyDown'); 
 
-        if ( scope.enabled === false || scope.enableKeys === false || scope.enablePan === false ) return;
+        if ( scope.enabled === false || scope.enableKeys === false || scope.enablePan === false )
+        {
+            return;
+        }
 
         handleKeyDown( event );
 
@@ -1015,7 +1071,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function onKeyUp( event ) {
 
-        if ( scope.enabled === false || scope.enableKeys === false || scope.enablePan === false ) return;
+        if ( scope.enabled === false || scope.enableKeys === false || scope.enablePan === false )
+        {
+            return;
+        }
 
         handleKeyUp( event );
 
@@ -1026,7 +1085,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         // console.log('BEG onTouchStart');
         scope.isTouchDown = true;
 
-	if ( scope.enabled === false ) return;
+	if ( scope.enabled === false )
+        {
+            return;
+        }
 
 	// event.preventDefault();
         console.log('event.touches.length1', event.touches.length);

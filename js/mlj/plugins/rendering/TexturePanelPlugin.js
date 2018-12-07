@@ -34,7 +34,6 @@ var animationDuration = 200;
     plug._init = function (guiBuilder) {
         widgets = [];
         hideWidgets();
-        canvasInit();
     };
 
     plug.getTexScene = function () {
@@ -185,15 +184,15 @@ var animationDuration = 200;
     };
 
     function onDocumentTouchMove2D( event ) {
-        console.log('BEG onDocumentTouchMove2D'); 
-        // if(_controls2D.isTouchDown)
+        // console.log('BEG onDocumentTouchMove2D');
+        // console.log('texControls.isTouchDown', texControls.isTouchDown); 
+
+        if(texControls.isTouchDown)
         {
             event.preventDefault();
 
-            if( event.touches.length > 0 )
-            {
-                render();
-            }
+            console.log('event.touches.length', event.touches.length); 
+            render();
         }
     }
 
@@ -221,9 +220,13 @@ var animationDuration = 200;
 
         // let container2 = document.getElementById('mlj-tools-pane');
         
-        texControls = new THREE.OrbitControls(texCamera, container2);
         // texControls = new THREE.TrackballControls(texCamera, container2);
 
+        
+        // texControls = new THREE.OrbitControls(texCamera, container2);
+
+        texControls = new THREE.OrbitControls3Dpane(texCamera, container2);
+        console.log('texControls.enableZoom5', texControls.enableZoom); 
         
         //////////////////////////////////////
         // Set rotate related parameters
@@ -254,16 +257,18 @@ var animationDuration = 200;
 
         texControls.enablePan = true;
         texControls.panSpeed = 0.6;
-
+        texControls.screenSpacePanning = false;
         texControls.staticMoving = false;
         
-        texControls.addEventListener( 'mousemove', onDocumentMouseMove2D, false );
-        texControls.addEventListener( 'touchmove', onDocumentTouchMove2D, false );
+        container2.addEventListener( 'touchmove', onDocumentTouchMove2D, false );
+        container2.addEventListener( 'mousemove', onDocumentMouseMove2D, false );
 
         texControls.addEventListener('change', render);
     };
     
     function canvasInit() {
+
+        // console.log('BEG canvasInit');
 
         // Looks like left,right,top,bottom is in %
         // (when set to -100,100, the image covers 1/2 of the window)
@@ -275,9 +280,8 @@ var animationDuration = 200;
         let bottom = -50;
         let near = -500;
         let far = 1000;
-        
-        texCamera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
 
+        texCamera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
         texCamera.position.set( 0, 0, 80 );
         
         texScene = new THREE.Scene();
@@ -289,9 +293,9 @@ var animationDuration = 200;
         texRenderer1.setPixelRatio(window.devicePixelRatio);
         texRenderer1.setClearColor(0XDBDBDB, 1); //Webgl canvas background color
 
-        let container2 = document.getElementsByTagName('canvas')[0];
+        let container2 = document.getElementById('mlj-tools-pane');
         setTexControls(container2);
-        
+
         if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
             texLabelRenderer = new THREE.CSS2DRenderer();
@@ -300,7 +304,6 @@ var animationDuration = 200;
             texLabelRenderer.domElement.style.top = 0;
         }
         
-        animate();
     }
 
 
@@ -425,6 +428,12 @@ var animationDuration = 200;
         
     });
     
+    //INIT
+    $(window).ready(function () {
+        canvasInit();
+        animate();
+    });
+
     // $(window).load happens after $(window).ready   
     // $(window).ready(function () {
     $(window).load(function () {
@@ -432,9 +441,6 @@ var animationDuration = 200;
         // at this point
         // defined - tab-Texture, texCanvasWrapper1, mlj-tools-pane
 
-        let container2 = document.getElementById('mlj-tools-pane');
-        setTexControls(container2);
-        
         var doLoadHardcodedZipFile = true;
         doLoadHardcodedZipFile = false;
         if(doLoadHardcodedZipFile)

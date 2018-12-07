@@ -87,6 +87,8 @@ var cameraLookAtIntersectionPoint = undefined;
     var _materialBlue = new THREE.LineBasicMaterial({color: 0x0000ff, linewidth: 5});
 
     function onDocumentTouchMove3D( event ) {
+        // console.log('BEG onDocumentTouchMove3D'); 
+
         if(_controls3D.isTouchDown)
         {
             event.preventDefault();
