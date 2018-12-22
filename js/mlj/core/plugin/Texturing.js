@@ -8,22 +8,19 @@
     
 var globalIndex = 0;
 MLJ.core.plugin.Texturing = function (parameters, defaults) {
-
+    // console.log('BEG MLJ.core.plugin.Texturing');
+    
     MLJ.core.plugin.Plugin.call(this, parameters.name, parameters);
 
     var _this = this;
     MLJ.core.setDefaults(_this.getName(), defaults)
-    var pane = new MLJ.gui.component.Pane();
-    var guiBuilder = new MLJ.core.plugin.GUIBuilder(pane);
+    var texCanvasComponent = new MLJ.gui.component.Component();
+    var guiBuilder = new MLJ.core.plugin.GUIBuilder(texCanvasComponent);
     var UID = MLJ.gui.generateUID();
-    var texturePane = MLJ.widget.TabbedPane.getTexturePane();
 
     this._main = function () {    
         _this._init(guiBuilder);
-        // pane.appendContent('<p class="left">left</p><p class="right">right</p>');
-        pane.appendContent('<div class="contain2" id="texCanvasWrapper1"></div>');
-        texturePane.append(pane.$);
-        pane.$.hide();
+        texCanvasComponent.$.hide();
     };
 
     this._setOnParamChange = guiBuilder.setOnParamChange;
@@ -35,28 +32,33 @@ MLJ.core.plugin.Texturing = function (parameters, defaults) {
         // update parameter
         var layer = MLJ.core.Scene3D.getSelectedLayer();
         if (layer === undefined)
+        {
             return;
+        }
 
         //the selectedTexture param is layer-dependent and not texture-dependent
         if (paramProp === "selectedTexture") {
             if (value <= layer.texturesNum) //Fix in case the other texture had more texture than the new one
+            {
                 layer.selectedTexture = value;
+            }
             else
+            {
                 layer.selectedTexture = 0;
-        } else {
-            
+            }
         }
+
         if (jQuery.isFunction(paramProp)) { //is 'bindTo' property a function?
             paramProp(value);
         }
     });
 
     $(document).on("SceneLayerAdded", function (event, layer) {
-        //The panel will be shown only when the first mesh is loaded
+        //The texCanvasComponent will be shown only when the first mesh is loaded
         //it is the only way to hide
         if (MLJ.core.Scene3D.getLayers().size() === 1)
         {
-            pane.$.show();
+            texCanvasComponent.$.show();
         }
 
         update();
@@ -83,7 +85,7 @@ MLJ.core.plugin.Texturing = function (parameters, defaults) {
         
         if (MLJ.core.Scene3D.getLayers().size() === 1)
         {
-            pane.$.show();
+            texCanvasComponent.$.show();
         }
 
         update();

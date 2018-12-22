@@ -122,25 +122,6 @@ MLJ.core.Layer = function (id, name)
 
     this.addToStructureMeshGroup = function (mesh) {
         _this.structureMeshGroup.add( mesh );
-//         console.log('_this.structureMeshGroup', _this.structureMeshGroup);
-//         let bBox = mesh.bBox;
-//         console.log('bBox', bBox); 
-
-//         var box = new THREE.Box3().setFromObject( mesh );
-//         console.log('box', box);
-
-//         var position1 = new THREE.Vector3();
-//         console.log('position1 before bBox.center', position1);
-//         box.center( position1 ); // this re-sets position1
-//         console.log('position1 after bBox.center', position1);
-
-//         box.center( _this.structureMeshGroup.position ); // this re-sets _this.structureMeshGroup
-//         console.log('_this.structureMeshGroup after bBox.center', _this.structureMeshGroup);
-        
-//         var container = document.getElementsByTagName('canvas')[0];
-//         let trackballControls = new THREE.TrackballControls(_this.structureMeshGroup, container);
-//         MLJ.core.Scene3D.setTrackballControls3D(trackballControls);
-        
     };
 
     this.getFloorInfoArray = function () {

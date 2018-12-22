@@ -749,7 +749,7 @@ MLJ.extend(MLJ.gui.component.Component, MLJ.gui.component.ToolBar);
  */
 MLJ.gui.component.Pane = function () {
 
-    var _html = '<div id="texPane1" class="contain1 mlj-pane ui-widget-content texPaneClass"></div>';
+    var _html = '<div class="mlj-pane ui-widget-content"></div>';
 
     this._make = function () {
 

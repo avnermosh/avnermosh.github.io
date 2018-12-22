@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////
 
 var animationDuration = 200;
+var globalIndex1 = 0;
 
 (function (plugin, core, scene) {
     
@@ -24,7 +25,7 @@ var animationDuration = 200;
     
     var plug = new plugin.Texturing({
         name: "TexturePanel",
-        tooltip: "Show the texture image and parametrization attached to the mesh",
+        tooltip: "Show the texture image",
         toggle: true,
         on: true
     }, DEFAULTS);
@@ -102,10 +103,10 @@ var animationDuration = 200;
         // remove?
         scene.render();
 
-        $("#texCanvasWrapper1").append(texRenderer1.domElement);
+        $("#texCanvasWrapper").append(texRenderer1.domElement);
         if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
-            $("#texCanvasWrapper1").append(texLabelRenderer.domElement);
+            $("#texCanvasWrapper").append(texLabelRenderer.domElement);
         }
 
         //Always remove everything from the scene when creating the meshes and adding them to the scene
@@ -175,12 +176,7 @@ var animationDuration = 200;
         $(window).trigger('resize');
 
         //Always render, if nothing is shown, then no layer is selected
-        texRenderer1.render(texScene, texCamera);
-        if(MLJ.core.Scene3D.isStickyNotesEnabled())
-        {
-            texLabelRenderer.render(texScene, texCamera);
-        }
-
+        render();
     };
 
     function onDocumentTouchMove2D( event ) {
@@ -201,31 +197,55 @@ var animationDuration = 200;
         event.preventDefault();
 
         render();
-        // texRenderer1.render(texScene, texCamera);
     }
 
-    function setTexControls(container2) {
+    function onDocumentTouchDoubleTap( event ) {
+
+        console.log('BEG onDocumentTouchDoubleTap'); 
+
+        let element1Id = 'texture-pane-wrapper';
+        let element1JqueryObject = $('#' + element1Id);
+        var element1 = document.getElementById(element1Id);
+        
+        var element2 = document.getElementById('_3DWrapper');
+        var element3 = document.getElementById('mlj-scenebar-widget');
+        
+        if(globalIndex1%2==0)
+        {
+            console.log('globalIndex1 is Even');
+
+            element1JqueryObject.addClass("showFullSize");
+            element1JqueryObject.removeClass("texturePaneWrapper");
+            
+            element2.style.display = "none";
+            element3.style.display = "none";
+        }
+        else
+        {
+            console.log('globalIndex1 is Odd'); 
+
+            element1JqueryObject.removeClass("showFullSize");
+            element1JqueryObject.addClass("texturePaneWrapper");
+            
+            element2.style.display = "block";
+            element3.style.display = "block";
+        }
+
+        // Adjust the size and position of the texRenderer1 (canvasTex), texLabelRenderer (canvasTexLabel) elements
+        resizeCanvas();
+        
+        globalIndex1 += 1;
+    };
+
+    function setTexControls() {
         console.log('BEG setTexControls');
+
+        // Need to be similar to what is in OrbitControls3Dpane.js constructor
+        let texCanvasWrapperElement = document.getElementById('texCanvasWrapper');
+        // console.log('texCanvasWrapperElement', texCanvasWrapperElement); 
+
+        texControls = new THREE.OrbitControls3Dpane(texCamera, texCanvasWrapperElement);
         
-        // // NOT OK - orbit control responds but on all the scene
-        // texControls = new THREE.OrbitControls(texCamera);
-
-        // NOT OK - orbit control responds but on all canvases
-        // var container2 = document.getElementsByTagName('canvas')[0];
-
-        // texControls = new THREE.OrbitControls(texCamera, texRenderer1.domElement);
-
-        // let container2 = document.getElementById('tab-Texture');
-        // let container2 = document.getElementById('texCanvasWrapper1');
-
-        // let container2 = document.getElementById('mlj-tools-pane');
-        
-        // texControls = new THREE.TrackballControls(texCamera, container2);
-
-        
-        // texControls = new THREE.OrbitControls(texCamera, container2);
-
-        texControls = new THREE.OrbitControls3Dpane(texCamera, container2);
         console.log('texControls.enableZoom5', texControls.enableZoom); 
         
         //////////////////////////////////////
@@ -260,9 +280,9 @@ var animationDuration = 200;
         texControls.screenSpacePanning = false;
         texControls.staticMoving = false;
         
-        container2.addEventListener( 'touchmove', onDocumentTouchMove2D, false );
-        container2.addEventListener( 'mousemove', onDocumentMouseMove2D, false );
-
+        texCanvasWrapperElement.addEventListener( 'touchmove', onDocumentTouchMove2D, false );
+        texCanvasWrapperElement.addEventListener( 'mousemove', onDocumentMouseMove2D, false );
+        
         texControls.addEventListener('change', render);
     };
     
@@ -290,19 +310,34 @@ var animationDuration = 200;
             preserveDrawingBuffer: true,
             alpha: true});
         
+        texRenderer1.domElement.id = 'canvasTex';
         texRenderer1.setPixelRatio(window.devicePixelRatio);
         texRenderer1.setClearColor(0XDBDBDB, 1); //Webgl canvas background color
 
-        let container2 = document.getElementById('mlj-tools-pane');
-        setTexControls(container2);
+        setTexControls();
 
         if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
             texLabelRenderer = new THREE.CSS2DRenderer();
+            texLabelRenderer.domElement.id = 'canvasTexLabel';
             texLabelRenderer.setSize( texRenderer1.getSize().width, texRenderer1.getSize().height );
             texLabelRenderer.domElement.style.position = 'absolute';
             texLabelRenderer.domElement.style.top = 0;
         }
+
+        ////////////////////////////////////////////////////
+        // Handle doubletap 
+        ////////////////////////////////////////////////////
+
+        let element1Id = 'texture-pane-wrapper';
+        let element1JqueryObject = $('#' + element1Id);
+        console.log('element1JqueryObject', element1JqueryObject); 
+
+        element1JqueryObject.on('doubletap', function(event) {
+            // Takes care both of "double touch" (with the finger) and double click (with the mouse)
+            console.log('User doubletapped #myElement');
+            onDocumentTouchDoubleTap(event);
+        });
         
     }
 
@@ -314,6 +349,8 @@ var animationDuration = 200;
 
 
     function render() {
+        // console.log('BEG TexturePanelPlugin render');
+
         texRenderer1.render(texScene, texCamera);
         if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
@@ -321,69 +358,147 @@ var animationDuration = 200;
         }
     }
 
+   
     $(window).resize(function () {
+        // console.log('BEG TexturePanelPlugin resize');
+
+        // ok - scales the image to the maximum within the window while preserving the aspect ratio,
+        // ok - when zooming the image fills in the entire window
         resizeCanvas();
-        texRenderer1.render(texScene, texCamera);
-        if(MLJ.core.Scene3D.isStickyNotesEnabled())
-        {
-            texLabelRenderer.render(texScene, texCamera);
-        }
+
+        render();
     });
 
 
-    //NEEDED TO MAKE the CONTROLS WORKING AS SOON AS THE TEXTURE TAB IS OPENED!!
-    //Apparently when the canvas goes from hidden to shown, it's necessary to "update" controls in order
-    //to make them work correctly
-    //The mouse click won't work otherwise, unless texControls.handleResized() is called
-    //Since it may be possible that the panel has been resized, better call resizeCanvas and be sure that
-    //camera, controls and aspect are correct. If the tab opened is not the texture tab better resizing it
-    $(window).on('tabsactivate', function (event, ui) {
-        if (ui.newPanel.attr('id') === MLJ.widget.TabbedPane.getTexturePane().parent().attr('id')) {
-            resizeCanvas();
-            texRenderer1.render(texScene, texCamera);
-            if(MLJ.core.Scene3D.isStickyNotesEnabled())
-            {
-                texLabelRenderer.render(texScene, texCamera);
-            }
-        } else
-            $(window).trigger('resize'); //This one is needed to reset the size (since it is impossible to resize the canvas back
-    });
+    function getTexturePaneWrapperSize() {
+        console.log('BEG TexturePanelPlugin getTexturePaneWrapperSize');
+
+        let texturePaneWrapper = $('#texture-pane-wrapper');
+        console.log('texturePaneWrapper.outerWidth()', texturePaneWrapper.outerWidth());
+        console.log('texturePaneWrapper.innerWidth()', texturePaneWrapper.innerWidth());
+
+        // TBD
+        // innerHeight, outerHeight kepps increasing ???
+        console.log('texturePaneWrapper.innerHeight()', texturePaneWrapper.innerHeight());
+        // console.log('texturePaneWrapper', texturePaneWrapper);
+        // console.log('texturePaneWrapper.clientWidth', texturePaneWrapper.clientWidth);
+        
+        return {
+            width: texturePaneWrapper.innerWidth(),
+            height: texturePaneWrapper.innerHeight()
+            // width: texturePaneWrapper.outerWidth(),
+            // height: texturePaneWrapper.outerHeight()
+        };
+    }
 
     function resizeCanvas() {
+        // console.log('BEG TexturePanelPlugin resizeCanvas');
+        
+        var texturePaneWrapperSize = getTexturePaneWrapperSize();
+        // console.log('texturePaneWrapperSize', texturePaneWrapperSize);
 
         let portraitWidth = 1512;
         let portraitHeight = 2016;
         let imageAspectPortrait = portraitWidth / portraitHeight;
 
-        var paneWidth = $("#tab-Texture").width();
-        var paneHeight = $("#tab-Texture").height();
+        // w0, h0 - the size of the gui window
+        let w0 = $("#texCanvasWrapper").width();
+        let h0 = $("#texCanvasWrapper").height();
+        // console.log('w0', w0); 
+        // console.log('h0', h0);
+
+        //////////////////////////////////////////////////////////
+        // Set the aspect ratio of texCamera - always set to imageAspectPortrait for portrait or
+        // 1/imageAspectPortrait for landscape
+        //////////////////////////////////////////////////////////
+
         if(rotationVal !== 0)
         {
             // portrait
-            paneWidth = paneHeight * imageAspectPortrait;
+            image_w_h_ratio = imageAspectPortrait;
         }
         else
         {
             // landscape
-            paneWidth = paneHeight / imageAspectPortrait;
+            image_w_h_ratio = 1 / imageAspectPortrait;
         }
-
-        // aspect has no effect ?? (changing the aspect value to e.g. 1.0 doesn't make a visual difference?? ...)
-        texCamera.aspect = paneWidth / paneHeight;
-
-        // console.log('rotationVal', rotationVal);
-        // console.log('paneWidth', paneWidth); 
-        // console.log('paneHeight', paneHeight);
-
+        texCamera.aspect = image_w_h_ratio;
         texCamera.updateProjectionMatrix();
 
-        texRenderer1.setSize(paneWidth, paneHeight);
+        //////////////////////////////////////////////////////////
+        // Set canvas width / height
+        // https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
+        // Set the width and height to be such that the entire pane is used for drawing
+        // and set the zoom factor such that the entire image is seen 
+        //////////////////////////////////////////////////////////
+
+        // w1, h1 - the size of the canvas that preserves the aspectRatio of the image. It exceeds the gui window, i.e. w1>=w0, h1>=h0
+        //          also, the size of the viewport.
+        let texturePaneWrapperRatio = w0 / h0;
+        let w1 = 1;
+        let h1 = 1;
+
+        // x2, y2 - offset from the orgin of the gui window for the origin of the canvas and the viewport
+        let x2 = 0;
+        let y2 = 0;
+
+        if(texturePaneWrapperRatio > image_w_h_ratio)
+        {
+            w1 = w0;
+            h1 = w1 / image_w_h_ratio;
+
+            // h1 is bigger than h0
+            let zoomFactor = h0 / h1;
+            texControls.setZoom(zoomFactor);
+
+            x2 = 0;
+            y2 = (h1 - h0) / 2;
+        }
+        else
+        {
+            h1 = h0;
+            w1 = h1 * image_w_h_ratio;
+
+            // w1 is bigger than w0
+            let zoomFactor = w0 / w1;
+            texControls.setZoom(zoomFactor);
+
+            y2 = 0;
+            x2 = (w1 - w0) / 2;
+        }
+
+       
+        // console.log('texCamera.zoom after', texCamera.zoom);
+        // console.log('texturePaneWrapperRatio', texturePaneWrapperRatio); 
+        // console.log('texturePaneWrapperSize', texturePaneWrapperSize);
+        // console.log('image_w_h_ratio', image_w_h_ratio); 
+        // console.log('texturePaneWrapperRatio > image_w_h_ratio', (texturePaneWrapperRatio > image_w_h_ratio)); 
+        // console.log('w1', w1);
+        // console.log('h1', h1);
+        // console.log('w1/h1', w1/h1);
+        
+        texRenderer1.setSize(w1, h1);
+
 
         if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
-            texLabelRenderer.setSize(paneWidth, paneHeight);
+            texLabelRenderer.setSize(w1, h1);
         }
+
+        //////////////////////////////////////////////////////////
+        // Set viewport
+        // https://threejs.org/docs/#api/en/renderers/WebGLRenderer.setViewport
+        //////////////////////////////////////////////////////////
+
+        // console.log('x2', x2);
+        // console.log('y2', y2);
+        
+        let currentViewport1 = texRenderer1.getCurrentViewport();
+
+        // proportions ok, fills window ok, offset - ok
+        texRenderer1.setViewport ( -x2, -y2, w1, h1 );
     }
+
 
     function hideWidgets() {
         // //call the parent to hide the div containing both label and button set
@@ -396,7 +511,7 @@ var animationDuration = 200;
         //         widgets[i].choice.$.parent().parent().hide(animationDuration);
         // }
 
-        $("#texCanvasWrapper1").hide(animationDuration);
+        $("#texCanvasWrapper").hide(animationDuration);
         $("#texInfoContainer").hide(animationDuration);
     }
 
@@ -411,35 +526,28 @@ var animationDuration = 200;
         //         widgets[i].choice.$.parent().parent().show(animationDuration);
         // }
 
-        $("#texCanvasWrapper1").show(animationDuration);
+        $("#texCanvasWrapper").show(animationDuration);
         $("#texInfoContainer").show(animationDuration);
     }
 
     plugin.Manager.install(plug);
 
-    $(document).ready(function () {
-        // TBD
-        // at this point
-        // not defined - tab-Texture, texCanvasWrapper1
-        // defined - mlj-tools-pane
-        //
-        // let container2 = document.getElementById('mlj-tools-pane');
-        // console.log('container2', container2); 
-        
-    });
+    // $(document).ready(function () {
+    // });
     
     //INIT
     $(window).ready(function () {
-        canvasInit();
-        animate();
+        // canvasInit();
+        // animate();
     });
 
     // $(window).load happens after $(window).ready   
     // $(window).ready(function () {
     $(window).load(function () {
 
-        // at this point
-        // defined - tab-Texture, texCanvasWrapper1, mlj-tools-pane
+        // at this point the following elements are defined - texCanvasWrapper
+        canvasInit();
+        animate();
 
         var doLoadHardcodedZipFile = true;
         doLoadHardcodedZipFile = false;

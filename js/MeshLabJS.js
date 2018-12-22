@@ -33,222 +33,56 @@
         console.error("MLJ.gui.widget module needed.");
     }
 
-    let portraitWidth = 1512;
-    let portraitHeight = 2016;
-    let imageAspectPortrait = portraitWidth / portraitHeight;
+    var _$texturePaneWrapper = $('<div id="texture-pane-wrapper"></div>');
+    _$texturePaneWrapper.addClass("texturePaneWrapper");
 
-    let texturePaneWidth = window.innerHeight / imageAspectPortrait;
-    let texturePaneTo3dPaneWidthRatio = Math.floor( 100 * (texturePaneWidth / window.innerWidth) );
-    let texturePaneTo3dPaneWidthRatioStr = texturePaneTo3dPaneWidthRatio + "%";
+    var texCanvasWrapper = $('<div id="texCanvasWrapper"></div>');
+    texCanvasWrapper.addClass("texCanvasWrapper");
+    
+    var _$border = $('<div id="mlj-tools-pane-border"></div>');
 
-    var _$texturePaneWrapper = $('<div></div>')
-            .css({
-                width: texturePaneTo3dPaneWidthRatioStr,
-                height: "100%"
-            });
-
-    var _$border = $('<div id="mlj-tools-pane-border"></div>')
-            .css({
-                width: "100%",
-                background: "none",
-                verticalAlign: "middle"
-            });
-
-    var _$hideBtn = $('<span class="ui-icon ui-icon-arrowthick-1-w"></span>');
-
-    var _$pane = $('<div id="mlj-tools-pane"></div>')
-            .css({
-                width: "100%",
-                height: "100%"
-            })
-            .data("visible", true);
+    _$border.css({
+        width: "100%",
+        background: "none",
+        verticalAlign: "middle"
+    });
 
     var _3DWrapper = $('<div id="_3DWrapper"></div>');
 
     var _3D = $('<div id="_3D"></div>');
     var _3DtopDown = $('<div id="_3DtopDown"></div>');
     
-    function makeTitle(title) {
-        var _PiP = new MLJ.gui.component.PiP();
 
-        var $title = $('<div id="mlj-title">' + title + '</div>');
-        var insets = 10;
-        _PiP.appendContent($title);
-
-        $(window).ready(function () {
-            var x = _$pane.outerWidth() + insets;
-            var y = insets;
-            _PiP.setX(x);
-            _PiP.setY(y);
-        });
-
-        $(window).resize(function () {
-            var newX = _$pane.outerWidth() + _$pane.offset().left + insets;
-            _PiP.setX(newX);
-        });
-
-        return _PiP.$;
-    }
-
-    ////////////////////////////////////////////////////
-    // BEG drag drop file
-    ////////////////////////////////////////////////////
-
-    // https://opensourcehacker.com/2011/11/11/cancelling-html5-drag-and-drop-events-in-web-browsers/    
-    // prevent from dropping anything outside the drop zone
-    function prepareDontMissDND() {
-
-        $(document.body).bind("dragover", function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-        $(document.body).bind("drop", function(e){
-            e.preventDefault();
-            return false;
-        });
-
-    }
-
-    ////////////////////////////////////////////////////
-    // END drag drop file
-    ////////////////////////////////////////////////////
-
-    
     this.makeGUI = function (title) {
-        _$border.append(_$hideBtn);
-        _$texturePaneWrapper.append(_$pane, _$border);
-
-        _$pane.resizable({
-            handles: "e"
-        });
 
         _3DWrapper.append(_3D);
         _3DWrapper.append(_3DtopDown);
         
-        $('body').append(_3DWrapper, _$texturePaneWrapper, makeTitle(title));
-        prepareDontMissDND();
+        $('body').append(_$texturePaneWrapper, _3DWrapper);
         
-        _$pane.append(MLJ.gui.getWidget("SceneBar")._make());
+        _$texturePaneWrapper.append(MLJ.gui.getWidget("SceneBar")._make());
 
-        var $pos1 = $("<div/>").css({
-            width: "100%",
-            height: "100%"
-        });
-
-        _$pane.append($pos1);
-
-        //Init pane height on window ready        
-        $(window).ready(function () {
-            _$pane.height($(window).height() - _$pane.offset().top);
-        });
-
-        $pos1.append(MLJ.gui.getWidget("TabbedPane")._make());
-
-        _3DWrapper.css({
-            position: "absolute",
-            width: $(window).width() - (_$pane.outerWidth() + _$pane.offset().left),
-            left: _$pane.outerWidth() + _$pane.offset().left,
-            height: "100%",
-            top: 0
-        });
+        _$texturePaneWrapper.append(texCanvasWrapper);
         
+        _3DWrapper.addClass("_3DWrapper");
+
         _3D.css({
-            position: "absolute",
+            position: "relative",
             width: "100%",
-            height: "50%",
-            top: 0
+            height: "50%"
         });
 
         _3DtopDown.css({
-            position: "absolute",
+            position: "relative",
             width: "100%",
-            height: "50%",
-            top: "50%"
-        });
-        
-        $(document).keydown(function (event) {
-            if ((event.ctrlKey || event.metaKey) && event.which === 70) {
-                event.preventDefault();
-                MLJ.widget.TabbedPane.selectTab(0);
-            }
+            height: "50%"
         });
 
     };
-
+    
     $(window).resize(function (event) {
-        MLJ.gui.getWidget("TabbedPane")._refresh();
-
-        _3DWrapper.css({
-            width: $(window).width() - (_$pane.outerWidth() + _$pane.offset().left),
-            left: _$pane.outerWidth() + _$pane.offset().left
-        });
-        
-        _3D.css({
-            width: "100%"
-        });
-
-        _3DtopDown.css({
-            width: "100%"
-        });
-        
-        
+        // console.log('BEG MeshlabJS resize'); 
     });
 
-    _$hideBtn.click(function () {
-
-        if (_$pane.data("visible")) {
-            _$texturePaneWrapper.animate({left: -_$pane.outerWidth()}, {
-                duration: 500,
-                start: function () {
-                },
-                step: function () {
-                    $(window).trigger('resize');
-                },
-                complete: function () {
-                    $(window).trigger('resize');
-
-                    //Hide button animation
-                    $({deg: 0}).animate({deg: 180}, {
-                        duration: 500,
-                        step: function (now) {
-                            _$hideBtn.css({
-                                transform: 'rotate(' + now + 'deg)'
-                            });
-                        }
-                    });
-
-                }
-            });
-
-            _$pane.data("visible", false);
-
-        } else {
-            _$texturePaneWrapper.animate({left: 0}, {
-                duration: 500,
-                start: function () {
-                },
-                step: function () {
-                    $(window).trigger('resize');
-                },
-                complete: function () {
-                    $(window).trigger('resize');
-
-                    //Hide button animation
-                    $({deg: 180}).animate({deg: 360}, {
-                        duration: 500,
-                        step: function (now) {
-                            _$hideBtn.css({
-                                transform: 'rotate(' + now + 'deg)'
-                            });
-                        }
-                    });
-
-                }
-            });
-
-            _$pane.data("visible", true);
-        }
-    });
 
 }).call(MLJ.gui, MLJ.gui.widget);

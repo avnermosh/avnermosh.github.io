@@ -36,7 +36,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     {
         this.controllerType = CONTROL_TYPE._3D_TOP_DOWN;
     }
-    else if(this.domElement.id === 'mlj-tools-pane')
+    else if(this.domElement.id === 'texCanvasWrapper')
     {
         this.controllerType = CONTROL_TYPE._TEXTURE_2D;
     }
@@ -120,7 +120,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     this.isKeyDown = false;
     this.isMouseDown = false;
     this.isTouchDown = false;
-    
+
     //
     // public methods
     //
@@ -158,6 +158,34 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         state = STATE.NONE;
 
+    };
+
+    this.setZoom = function (zoomFactor) {
+        console.log('BEG setZoom');
+        console.log('zoomFactor1', zoomFactor); 
+        
+        if ( scope.object.isPerspectiveCamera ) {
+
+            scope.object.zoom = zoomFactor;
+            scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom ) );
+            scope.object.updateProjectionMatrix();
+            zoomChanged = true;
+
+        } else if ( scope.object.isOrthographicCamera ) {
+
+            // scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom * dollyScale ) );
+            scope.object.zoom = zoomFactor;
+            scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom ) );
+            scope.object.updateProjectionMatrix();
+            zoomChanged = true;
+
+        } else {
+
+            console.warn( 'WARNING: OrbitControls3Dpane.js encountered an unknown camera type - setZoom disabled.' );
+            scope.enableZoom = false;
+
+        }
+        
     };
 
     this.changeSettings = function () {
@@ -224,7 +252,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                     break;
                     
             }
-            
+
             offset.copy( position ).sub( scope.target );
 
             // rotate offset to "y-axis-is-up" space
@@ -730,7 +758,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function handleMouseWheel( event ) {
 
-        console.log( 'handleMouseWheel' );
+        // console.log( 'handleMouseWheel' );
 
         if ( event.deltaY < 0 ) {
 
@@ -1039,7 +1067,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     }
 
     function onMouseWheel( event ) {
-        console.log('BEG onMouseWheel'); 
+        // console.log('BEG onMouseWheel'); 
 
         if ( scope.enabled === false || scope.enableZoom === false || ( state !== STATE.NONE && state !== STATE.ROTATE ) )
         {

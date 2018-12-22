@@ -712,6 +712,8 @@ MLJ.core.MeshFile = {
     }
 
     function exportObjAndMtlFiles(blobs, meshGroup, objFileName) {
+        // console.log('BEG exportObjAndMtlFiles');
+
         var exporter = new THREE.OBJExporter();
         var exportedResult = exporter.parse( meshGroup );
         var objExported = exportedResult.obj;
@@ -828,9 +830,10 @@ MLJ.core.MeshFile = {
                     var structureMeshGroup = layer.getStructureMeshGroup();
                     exportObjAndMtlFiles(blobs, structureMeshGroup, scene3D._structureObjFileName);
 
+                    // TBD - store the height in userData
                     let selectedFloorInfo = MLJ.core.Scene3DtopDown.getSelectedFloorInfo();
                     exportObjAndMtlFiles(blobs,
-                                         selectedFloorInfo,
+                                         selectedFloorInfo.mesh,
                                          selectedFloorInfo["floorName"]);
 
                     // Export the overlayMesh obj and mtl to files

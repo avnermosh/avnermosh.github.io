@@ -41,11 +41,11 @@ Note = function (noteId,
     let noteClass = 'note';
 
     // // Get all elements with class "note"
-    // let texCanvasWrapperDirectChildren4 = document.getElementById( 'texCanvasWrapper1' ).getElementsByClassName( 'note' );
+    // let texCanvasWrapperDirectChildren4 = document.getElementById( 'texCanvasWrapper' ).getElementsByClassName( 'note' );
     // console.log('texCanvasWrapperDirectChildren4', texCanvasWrapperDirectChildren4); 
     
     // https://www.abeautifulsite.net/adding-and-removing-elements-on-the-fly-using-javascript
-    MLJ.util.addElement('texCanvasWrapper1', 'div', noteElementId, html, noteClass);
+    MLJ.util.addElement('texCanvasWrapper', 'div', noteElementId, html, noteClass);
 
     let noteElement = document.getElementById(noteElementId);
     if(!noteElement)

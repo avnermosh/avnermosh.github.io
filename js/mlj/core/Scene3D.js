@@ -12,6 +12,8 @@ MLJ.core.Scene3D.timeStamp = 0;
 var positionPrev = new THREE.Vector3(0,0,0);
 var cameraLookAtIntersectionPoint = undefined;
 
+var globalIndex = 0;
+
 (function () {
     var _layers = new MLJ.util.AssociativeArray();
     var _decorators = new MLJ.util.AssociativeArray();
@@ -85,7 +87,68 @@ var cameraLookAtIntersectionPoint = undefined;
     var _zipFileArrayBuffer;
     var _zipLoaderInstance = -1;
     var _materialBlue = new THREE.LineBasicMaterial({color: 0x0000ff, linewidth: 5});
+    
+    function onDocumentTouchDoubleTap( event ) {
 
+        console.log('BEG onDocumentTouchDoubleTap'); 
+
+        let element1Id = '_3DWrapper';
+        let element1JqueryObject = $('#' + element1Id);
+        var element1 = document.getElementById(element1Id);
+        
+        var element2 = document.getElementById('texture-pane-wrapper');
+        
+        if(globalIndex%2==0)
+        {
+            console.log('globalIndex is Even');
+
+            element1JqueryObject.addClass("showFullSize");
+            element1JqueryObject.removeClass("_3DWrapper");
+            
+            element2.style.display = "none";
+        }
+        else
+        {
+            console.log('globalIndex is Odd'); 
+
+            element1JqueryObject.removeClass("showFullSize");
+            element1JqueryObject.addClass("_3DWrapper");
+            
+            element2.style.display = "block";
+        }
+
+        // Adjust the size and position of the _renderer3D (canvas3D) element
+        MLJ.core.Scene3D.resizeCanvas();
+        
+        // let width3 = element1JqueryObject.css("width");
+        // let height3 = element1JqueryObject.css("height");
+        // let top3 = element1JqueryObject.css("top");
+        // let bottom3 = element1JqueryObject.css("bottom");
+        // let left3 = element1JqueryObject.css("left");
+        // let position3 = element1JqueryObject.css("position");
+        // console.log('width3', width3); 
+        // console.log('height3', height3); 
+        // console.log('top3', top3); 
+        // console.log('bottom3', bottom3);
+        // console.log('left3', left3);
+        // console.log('position3', position3); 
+        
+        // let style1a = window.getComputedStyle(element1);
+        // let width1 = style1a.getPropertyValue('width');
+        // let left1 = style1a.getPropertyValue('left');
+        // let position1 = style1a.getPropertyValue('position');
+        // console.log('width1', width1); 
+        // console.log('left1', left1); 
+        // console.log('position1', position1); 
+
+        globalIndex += 1;
+        // let _3DSize1 = get3DSize();
+        // console.log('_3DSize1', _3DSize1);
+        
+        // let _3DOffset1 = get3DOffset();
+        // console.log('_3DOffset1', _3DOffset1);
+    };
+    
     function onDocumentTouchMove3D( event ) {
         // console.log('BEG onDocumentTouchMove3D'); 
 
@@ -133,7 +196,7 @@ var cameraLookAtIntersectionPoint = undefined;
 
     function get3DOffset() {
         var _3D = $('#_3D');
-
+        
         return {
             left: _3D.offset().left,
             top: _3D.offset().top
@@ -556,19 +619,36 @@ var cameraLookAtIntersectionPoint = undefined;
             MLJ.core.Scene3D.render();
 
             $('#canvas3D').trigger('onControlsChange');
-            // console.log('#canvas3D', $('#canvas3D'));
         });
 
+
+        ////////////////////////////////////////////////////
+        // BEG Handle doubletap 
+        ////////////////////////////////////////////////////
+
+        let element1Id = '_3DWrapper';
+        let element1JqueryObject = $('#' + element1Id);
+        console.log('element1JqueryObject', element1JqueryObject); 
+
+        element1JqueryObject.on('doubletap', function(event) {
+            // Takes care both of "double touch" (with the finger) and double click (with the mouse)
+            console.log('User doubletapped #myElement');
+            onDocumentTouchDoubleTap(event);
+        });
+
+        ////////////////////////////////////////////////////
+        // END Handle doubletap 
+        ////////////////////////////////////////////////////
+        
+        MLJ.core.Scene3D.resizeCanvas();
+
         $(window).resize(function () {
-            var size3D = get3DSize();
+            let size3D = get3DSize();
             _camera3D.aspect = size3D.width / size3D.height;
             _camera3D.updateProjectionMatrix();
             _renderer3D.setSize(size3D.width, size3D.height);
 
-            _camera2D.left = size3D.width / size3D.height;
-            _camera2D.updateProjectionMatrix;
-            
-            MLJ.core.Scene3D.render();
+            MLJ.core.Scene3DtopDown.render();
         });
 
         $(document).on("MeshFileOpened", function (event, layer) {
@@ -594,6 +674,23 @@ var cameraLookAtIntersectionPoint = undefined;
     this.lights = {
         AmbientLight: null,
         Headlight: null
+    };
+
+    this.resizeCanvas = function () {
+        console.log('BEG Scene3D resize'); 
+        var size3D = get3DSize();
+        // console.log('size3D', size3D); 
+        _camera3D.aspect = size3D.width / size3D.height;
+        // console.log('_camera3D.aspect', _camera3D.aspect); 
+        // console.log('_renderer3D.getCurrentViewport()', _renderer3D.getCurrentViewport()); 
+        _camera3D.updateProjectionMatrix();
+        _renderer3D.setSize(size3D.width, size3D.height);
+        let pixelRatio = _renderer3D.getPixelRatio();
+        // console.log('pixelRatio', pixelRatio); 
+        _camera2D.left = size3D.width / size3D.height;
+        _camera2D.updateProjectionMatrix;
+        
+        MLJ.core.Scene3D.render();
     };
 
     this.addToScene3D = function (obj) {
@@ -985,14 +1082,6 @@ var cameraLookAtIntersectionPoint = undefined;
 
     this.setImageInfoVec = function (imageInfoVec) {
         _imageInfoVec = imageInfoVec;
-    };
-    
-    this.getTrackballControls3D = function () {
-        return _controls3D;
-    };
-
-    this.setTrackballControls3D = function (controls) {
-        _controls3D = controls;
     };
     
     var plane = new THREE.PlaneBufferGeometry(2, 2);
