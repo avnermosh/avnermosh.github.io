@@ -515,10 +515,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                     case CONTROL_TYPE._3D_TOP_DOWN:
                         panLeft( 2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
                         break;
-
-                    case CONTROL_TYPE._TEXTURE_2D:
-                        panLeft( 2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
-                        break;
                         
                 }
                 
@@ -638,7 +634,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         // console.log( 'BEG handleMouseDownPan' );
         // console.log('scope.domElement.id', scope.domElement.id); 
 
-        switch ( this.controllerType ) {
+        switch ( scope.controllerType ) {
 
             case CONTROL_TYPE._3D:
                 if(doUsePanForChangeSettingIn_3D)
@@ -670,7 +666,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
 
-        switch ( this.controllerType ) {
+        switch ( scope.controllerType ) {
 
             case CONTROL_TYPE._3D:
                 if(doDisableRotateUpIn_3D)
@@ -920,6 +916,19 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
 	    panStart.copy( panEnd );
 
+            switch ( scope.controllerType ) {
+
+                case CONTROL_TYPE._3D:
+                case CONTROL_TYPE._3D_TOP_DOWN:
+                    break;
+
+                case CONTROL_TYPE._TEXTURE_2D:
+                    {
+                        let texturePlugin = MLJ.core.plugin.Manager.getTexturePlugins().getFirst();
+                        texturePlugin.limitPanning();
+                    }
+                    break;
+            }
 	}
 
 	scope.update();
