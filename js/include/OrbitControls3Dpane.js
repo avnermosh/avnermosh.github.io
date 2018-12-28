@@ -241,14 +241,13 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 case CONTROL_TYPE._3D:
                     // console.log('scope.object.position2', scope.object.position); 
-                    // console.log('scope.target3', scope.target);
-                    
                     break;
 
                 case CONTROL_TYPE._3D_TOP_DOWN:
                     break;
 
                 case CONTROL_TYPE._TEXTURE_2D:
+                    // console.log('scope.target1', scope.target);
                     break;
                     
             }
@@ -295,6 +294,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
             position.copy( scope.target ).add( offset );
 
             scope.object.lookAt( scope.target );
+            // console.log('scope.object.position', scope.object.position);
             
             if ( scope.enableDamping === true ) {
 
@@ -344,6 +344,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                         break;
 
                     case CONTROL_TYPE._TEXTURE_2D:
+                        console.log('scope.target2', scope.target);
                         break;
                 }
 
@@ -514,6 +515,11 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                     case CONTROL_TYPE._3D_TOP_DOWN:
                         panLeft( 2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
                         break;
+
+                    case CONTROL_TYPE._TEXTURE_2D:
+                        panLeft( 2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
+                        break;
+                        
                 }
                 
                 panUp( 2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix );
@@ -522,6 +528,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
             } else if ( scope.object.isOrthographicCamera ) {
 
+                // e.g. CONTROL_TYPE._TEXTURE_2D is Orthographic
                 // orthographic
                 panLeft( deltaX * ( scope.object.right - scope.object.left ) / scope.object.zoom / element.clientWidth, scope.object.matrix );
                 panUp( deltaY * ( scope.object.top - scope.object.bottom ) / scope.object.zoom / element.clientHeight, scope.object.matrix );
@@ -724,7 +731,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     function handleMouseMovePan( event ) {
 
         // console.log( 'BEG handleMouseMovePan' );
-        switch ( this.controllerType ) {
+        switch ( scope.controllerType ) {
 
             case CONTROL_TYPE._3D:
                 if(doUsePanForChangeSettingIn_3D)
@@ -745,6 +752,20 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         pan( panDelta.x, panDelta.y );
 
         panStart.copy( panEnd );
+
+        switch ( scope.controllerType ) {
+
+            case CONTROL_TYPE._3D:
+            case CONTROL_TYPE._3D_TOP_DOWN:
+                break;
+
+            case CONTROL_TYPE._TEXTURE_2D:
+                {
+                    let texturePlugin = MLJ.core.plugin.Manager.getTexturePlugins().getFirst();
+                    texturePlugin.limitPanning();
+                }
+                break;
+        }
 
         scope.update();
 

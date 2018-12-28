@@ -492,11 +492,11 @@ var globalIndex = 0;
         // Helpers
         ////////////////////////////////////////////////////
 
-        _originAxisHelper = new THREE.AxisHelper(10);
+        _originAxisHelper = new THREE.AxesHelper(10);
         _originAxisHelper.material.linewidth = 5000;
         _scene3D.add(_originAxisHelper);
 
-        _axisHelper1 = new THREE.AxisHelper(4);
+        _axisHelper1 = new THREE.AxesHelper(4);
         _axisHelper1.material.linewidth = 10;
         _scene3D.add(_axisHelper1);
 
@@ -508,10 +508,6 @@ var globalIndex = 0;
         
         _controls3D = new THREE.OrbitControls3Dpane(_camera3D, container3D);
 
-        _controls3D.staticMoving = true;
-        _controls3D.dynamicDampingFactor = 0.3;
-
-        
         //////////////////////////////////////
         // Set rotate related parameters
         //////////////////////////////////////
@@ -557,7 +553,9 @@ var globalIndex = 0;
         // pixels moved per arrow key push
 	_controls3D.keyPanSpeed = 7000.0;
         _controls3D.panSpeed = 7000.0;
-
+        _controls3D.enableDamping = true;
+        _controls3D.dampingFactor = 0.3;
+        
         // this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
         // // https://theasciicode.com.ar/
         // // 65 'A'

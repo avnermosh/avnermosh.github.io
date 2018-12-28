@@ -17,7 +17,9 @@ var globalIndex1 = 0;
     var texLabelRenderer;
     var texControls;
     let rotationVal = 0;
-
+    var planeMesh1;
+    var bbox;
+    
     var DEFAULTS = {
         uvParam: false,
         selectedTexture: 0
@@ -48,7 +50,53 @@ var globalIndex1 = 0;
     plug.getTexCamera = function () {
         return texCamera;
     };
-    
+
+    ///////////////////////////////////////////////////////////////////////////
+    // limitPanning() insures that the image always covers the view window:
+    // - The minimal zoom is set to 1, to prevent a case where the image is smaller than the view window 
+    // - If the zoom is 1, the image covers the view window, and panning is disabled.
+    // - If the zoom is bigger than 1, panning is enabled as long as the image covers the view window.
+    ///////////////////////////////////////////////////////////////////////////
+
+    plug.limitPanning = function () {
+        console.log('BEG plug.limitPanning'); 
+        
+        // console.log('texCamera.zoom', texCamera.zoom);
+        // console.log('texCamera.left', texCamera.left);
+        // console.log('texCamera.position.x', texCamera.position.x);
+        
+        let x1 = texCamera.position.x + (texCamera.left / texCamera.zoom);
+        // console.log('x1', x1); 
+        let x1a = Math.max(x1, bbox.min.x);
+        // console.log('bbox.min.x', bbox.min.x); 
+        // console.log('x1a', x1a); 
+        let pos_x = x1a - (texCamera.left / texCamera.zoom);
+        // console.log('pos_x1', pos_x);
+        
+        let x2 = pos_x + (texCamera.right / texCamera.zoom);
+        let x2a = Math.min(x2, bbox.max.x);
+        pos_x = x2a - (texCamera.right / texCamera.zoom);
+        // console.log('pos_x', pos_x);
+        
+        let y1 = texCamera.position.y + (texCamera.bottom / texCamera.zoom);
+        let y1a = Math.max(y1, bbox.min.y);
+        let pos_y = y1a - (texCamera.bottom / texCamera.zoom);
+        
+        let y2 = pos_y + (texCamera.top / texCamera.zoom);
+        let y2a = Math.min(y2, bbox.max.y);
+        pos_y = y2a - (texCamera.top / texCamera.zoom);
+        // console.log('pos_y', pos_y);
+        
+        let doLimitPan = true;
+        if(doLimitPan)
+        {
+            texCamera.position.set(pos_x, pos_y, texCamera.position.z);
+            texCamera.lookAt(pos_x, pos_y, texControls.target.z);
+            texControls.target.set(pos_x, pos_y, 0);
+            texControls.update();            
+        }
+    };
+
     plug.showStickyNotes = function (layer) {
         
         let noteArray = layer.getNoteArray();
@@ -129,7 +177,7 @@ var globalIndex1 = 0;
 
                     var map2 = layer.texture[0].data.material.map;
 
-                    let blobs = MLJ.core.Scene3D.getBlobs();
+                    // let blobs = MLJ.core.Scene3D.getBlobs();
                     let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
                     let selectedThumbnailImageFilename = MLJ.core.Scene3D.getSelectedThumbnailImageFilename();
                     let imageInfo = imageInfoVec.getByKey(selectedThumbnailImageFilename);
@@ -149,7 +197,7 @@ var globalIndex1 = 0;
                                                                color: 0xffffff,
                                                                rotation: rotationVal,
                                                                fog: true } );
-                    var planeMesh = new THREE.Sprite( material );
+                    let planeMesh = new THREE.Sprite( material );
                     planeMesh.position.x = planeMesh.position.y = planeMesh.position.z = 0;
                     planeMesh.scale.x = 100
                     planeMesh.scale.y = 100;
@@ -163,7 +211,15 @@ var globalIndex1 = 0;
             texControls.reset();
 
             // The plane mesh is always visible
-            texScene.add(layer.texture[layer.selectedTexture].planeMesh);
+
+            // texScene.add(layer.texture[layer.selectedTexture].planeMesh);
+
+            planeMesh1 = layer.texture[layer.selectedTexture].planeMesh;
+            console.log('planeMesh1', planeMesh1); 
+            bbox = new THREE.Box3().setFromObject(planeMesh1);
+            texScene.add(planeMesh1);
+            texCamera.position.set( 0, 0, 80 );
+            
 
             this.showStickyNotes(layer);
 
@@ -193,7 +249,7 @@ var globalIndex1 = 0;
     }
 
     function onDocumentMouseMove2D( event ) {
-        console.log('BEG onDocumentMouseMove2D'); 
+        // console.log('BEG onDocumentMouseMove2D'); 
         event.preventDefault();
 
         render();
@@ -254,8 +310,10 @@ var globalIndex1 = 0;
 
         // No rotation.
         texControls.enableRotate = false;
-        texControls.minPolarAngle = 0; // radians
-        texControls.maxPolarAngle = 0; // radians
+        // Setting to Math.PI/2 is needed to satisfy OrbitControls3Dpane, which forces "y-axis-is-up"
+        // (otherwise the camera position is forced moved to  satisfy the "y-axis-is-up" condition)
+        texControls.minPolarAngle = Math.PI/2;
+        texControls.maxPolarAngle = Math.PI/2;
         // No orbit horizontally.
         texControls.minAzimuthAngle = 0; // radians
         texControls.maxAzimuthAngle = 0; // radians
@@ -269,6 +327,9 @@ var globalIndex1 = 0;
         texControls.zoomSpeed = 0.8;
         texControls.minDistance = texCamera.near;
         texControls.maxDistance = texCamera.far;
+        // The minimal zoom is set to 1, to prevent a case where the image is smaller than the view window
+        texControls.minZoom = 1;
+        texControls.maxZoom = Infinity;
 
         
         //////////////////////////////////////
@@ -277,8 +338,9 @@ var globalIndex1 = 0;
 
         texControls.enablePan = true;
         texControls.panSpeed = 0.6;
-        texControls.screenSpacePanning = false;
-        texControls.staticMoving = false;
+        texControls.screenSpacePanning = true;
+        texControls.enableDamping = true;
+        
         
         texCanvasWrapperElement.addEventListener( 'touchmove', onDocumentTouchMove2D, false );
         texCanvasWrapperElement.addEventListener( 'mousemove', onDocumentMouseMove2D, false );
@@ -294,10 +356,16 @@ var globalIndex1 = 0;
         // (when set to -100,100, the image covers 1/2 of the window)
         // (when set to -200,200, the image covers 1/4 of the window)
         // frustum can be updated in resizeCanvas
+
         let left = -50;
         let right = 50;
         let top = 50;
         let bottom = -50;
+        // let left = -200;
+        // let right = 200;
+        // let top = 200;
+        // let bottom = -200;
+
         let near = -500;
         let far = 1000;
 
@@ -346,7 +414,6 @@ var globalIndex1 = 0;
         requestAnimationFrame(animate);
         texControls.update();
     }
-
 
     function render() {
         // console.log('BEG TexturePanelPlugin render');
@@ -468,13 +535,15 @@ var globalIndex1 = 0;
         }
 
        
-        // console.log('texCamera.zoom after', texCamera.zoom);
-        // console.log('texturePaneWrapperRatio', texturePaneWrapperRatio); 
-        // console.log('texturePaneWrapperSize', texturePaneWrapperSize);
-        // console.log('image_w_h_ratio', image_w_h_ratio); 
-        // console.log('texturePaneWrapperRatio > image_w_h_ratio', (texturePaneWrapperRatio > image_w_h_ratio)); 
-        // console.log('w1', w1);
-        // console.log('h1', h1);
+        console.log('texCamera.zoom after', texCamera.zoom);
+        console.log('texturePaneWrapperRatio', texturePaneWrapperRatio); 
+        console.log('texturePaneWrapperSize', texturePaneWrapperSize);
+        console.log('image_w_h_ratio', image_w_h_ratio); 
+        console.log('texturePaneWrapperRatio > image_w_h_ratio', (texturePaneWrapperRatio > image_w_h_ratio)); 
+        console.log('w0', w0);
+        console.log('h0', h0);
+        console.log('w1', w1);
+        console.log('h1', h1);
         // console.log('w1/h1', w1/h1);
         
         texRenderer1.setSize(w1, h1);
