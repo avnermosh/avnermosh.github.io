@@ -243,10 +243,6 @@ MLJ.util.AssociativeArray = function () {
         return keys;
     };
     
-    this.getValues = function() {
-        return keys;
-    };
-
     /**
      * Returns the value to which the specified key is mapped, or 
      * <code>undefined</code> if this array contains no mapping for the key

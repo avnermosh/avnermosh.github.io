@@ -161,8 +161,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     };
 
     this.setZoom = function (zoomFactor) {
-        console.log('BEG setZoom');
-        console.log('zoomFactor1', zoomFactor); 
+        // console.log('BEG setZoom');
         
         if ( scope.object.isPerspectiveCamera ) {
 
@@ -332,19 +331,14 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                     case CONTROL_TYPE._3D:
                         // No need to compute rotation from scope.object.quaternion - it is identical to scope.object.rotation
                         // var rotation = new THREE.Euler().setFromQuaternion( scope.object.quaternion )
-
-                        // console.log('scope.object.rotation', scope.object.rotation);
-                        // console.log('scope.getAzimuthalAngle()', scope.getAzimuthalAngle()); 
-                        
                         MLJ.core.Scene3DtopDown.setArrowHelper(scope.object.rotation);
                         break;
                         
                     case CONTROL_TYPE._3D_TOP_DOWN:
-                        // console.log('scope.object.position', scope.object.position); 
+                        // console.log('scope.object.zoom', scope.object.zoom); 
                         break;
-
+                        
                     case CONTROL_TYPE._TEXTURE_2D:
-                        console.log('scope.target2', scope.target);
                         break;
                 }
 
@@ -724,6 +718,91 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // limitPanning1() insures that the image always covers the view window:
+    // - The minimal zoom is set to 1, to prevent a case where the image is smaller than the view window 
+    // - If the zoom is 1, the image covers the view window, and panning is disabled.
+    // - If the zoom is bigger than 1, panning is enabled as long as the image covers the view window.
+    ///////////////////////////////////////////////////////////////////////////
+
+    function limitPanning1(bbox) {
+        // console.log('BEG plug.limitPanning1'); 
+
+        // console.log('object.position0', object.position); 
+        let x1 = object.position.x + (object.left / object.zoom);
+        // console.log('x1', x1); 
+        let x1a = Math.max(x1, bbox.min.x);
+        // console.log('bbox.min', bbox.min); 
+        // console.log('x1a', x1a);
+        // console.log('object.left', object.left); 
+        let pos_x1 = x1a - (object.left / object.zoom);
+        // console.log('pos_x1', pos_x1); 
+
+        // console.log('object.zoom', object.zoom); 
+        // console.log('object.right', object.right); 
+        let x2 = pos_x1 + (object.right / object.zoom);
+        // console.log('x2', x2);
+        // console.log('bbox.max', bbox.max); 
+        let x2a = Math.min(x2, bbox.max.x);
+        // console.log('x2a', x2a); 
+        pos_x = x2a - (object.right / object.zoom);
+        // console.log('pos_x', pos_x);
+
+        switch ( scope.controllerType ) {
+
+            case CONTROL_TYPE._3D:
+                break;
+
+            case CONTROL_TYPE._3D_TOP_DOWN:
+                {
+                    // _3D_TOP_DOWN - x-red - directed right (on the screen), z-blue directed down (on the screen), y-green directed towards the camera
+
+                    let z1 = object.position.z + (object.bottom / object.zoom);
+                    let z1a = Math.max(z1, bbox.min.z);
+                    let pos_z1 = z1a - (object.bottom / object.zoom);
+                    
+                    let z2 = pos_z1 + (object.top / object.zoom);
+                    let z2a = Math.min(z2, bbox.max.z);
+                    let pos_z = z2a - (object.top / object.zoom);
+                    // console.log('pos_z', pos_z);
+
+                    // Limit the panning
+                    object.position.set(pos_x, object.position.y, pos_z);
+                    object.lookAt(pos_x, scope.target.y, pos_z);
+                    scope.target.set(pos_x, 0, pos_z);
+                    scope.update();
+                }
+                break;
+
+            case CONTROL_TYPE._TEXTURE_2D:
+                {
+                    // _TEXTURE_2D - x-red - directed right (on the screen), y-green directed up (on the screen), z-blue directed towards the camera
+
+                    let y1 = object.position.y + (object.bottom / object.zoom);
+                    let y1a = Math.max(y1, bbox.min.y);
+                    let pos_y1 = y1a - (object.bottom / object.zoom);
+                    
+                    let y2 = pos_y1 + (object.top / object.zoom);
+                    let y2a = Math.min(y2, bbox.max.y);
+                    let pos_y = y2a - (object.top / object.zoom);
+                    // console.log('pos_y', pos_y);
+
+                    // console.log('object.position.z', object.position.z);
+                    // console.log('scope.target.z', scope.target.z);
+
+                    // Limit the panning
+                    object.position.set(pos_x, pos_y, object.position.z);
+                    object.lookAt(pos_x, pos_y, scope.target.z);
+                    scope.target.set(pos_x, pos_y, 0);
+                    scope.update();
+                }
+                break;
+        }
+        
+        // console.log('object.position', object.position);
+        // console.log('scope.target', scope.target); 
+    };
+
     function handleMouseMovePan( event ) {
 
         // console.log( 'BEG handleMouseMovePan' );
@@ -752,13 +831,19 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         switch ( scope.controllerType ) {
 
             case CONTROL_TYPE._3D:
+                break;
             case CONTROL_TYPE._3D_TOP_DOWN:
+                {
+                    let bBox = MLJ.core.Scene3DtopDown.getBoundingBox();
+                    limitPanning1(bBox);
+                }
                 break;
 
             case CONTROL_TYPE._TEXTURE_2D:
                 {
                     let texturePlugin = MLJ.core.plugin.Manager.getTexturePlugins().getFirst();
-                    texturePlugin.limitPanning();
+                    let bBox = texturePlugin.getBoundingBox();
+                    limitPanning1(bBox);
                 }
                 break;
         }
@@ -768,8 +853,33 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     }
 
     function handleMouseUp( event ) {
+        // console.log( 'BEG handleMouseUp' );
 
-        // console.log( 'handleMouseUp' );
+        switch ( scope.controllerType ) {
+
+            case CONTROL_TYPE._3D:
+                break;
+
+            case CONTROL_TYPE._3D_TOP_DOWN:
+                {
+                    switch ( state ) {
+
+                        case STATE.ROTATE:
+                            // // move the view window such that the intersection point is in the center of the view window 
+                            // MLJ.core.Scene3DtopDown.centerIntersectionPointInTopDownView();
+                            break;
+
+                        case STATE.DOLLY:
+                        case STATE.PAN:
+                            break;
+
+                    }
+                }
+                break;
+
+            case CONTROL_TYPE._TEXTURE_2D:
+                break;
+        }
 
     }
 
@@ -787,6 +897,21 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         }
 
+        switch ( scope.controllerType ) {
+
+            case CONTROL_TYPE._3D:
+                break;
+
+            case CONTROL_TYPE._3D_TOP_DOWN:
+                // {
+                //     console.log('scope.object.zoom', scope.object.zoom);    
+                // }
+                break;
+
+            case CONTROL_TYPE._TEXTURE_2D:
+                break;
+        }
+        
         scope.update();
 
     }
@@ -924,8 +1049,8 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 case CONTROL_TYPE._TEXTURE_2D:
                     {
-                        let texturePlugin = MLJ.core.plugin.Manager.getTexturePlugins().getFirst();
-                        texturePlugin.limitPanning();
+                        let bBox = texturePlugin.getBoundingBox();
+                        limitPanning1(bBox);
                     }
                     break;
             }
@@ -982,6 +1107,8 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                         handleMouseDownRotate( event );
                         state = STATE.ROTATE;
                     }
+                    state = STATE.ROTATE;
+                    MLJ.core.Scene3DtopDown.findIntersections();
                 }
                 
                 break;
@@ -1038,12 +1165,13 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
             case STATE.ROTATE:
 
-                if ( scope.enableRotate === false )
+                if ( scope.enableRotate === true )
                 {
-                    return;
+                    handleMouseMoveRotate( event );
                 }
-
-                handleMouseMoveRotate( event );
+                // TBD change to only when clicking on the mouse? (and not while clicking and moving it?)
+                // (to prevent from constantly changing the images when navigating the view?)
+                MLJ.core.Scene3DtopDown.findIntersections();
 
                 break;
 

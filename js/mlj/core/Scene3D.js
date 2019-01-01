@@ -119,7 +119,7 @@ var globalIndex = 0;
 
         // Adjust the size and position of the _renderer3D (canvas3D) element
         MLJ.core.Scene3D.resizeCanvas();
-        
+
         // let width3 = element1JqueryObject.css("width");
         // let height3 = element1JqueryObject.css("height");
         // let top3 = element1JqueryObject.css("top");
@@ -1014,8 +1014,8 @@ var globalIndex = 0;
     };
 
     this.isStickyNotesEnabled = function () {
-        // return false;
-        return true;
+        return false;
+        // return true;
     };
 
     this.getBlobs = function () {
@@ -1200,14 +1200,23 @@ var globalIndex = 0;
 
 
     this.loadTheSelectedImageAndRender = function () {
+        // console.log('BEG loadTheSelectedImageAndRender'); 
 
-        let imageInfo = _imageInfoVec.getByKey(_selectedImageFilename);
-
-        // TBD - leave here until showImageInfo is implemented
-        console.log('_selectedImageFilename', _selectedImageFilename);
-        console.log('imageInfo', imageInfo); 
+        let imageInfo = _imageInfoVec.getByKey(_selectedThumbnailImageFilename);
         
-        _selectedThumbnailImageFilename = imageInfo.imageFilename;
+        // TBD - leave here until showImageInfo button is implemented
+        // console.log('_selectedThumbnailImageFilename', _selectedThumbnailImageFilename);
+        // console.log('imageInfo', imageInfo); 
+
+        // sanity check
+        if( _selectedThumbnailImageFilename !== imageInfo.imageFilename)
+        {
+            // console.error('Reached failure condition: "_selectedThumbnailImageFilename !== imageInfo.imageFilename"');
+            console.log('_selectedThumbnailImageFilename', _selectedThumbnailImageFilename); 
+            console.log('imageInfo.imageFilename', imageInfo.imageFilename);
+            throw 'Reached failure condition: "_selectedThumbnailImageFilename !== imageInfo.imageFilename"';
+        }
+
         _selectedImageFilename = _selectedThumbnailImageFilename.replace(/\.thumbnail/i, '');
         var blobs = _this.getBlobs();
         
@@ -1529,7 +1538,7 @@ var globalIndex = 0;
                 }
                 _selectedImageFilenames = urlArray.getKeys();
                 _selectedImageFilenameIndex = 0;
-                _selectedImageFilename = _selectedImageFilenames[_selectedImageFilenameIndex];
+                _selectedThumbnailImageFilename = _selectedImageFilenames[_selectedImageFilenameIndex];
                 
                 if(_this.loadTheSelectedImageAndRender() == false)
                 {
@@ -1601,7 +1610,7 @@ var globalIndex = 0;
         if(_selectedImageFilenames.length > 0)
         {
             _selectedImageFilenameIndex = (_selectedImageFilenameIndex + 1) % _selectedImageFilenames.length
-            _selectedImageFilename = _selectedImageFilenames[_selectedImageFilenameIndex];
+            _selectedThumbnailImageFilename = _selectedImageFilenames[_selectedImageFilenameIndex];
             
             if(MLJ.core.Scene3D.loadTheSelectedImageAndRender() == false)
             {

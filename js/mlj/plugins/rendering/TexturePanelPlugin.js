@@ -51,50 +51,8 @@ var globalIndex1 = 0;
         return texCamera;
     };
 
-    ///////////////////////////////////////////////////////////////////////////
-    // limitPanning() insures that the image always covers the view window:
-    // - The minimal zoom is set to 1, to prevent a case where the image is smaller than the view window 
-    // - If the zoom is 1, the image covers the view window, and panning is disabled.
-    // - If the zoom is bigger than 1, panning is enabled as long as the image covers the view window.
-    ///////////////////////////////////////////////////////////////////////////
-
-    plug.limitPanning = function () {
-        console.log('BEG plug.limitPanning'); 
-        
-        // console.log('texCamera.zoom', texCamera.zoom);
-        // console.log('texCamera.left', texCamera.left);
-        // console.log('texCamera.position.x', texCamera.position.x);
-        
-        let x1 = texCamera.position.x + (texCamera.left / texCamera.zoom);
-        // console.log('x1', x1); 
-        let x1a = Math.max(x1, bbox.min.x);
-        // console.log('bbox.min.x', bbox.min.x); 
-        // console.log('x1a', x1a); 
-        let pos_x = x1a - (texCamera.left / texCamera.zoom);
-        // console.log('pos_x1', pos_x);
-        
-        let x2 = pos_x + (texCamera.right / texCamera.zoom);
-        let x2a = Math.min(x2, bbox.max.x);
-        pos_x = x2a - (texCamera.right / texCamera.zoom);
-        // console.log('pos_x', pos_x);
-        
-        let y1 = texCamera.position.y + (texCamera.bottom / texCamera.zoom);
-        let y1a = Math.max(y1, bbox.min.y);
-        let pos_y = y1a - (texCamera.bottom / texCamera.zoom);
-        
-        let y2 = pos_y + (texCamera.top / texCamera.zoom);
-        let y2a = Math.min(y2, bbox.max.y);
-        pos_y = y2a - (texCamera.top / texCamera.zoom);
-        // console.log('pos_y', pos_y);
-        
-        let doLimitPan = true;
-        if(doLimitPan)
-        {
-            texCamera.position.set(pos_x, pos_y, texCamera.position.z);
-            texCamera.lookAt(pos_x, pos_y, texControls.target.z);
-            texControls.target.set(pos_x, pos_y, 0);
-            texControls.update();            
-        }
+    plug.getBoundingBox = function () {
+        return bbox;
     };
 
     plug.showStickyNotes = function (layer) {
@@ -198,9 +156,11 @@ var globalIndex1 = 0;
                                                                rotation: rotationVal,
                                                                fog: true } );
                     let planeMesh = new THREE.Sprite( material );
-                    planeMesh.position.x = planeMesh.position.y = planeMesh.position.z = 0;
-                    planeMesh.scale.x = 100
-                    planeMesh.scale.y = 100;
+                    planeMesh.position.set( 0, 0, 0 );
+                    let scaleX = (texCamera.right - texCamera.left);
+                    let scaleY = (texCamera.top - texCamera.bottom);
+                    planeMesh.scale.set( scaleX, scaleY, 1 );
+
                     planeMesh.name = "planeMesh";
 
                     layer.texture[i].planeMesh = planeMesh;
@@ -215,7 +175,7 @@ var globalIndex1 = 0;
             // texScene.add(layer.texture[layer.selectedTexture].planeMesh);
 
             planeMesh1 = layer.texture[layer.selectedTexture].planeMesh;
-            console.log('planeMesh1', planeMesh1); 
+            // console.log('planeMesh1', planeMesh1); 
             bbox = new THREE.Box3().setFromObject(planeMesh1);
             texScene.add(planeMesh1);
             texCamera.position.set( 0, 0, 80 );
@@ -257,7 +217,7 @@ var globalIndex1 = 0;
 
     function onDocumentTouchDoubleTap( event ) {
 
-        console.log('BEG onDocumentTouchDoubleTap'); 
+        // console.log('BEG onDocumentTouchDoubleTap'); 
 
         let element1Id = 'texture-pane-wrapper';
         let element1JqueryObject = $('#' + element1Id);
@@ -268,7 +228,7 @@ var globalIndex1 = 0;
         
         if(globalIndex1%2==0)
         {
-            console.log('globalIndex1 is Even');
+            // console.log('globalIndex1 is Even');
 
             element1JqueryObject.addClass("showFullSize");
             element1JqueryObject.removeClass("texturePaneWrapper");
@@ -278,13 +238,19 @@ var globalIndex1 = 0;
         }
         else
         {
-            console.log('globalIndex1 is Odd'); 
+            // console.log('globalIndex1 is Odd'); 
 
             element1JqueryObject.removeClass("showFullSize");
             element1JqueryObject.addClass("texturePaneWrapper");
             
             element2.style.display = "block";
             element3.style.display = "block";
+        }
+
+        // Center the texture image image after toggling between single pane and multiple panes
+        if(MLJ.core.Scene3D.loadTheSelectedImageAndRender() == false)
+        {
+            throw('Failed to load and render the selected image.');
         }
 
         // Adjust the size and position of the texRenderer1 (canvasTex), texLabelRenderer (canvasTexLabel) elements
@@ -302,16 +268,15 @@ var globalIndex1 = 0;
 
         texControls = new THREE.OrbitControls3Dpane(texCamera, texCanvasWrapperElement);
         
-        console.log('texControls.enableZoom5', texControls.enableZoom); 
-        
         //////////////////////////////////////
         // Set rotate related parameters
         //////////////////////////////////////
 
         // No rotation.
         texControls.enableRotate = false;
-        // Setting to Math.PI/2 is needed to satisfy OrbitControls3Dpane, which forces "y-axis-is-up"
-        // (otherwise the camera position is forced moved to  satisfy the "y-axis-is-up" condition)
+        // Set the rotation angle (with 0 angle change range) to Math.PI/2 to satisfy OrbitControls3Dpane with "y-axis-is-up"
+        // coordinate axis system is:
+        // x-red - directed right (on the screen), y-green directed up (on the screen), z-blue directed towards the camera
         texControls.minPolarAngle = Math.PI/2;
         texControls.maxPolarAngle = Math.PI/2;
         // No orbit horizontally.
@@ -339,7 +304,7 @@ var globalIndex1 = 0;
         texControls.enablePan = true;
         texControls.panSpeed = 0.6;
         texControls.screenSpacePanning = true;
-        texControls.enableDamping = true;
+        texControls.enableDamping = false;
         
         
         texCanvasWrapperElement.addEventListener( 'touchmove', onDocumentTouchMove2D, false );
@@ -352,20 +317,23 @@ var globalIndex1 = 0;
 
         // console.log('BEG canvasInit');
 
-        // Looks like left,right,top,bottom is in %
-        // (when set to -100,100, the image covers 1/2 of the window)
-        // (when set to -200,200, the image covers 1/4 of the window)
-        // frustum can be updated in resizeCanvas
+        //////////////////////////////////////
+        // Set camera related parameters
+        //////////////////////////////////////
+
+        // https://discourse.threejs.org/t/does-change-in-camera-position-impact-the-left-top-right-and-bottom-parameters-of-orthographic-camera/5501
+        // left,right,top,bottom are in world units, i.e. for OrthographicCamera: leftBorderX = camera.position.x + (camera.left / camera.zoom);
+        //
+        // left,right,top,bottom (-50, 50, 50, -50) goes together with planeMesh.scale (100, 100, 1)
+        // because the vertices of planeMesh.geometry.attributes.position.data.array which is of type THREE.Sprite are normalized (-0.5 - 0.5)
+        // then the combination of left,right,top,bottom (-50, 50, 50, -50), and planeMesh.scale (100, 100, 1) fills in the entire window
+        // for combination of left,right,top,bottom (-50, 50, 50, -50), and planeMesh.scale (50, 100, 1) the image covers 1/2 of the window on the x axis
+        // for combination of left,right,top,bottom (-200, 200, 200, -200), and planeMesh.scale (100, 100, 1) the image covers 1/4 of the window on the x axis, and on the y axis
 
         let left = -50;
         let right = 50;
         let top = 50;
         let bottom = -50;
-        // let left = -200;
-        // let right = 200;
-        // let top = 200;
-        // let bottom = -200;
-
         let near = -500;
         let far = 1000;
 
@@ -374,6 +342,10 @@ var globalIndex1 = 0;
         
         texScene = new THREE.Scene();
 
+        //////////////////////////////////////
+        // Set texRenderer1 related parameters
+        //////////////////////////////////////
+
         texRenderer1 = new THREE.WebGLRenderer({
             preserveDrawingBuffer: true,
             alpha: true});
@@ -381,6 +353,9 @@ var globalIndex1 = 0;
         texRenderer1.domElement.id = 'canvasTex';
         texRenderer1.setPixelRatio(window.devicePixelRatio);
         texRenderer1.setClearColor(0XDBDBDB, 1); //Webgl canvas background color
+
+        let texRenderer1JqueryObject = $('#' + texRenderer1.domElement.id);
+        texRenderer1JqueryObject.addClass("showFullSize");
 
         setTexControls();
 
@@ -397,13 +372,12 @@ var globalIndex1 = 0;
         // Handle doubletap 
         ////////////////////////////////////////////////////
 
-        let element1Id = 'texture-pane-wrapper';
-        let element1JqueryObject = $('#' + element1Id);
-        console.log('element1JqueryObject', element1JqueryObject); 
+        let texturePaneWrapperJqueryObject = $('#texture-pane-wrapper');
+        // console.log('texturePaneWrapperJqueryObject', texturePaneWrapperJqueryObject); 
 
-        element1JqueryObject.on('doubletap', function(event) {
+        texturePaneWrapperJqueryObject.on('doubletap', function(event) {
             // Takes care both of "double touch" (with the finger) and double click (with the mouse)
-            console.log('User doubletapped #myElement');
+            // console.log('User doubletapped #myElement');
             onDocumentTouchDoubleTap(event);
         });
         
@@ -436,41 +410,24 @@ var globalIndex1 = 0;
         render();
     });
 
-
-    function getTexturePaneWrapperSize() {
-        console.log('BEG TexturePanelPlugin getTexturePaneWrapperSize');
-
-        let texturePaneWrapper = $('#texture-pane-wrapper');
-        console.log('texturePaneWrapper.outerWidth()', texturePaneWrapper.outerWidth());
-        console.log('texturePaneWrapper.innerWidth()', texturePaneWrapper.innerWidth());
-
-        // TBD
-        // innerHeight, outerHeight kepps increasing ???
-        console.log('texturePaneWrapper.innerHeight()', texturePaneWrapper.innerHeight());
-        // console.log('texturePaneWrapper', texturePaneWrapper);
-        // console.log('texturePaneWrapper.clientWidth', texturePaneWrapper.clientWidth);
+    function getTexCanvasWrapperSize() {
+        // console.log('BEG TexturePanelPlugin getTexCanvasWrapperSize');
+        let texCanvasWrapper = $('#texCanvasWrapper');
         
         return {
-            width: texturePaneWrapper.innerWidth(),
-            height: texturePaneWrapper.innerHeight()
-            // width: texturePaneWrapper.outerWidth(),
-            // height: texturePaneWrapper.outerHeight()
+            width: texCanvasWrapper.innerWidth(),
+            height: texCanvasWrapper.innerHeight()
         };
     }
 
-    function resizeCanvas() {
-        // console.log('BEG TexturePanelPlugin resizeCanvas');
-        
-        var texturePaneWrapperSize = getTexturePaneWrapperSize();
-        // console.log('texturePaneWrapperSize', texturePaneWrapperSize);
+    
+    function scaleAndCenterTheSelectedImage(imageInfo) {
+        // console.log('BEG scaleAndCenterTheSelectedImage');
 
-        let portraitWidth = 1512;
-        let portraitHeight = 2016;
-        let imageAspectPortrait = portraitWidth / portraitHeight;
-
+        var texCanvasWrapperSize = getTexCanvasWrapperSize();
         // w0, h0 - the size of the gui window
-        let w0 = $("#texCanvasWrapper").width();
-        let h0 = $("#texCanvasWrapper").height();
+        let w0 = texCanvasWrapperSize.width;
+        let h0 = texCanvasWrapperSize.height;
         // console.log('w0', w0); 
         // console.log('h0', h0);
 
@@ -479,16 +436,29 @@ var globalIndex1 = 0;
         // 1/imageAspectPortrait for landscape
         //////////////////////////////////////////////////////////
 
-        if(rotationVal !== 0)
-        {
-            // portrait
-            image_w_h_ratio = imageAspectPortrait;
+        let portraitWidth = 1512;
+        let portraitHeight = 2016;
+        let imageAspectPortrait = portraitWidth / portraitHeight;
+
+        let imageOrientation = Number(imageInfo.imageOrientation);
+        // console.log('imageOrientation', imageOrientation); 
+        switch (imageOrientation) {
+            case 1:
+                // landscape
+                image_w_h_ratio = 1 / imageAspectPortrait;
+                break;
+            case 6:
+                // portrait
+                image_w_h_ratio = imageAspectPortrait;
+                break;
+            default:
+                let msgStr = "imageOrientation is not supported: " + imageOrientation;
+                console.log('msgStr', msgStr); 
+                throw(msgStr);
+                break;
         }
-        else
-        {
-            // landscape
-            image_w_h_ratio = 1 / imageAspectPortrait;
-        }
+        
+        // console.log('image_w_h_ratio', image_w_h_ratio); 
         texCamera.aspect = image_w_h_ratio;
         texCamera.updateProjectionMatrix();
 
@@ -500,8 +470,8 @@ var globalIndex1 = 0;
         //////////////////////////////////////////////////////////
 
         // w1, h1 - the size of the canvas that preserves the aspectRatio of the image. It exceeds the gui window, i.e. w1>=w0, h1>=h0
-        //          also, the size of the viewport.
-        let texturePaneWrapperRatio = w0 / h0;
+        //          w1, h1 is also the size of the viewport.
+        let texCanvasWrapperRatio = w0 / h0;
         let w1 = 1;
         let h1 = 1;
 
@@ -509,13 +479,16 @@ var globalIndex1 = 0;
         let x2 = 0;
         let y2 = 0;
 
-        if(texturePaneWrapperRatio > image_w_h_ratio)
+        if(texCanvasWrapperRatio > image_w_h_ratio)
         {
+            // ok - when in this branch the image is symetric in x in respect to texCanvasWrapper
+
             w1 = w0;
             h1 = w1 / image_w_h_ratio;
 
             // h1 is bigger than h0
             let zoomFactor = h0 / h1;
+            texControls.minZoom = zoomFactor;
             texControls.setZoom(zoomFactor);
 
             x2 = 0;
@@ -528,23 +501,27 @@ var globalIndex1 = 0;
 
             // w1 is bigger than w0
             let zoomFactor = w0 / w1;
+            texControls.minZoom = zoomFactor;
             texControls.setZoom(zoomFactor);
 
             y2 = 0;
             x2 = (w1 - w0) / 2;
         }
 
-       
-        console.log('texCamera.zoom after', texCamera.zoom);
-        console.log('texturePaneWrapperRatio', texturePaneWrapperRatio); 
-        console.log('texturePaneWrapperSize', texturePaneWrapperSize);
-        console.log('image_w_h_ratio', image_w_h_ratio); 
-        console.log('texturePaneWrapperRatio > image_w_h_ratio', (texturePaneWrapperRatio > image_w_h_ratio)); 
-        console.log('w0', w0);
-        console.log('h0', h0);
-        console.log('w1', w1);
-        console.log('h1', h1);
+        
+        // console.log('texCamera.zoom2', texCamera.zoom);
+        // console.log('texCanvasWrapperRatio', texCanvasWrapperRatio); 
+        // console.log('texCanvasWrapperSize', texCanvasWrapperSize);
+        // console.log('image_w_h_ratio', image_w_h_ratio); 
+        // console.log('texCanvasWrapperRatio > image_w_h_ratio', (texCanvasWrapperRatio > image_w_h_ratio)); 
+        // console.log('w0', w0);
+        // console.log('h0', h0);
+        // console.log('w1', w1);
+        // console.log('h1', h1);
         // console.log('w1/h1', w1/h1);
+        // console.log('texCamera.position', texCamera.position); 
+        // texCamera.position.set( 0, 20, 80 );
+        // console.log('texCamera.position1', texCamera.position); 
         
         texRenderer1.setSize(w1, h1);
 
@@ -566,6 +543,51 @@ var globalIndex1 = 0;
 
         // proportions ok, fills window ok, offset - ok
         texRenderer1.setViewport ( -x2, -y2, w1, h1 );
+        
+    }
+    
+    function resizeCanvas() {
+        // console.log('BEG TexturePanelPlugin resizeCanvas');
+
+        //////////////////////////////////////////////////////////
+        // Set the height of texCanvasWrapper programatically.
+        //////////////////////////////////////////////////////////
+        
+        let texturePaneWrapper = document.getElementById('texture-pane-wrapper');
+        let texCanvasWrapper = $('#texCanvasWrapper');
+        if(texturePaneWrapper.classList.contains("texturePaneWrapper"))
+        {
+            // texturePaneWrapper has css class texturePaneWrapper, i.e. displaying multiple panes
+            // including the sceneBar, which needs to be accounted for.
+            // Set the height of texCanvasWrapper to occupy the parent (texturePaneWrapper) remaining height, after scenebar
+            
+            let scenbarJqueryObject = $('#mlj-scenebar-widget');
+            let scenbarHeight = scenbarJqueryObject.css("height");
+            // console.log('scenbarHeight', scenbarHeight); 
+
+            // e.g. texCanvasWrapper.css({height: "calc( 100% - 33.78px )"})
+            let calcCmd = "calc( 100% - " + scenbarHeight + ")";
+            texCanvasWrapper.css({height: calcCmd});
+        }
+        else
+        {
+            // texturePaneWrapper has css class showFullSize, i.e. displaying a single pane,
+            // and hiding the sceneBar, which does not need to be accounted for.
+            texCanvasWrapper.css({height: "100%"});
+        }
+
+        //////////////////////////////////////////////////////////
+        // Scale and senter the selected image
+        //////////////////////////////////////////////////////////
+
+        let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
+        let selectedThumbnailImageFilename = MLJ.core.Scene3D.getSelectedThumbnailImageFilename();
+        let imageInfo = imageInfoVec.getByKey(selectedThumbnailImageFilename);
+        if(imageInfo)
+        {
+            scaleAndCenterTheSelectedImage(imageInfo);
+        }
+        
     }
 
 

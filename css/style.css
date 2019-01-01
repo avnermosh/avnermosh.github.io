@@ -60,7 +60,7 @@ footer, header, hgroup, menu, nav, section {
 }
 
 body {
-    line-height: 1;
+    /* line-height: 1; */
 }
 
 ol, ul {
@@ -116,9 +116,10 @@ html,body{
     line-height: 20px;
 }
 
+/* All elements with tag "img" inside class ".ui-button" */
 .ui-button img {
     width: 18px;
-    height: 18px;     
+    height: 18px;
     vertical-align: middle;   
 }
 
@@ -164,73 +165,73 @@ html,body{
 }
 
 
-/* LAYERS WIDGET ____________________________________________________________ */
+/* /\* LAYERS WIDGET ____________________________________________________________ *\/ */
 
-#mlj-layers {        
-    overflow: auto;    
-    height: 100%;
-}
+/* #mlj-layers {         */
+/*     overflow: auto;     */
+/*     height: 100%; */
+/* } */
 
-#mlj-layers .mlj-layers-entry {    
-    height: 24px;
-    /* margin: 4px 0; */
-    position: relative;
-}
+/* #mlj-layers .mlj-layers-entry {     */
+/*     height: 24px; */
+/*     /\* margin: 4px 0; *\/ */
+/*     position: relative; */
+/* } */
 
-#mlj-layers .mlj-layer {       
-    border: solid 1px rgba(0,0,0,0);
-    top: 0px;
-    left: 30px;
-    right: 2px;
-    height: 100%;    
-    line-height: 24px;
-    /* padding-left: 5px;     */
-}
+/* #mlj-layers .mlj-layer {        */
+/*     border: solid 1px rgba(0,0,0,0); */
+/*     top: 0px; */
+/*     left: 30px; */
+/*     right: 2px; */
+/*     height: 100%;     */
+/*     line-height: 24px; */
+/*     /\* padding-left: 5px;     *\/ */
+/* } */
 
-#mlj-layers .mlj-layer.selected,
-#mlj-layers .mlj-layer.selected:hover{
-    /*   font-weight: bold;
-       color: green; */
-    /*    background-color: gainsboro;*/
-    border: solid 1px rgba(0,0,0,0);
-    cursor: default;
-    background-color: #0277BD;
-    color: white;
-}
+/* #mlj-layers .mlj-layer.selected, */
+/* #mlj-layers .mlj-layer.selected:hover{ */
+/*     /\*   font-weight: bold; */
+/*        color: green; *\/ */
+/*     /\*    background-color: gainsboro;*\/ */
+/*     border: solid 1px rgba(0,0,0,0); */
+/*     cursor: default; */
+/*     background-color: #0277BD; */
+/*     color: white; */
+/* } */
 
-#mlj-layers .mlj-layer:hover {
-    border: solid 1px #BDBDBD;
-    background-color: #FAFAFA;
-    cursor: pointer;
-}
+/* #mlj-layers .mlj-layer:hover { */
+/*     border: solid 1px #BDBDBD; */
+/*     background-color: #FAFAFA; */
+/*     cursor: pointer; */
+/* } */
 
-#mlj-layers .mlj-eye {
-    height: 24px;
-    width: 24px;
-    /* margin-left: 5px; */
-    background-size: 16px 16px;
-    background-color: rgba(255,255,255,0.7); 
-    background-repeat: no-repeat;
-    background-position: center;
-    border-radius: 2px;    
-}
+/* #mlj-layers .mlj-eye { */
+/*     height: 24px; */
+/*     width: 24px; */
+/*     /\* margin-left: 5px; *\/ */
+/*     background-size: 16px 16px; */
+/*     background-color: rgba(255,255,255,0.7);  */
+/*     background-repeat: no-repeat; */
+/*     background-position: center; */
+/*     border-radius: 2px;     */
+/* } */
 
-#mlj-layers .mlj-eye.show {
-    background-image: url('../img/icons/IcoMoon-Free-master/PNG/48px/0207-eye.png');    
-}
+/* #mlj-layers .mlj-eye.show { */
+/*     background-image: url('../img/icons/IcoMoon-Free-master/PNG/48px/0207-eye.png');     */
+/* } */
 
-#mlj-layers .mlj-eye.hide {
-    background-image: url('../img/icons/IcoMoon-Free-master/PNG/48px/0210-eye-blocked.png');        
-}
+/* #mlj-layers .mlj-eye.hide { */
+/*     background-image: url('../img/icons/IcoMoon-Free-master/PNG/48px/0210-eye-blocked.png');         */
+/* } */
 
 /* MeshLabJs Toolbar style __________________________________________________ */
 
 .mjs-toolbar {
     /* padding: 6px 5px; */
     background-color: #E0E0E0;
-    /*background-color: #0F2D60;*/  
-    /*background-color: #0D47A1;*/      
-    border-bottom: darkgray thin solid;    
+    /* background-color: #0F2D60; */
+    /*background-color: #0D47A1;*/
+    border-bottom: darkgray thin solid;
 }
 
 .mjs-toolbar button {
@@ -422,34 +423,23 @@ label[for='textureName'].error{
     background-color: #0000ff;
 }
 
-/* texCanvas __________________________________________________ */
+/* /\* texCanvas __________________________________________________ *\/ */
 
-.texCanvas {
-  margin: 0 auto;
-  padding: 40px;
-  width: 80%;
-  color: #333;
-  background: #419be0;
-}
+/* .texCanvas { */
+/*   margin: 0 auto; */
+/*   padding: 40px; */
+/*   width: 80%; */
+/*   color: #333; */
+/*   background: #419be0; */
+/* } */
 
 
 /* panes layout  __________________________________________________ */
 
-.filterWrapp {
-    overflow: auto;
-    width: 100%;
-}
-
-.texCanvasWrapper {
-    /* position: absolute; */
-    position: relative;
-    width: 100%;
-    height: 100%;
-    top: 0%;
-    left: 0%;
-    /* object-fit: contain; */
-    /* overflow: "auto" */
-}
+/* .filterWrapp { */
+/*     overflow: auto; */
+/*     width: 100%; */
+/* } */
 
 .texturePaneWrapper {
     position: absolute;
@@ -457,6 +447,22 @@ label[for='textureName'].error{
     height: 100%;
     top: 0%;
     left: 0%;
+}
+
+.texCanvasWrapper {
+    /* .texCanvasWrapper position.absolute makes the canvas symetric in y in respect to texCanvasWrapper */
+    /* but hides the buttons */
+    /* position: absolute; */
+    position: relative;
+    width: 100%;
+    /* the height of texCanvasWrapper is set programatically  */
+    /* by occuping the parent (texturePaneWrapper) remaining height after scenebar */
+    /* height: calc( 100% - 33.78px ); */
+    /* height: 100%; */
+    top: 0%;
+    left: 0%;
+    /* object-fit: contain; */
+    /* overflow: "auto" */
 }
 
 /* 25%, 75% fit the ratio of portraitWidth (1512) to portraitHeight (2016) */
