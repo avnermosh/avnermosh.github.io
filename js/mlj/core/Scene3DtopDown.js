@@ -138,12 +138,11 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         let w0 = size3DtopDown.width;
         let h0 = size3DtopDown.height;
 
-        // //////////////////////////////////////////////////////////
-        // // Set the aspect ratio of _camera3DtopDown - always set to imageAspectPortrait for portrait or
-        // // 1/imageAspectPortrait for landscape
-        // //////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////
+        // Set the aspect ratio of _camera3DtopDown
+        //////////////////////////////////////////////////////////
 
-        // Set imageAspectPortrait from the width height of e.g. 638_w17_yossi_havusha.structure.layer0_ground_1.jpg (829x955)
+        // Set camera frustum from the width height of e.g. 638_w17_yossi_havusha.structure.layer0_ground_1.jpg (829x955)
         if(_selectedFloorInfo)
         {
             _bbox = new THREE.Box3().setFromObject(_selectedFloorInfo["mesh"]);
@@ -182,6 +181,8 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
             let x2 = 0;
             let y2 = 0;
 
+            // console.log('guiViewWindowRatio', guiViewWindowRatio);
+            // console.log('mesh_w_h_ratio', mesh_w_h_ratio); 
             if(guiViewWindowRatio > mesh_w_h_ratio)
             {
                 w1 = w0;
@@ -220,7 +221,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
             // console.log('h1', h1);
             // console.log('w1/h1', w1/h1);
             
-            _renderer3DtopDown.setSize(w1, h1);
+            _renderer3DtopDown.setSize(size3DtopDown.width, size3DtopDown.height);
 
             //////////////////////////////////////////////////////////
             // Set viewport
@@ -258,7 +259,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         // for combination of left,right,top,bottom (-50, 50, 50, -50), and planeMesh.scale (50, 100, 1) the image covers 1/2 of the window on the x axis
         // for combination of left,right,top,bottom (-200, 200, 200, -200), and planeMesh.scale (100, 100, 1) the image covers 1/4 of the window on the x axis, and on the y axis
 
-        // Set imageAspectPortrait from the width height of e.g. 638_w17_yossi_havusha.structure.layer0_ground_1.jpg (829x955)
+        // Set camera frustum from the width height of e.g. 638_w17_yossi_havusha.structure.layer0_ground_1.jpg (829x955)
         let width1 = 829 / 2;
         let height1 = 955 / 2;
         let left = -width1;
@@ -274,11 +275,11 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         let size3DtopDown = get3DtopDownSize();
         let size3DtopDownRatio = size3DtopDown.width / size3DtopDown.height;
         // console.log('size3DtopDownRatio', size3DtopDownRatio); 
+        // console.log('size3DtopDown.width3', size3DtopDown.width);
 
         _camera3DtopDown.aspect = size3DtopDownRatio;
         _camera3DtopDown.updateProjectionMatrix();
 
-        // _camera3DtopDown.position.set( camera3DtopDownPosition0.x, camera3DtopDownPosition0.y, camera3DtopDownPosition0.z );
         _camera3DtopDown.lookAt( _scene3DtopDown.position );
         _camera3DtopDown.updateMatrixWorld();
 

@@ -1564,12 +1564,6 @@ var globalIndex = 0;
 
     this.render = function (fromReqAnimFrame) {
 
-        // if(_controls3D.isKeyDown)
-        if(_controls3D.isMouseDown || _controls3D.isTouchDown)
-        {
-            _this.findIntersections();
-        }
-
         if(_selectedLayer)
         {
             // experiment with rotation through automatic changes to position/rotation

@@ -92,9 +92,11 @@ MLJ.core.MeshFile = {
             let rotationVal = 0;
             switch (Number(imageInfo.imageOrientation)) {
                 case 1:
+                    // landscape
                     rotationVal = 0;
                     break;
                 case 6:
+                    // portrait
                     rotationVal = (-Math.PI / 2);
                     break;
                 default:

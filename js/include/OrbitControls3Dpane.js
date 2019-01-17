@@ -159,6 +159,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         state = STATE.NONE;
 
     };
+   
+    this.getState = function () {
+        return state;        
+    };
 
     this.setZoom = function (zoomFactor) {
         // console.log('BEG setZoom');
@@ -197,14 +201,12 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         
         if( globalIndex%2 === 0 )
         {
-            console.log('foo1'); 
             // scope.object.translateY(yDiff);
             scope.object.position.addVectors(scope.object.position, offsetPosition);
             
         }
         else
         {
-            console.log('foo2'); 
             // scope.object.translateY(-yDiff);
             scope.object.position.subVectors(scope.object.position, offsetPosition);
         }
@@ -246,7 +248,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                     break;
 
                 case CONTROL_TYPE._TEXTURE_2D:
-                    // console.log('scope.target1', scope.target);
                     break;
                     
             }
@@ -293,7 +294,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
             position.copy( scope.target ).add( offset );
 
             scope.object.lookAt( scope.target );
-            // console.log('scope.object.position', scope.object.position);
             
             if ( scope.enableDamping === true ) {
 
@@ -335,13 +335,29 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                         break;
                         
                     case CONTROL_TYPE._3D_TOP_DOWN:
-                        // console.log('scope.object.zoom', scope.object.zoom); 
+                        {
+                            let bBox = MLJ.core.Scene3DtopDown.getBoundingBox();
+                            let viewportExtendsOnX = false;
+                            if(bBox)
+                            {
+                                limitPanning1(bBox, viewportExtendsOnX);
+                            }
+                        }
                         break;
                         
                     case CONTROL_TYPE._TEXTURE_2D:
+                        {
+                            let texturePlugin = MLJ.core.plugin.Manager.getTexturePlugins().getFirst();
+                            let bBox = texturePlugin.getBoundingBox();
+                            let viewportExtendsOnX = texturePlugin.doesViewportExtendOnX();
+                            if(bBox)
+                            {
+                                limitPanning1(bBox, viewportExtendsOnX);
+                            }
+                        }
                         break;
                 }
-
+                
                 return true;
 
             }
@@ -470,10 +486,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
             panOffset.add( v );
 
-            // console.log('scope.object.position', scope.object.position);             
-            // let scene3D = MLJ.core.Scene3D.getScene3D();
-            // console.log('scene3D.position', scene3D.position); 
-            
         };
 
     }();
@@ -513,8 +525,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                 }
                 
                 panUp( 2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix );
-                // console.log('scope.object.position1', scope.object.position);
-                // console.log('scope.object.rotation', scope.object.rotation);
 
             } else if ( scope.object.isOrthographicCamera ) {
 
@@ -545,15 +555,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
             scope.object.updateProjectionMatrix();
             zoomChanged = true;
 
-            // // console.log('scope.object.position2', scope.object.position);
-            // console.log('scaleIn', scale); 
-            // console.log('scope.object.position', scope.object.position); 
-            // console.log('scope.target', scope.target); 
-            // console.log('scope.object.rotation', scope.object.rotation);
-            // console.log('scope.object.zoom', scope.object.zoom); 
-            // console.log('scope.object.fov', scope.object.fov); 
-            // console.log('scope.object.near', scope.object.near); 
-            
         } else if ( scope.object.isOrthographicCamera ) {
 
             scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom * dollyScale ) );
@@ -580,14 +581,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
             scope.object.updateProjectionMatrix();
             zoomChanged = true;
 
-            // console.log('scaleOut', scale); 
-            // console.log('scope.object.position', scope.object.position); 
-            // console.log('scope.target', scope.target); 
-            // console.log('scope.object.rotation', scope.object.rotation);
-            // console.log('scope.object.zoom', scope.object.zoom);
-            // console.log('scope.object.fov', scope.object.fov); 
-            // console.log('scope.object.near', scope.object.near); 
-            
         } else if ( scope.object.isOrthographicCamera ) {
 
             scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom / dollyScale ) );
@@ -609,7 +602,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function handleMouseDownRotate( event ) {
 
-        //console.log( 'handleMouseDownRotate' );
+        // console.log( 'handleMouseDownRotate' );
 
         rotateStart.set( event.clientX, event.clientY );
 
@@ -617,7 +610,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function handleMouseDownDolly( event ) {
 
-        //console.log( 'handleMouseDownDolly' );
+        // console.log( 'handleMouseDownDolly' );
 
         dollyStart.set( event.clientX, event.clientY );
 
@@ -626,7 +619,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     function handleMouseDownPan( event ) {
 
         // console.log( 'BEG handleMouseDownPan' );
-        // console.log('scope.domElement.id', scope.domElement.id); 
 
         switch ( scope.controllerType ) {
 
@@ -682,16 +674,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         scope.update();
 
-        // console.log('scope.target', scope.target); 
-        // console.log('scope.object.position', scope.object.position);
-        // console.log('scope.object.rotation', scope.object.rotation);
-
-        // phi
-        // console.log('scope.getPolarAngle()', scope.getPolarAngle());
-
-        // theta
-        // console.log('scope.getAzimuthalAngle()', scope.getAzimuthalAngle());
-
     }
 
     function handleMouseMoveDolly( event ) {
@@ -718,6 +700,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     }
 
+    
     ///////////////////////////////////////////////////////////////////////////
     // limitPanning1() insures that the image always covers the view window:
     // - The minimal zoom is set to 1, to prevent a case where the image is smaller than the view window 
@@ -725,29 +708,51 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     // - If the zoom is bigger than 1, panning is enabled as long as the image covers the view window.
     ///////////////////////////////////////////////////////////////////////////
 
-    function limitPanning1(bbox) {
+    function limitPanning1(bbox, viewportExtendsOnX) {
         // console.log('BEG plug.limitPanning1'); 
 
-        // console.log('object.position0', object.position); 
-        let x1 = object.position.x + (object.left / object.zoom);
-        // console.log('x1', x1); 
+        let x1 = 0;
+        let x3 = 0;
+        if(viewportExtendsOnX)
+        {
+            x1 = object.position.x + (object.left * scope.minZoom / object.zoom);
+            x3 = object.position.x + (object.right * scope.minZoom / object.zoom);
+        }
+        else
+        {
+            x1 = object.position.x + (object.left / object.zoom);
+            x3 = object.position.x + (object.right / object.zoom);
+        }
         let x1a = Math.max(x1, bbox.min.x);
-        // console.log('bbox.min', bbox.min); 
-        // console.log('x1a', x1a);
-        // console.log('object.left', object.left); 
-        let pos_x1 = x1a - (object.left / object.zoom);
-        // console.log('pos_x1', pos_x1); 
 
-        // console.log('object.zoom', object.zoom); 
-        // console.log('object.right', object.right); 
-        let x2 = pos_x1 + (object.right / object.zoom);
-        // console.log('x2', x2);
-        // console.log('bbox.max', bbox.max); 
-        let x2a = Math.min(x2, bbox.max.x);
-        // console.log('x2a', x2a); 
-        pos_x = x2a - (object.right / object.zoom);
-        // console.log('pos_x', pos_x);
-
+        let pos_x = 0;
+        if((x1 <= bbox.min.x) && (x3 >= bbox.max.x))
+        {
+            // the camera view exceeds the image
+            // Center the image (x axis) in the view window
+            pos_x = (bbox.min.x + bbox.max.x) / 2;
+        }
+        else
+        {
+            let pos_x1 = 0;
+            let x2 = 0;
+            if(viewportExtendsOnX)
+            {
+                pos_x1 = x1a - (object.left * scope.minZoom / object.zoom);
+                x2 = pos_x1 + (object.right * scope.minZoom / object.zoom);
+                let x2a = Math.min(x2, bbox.max.x);
+                pos_x = x2a - (object.right * scope.minZoom / object.zoom);
+            }
+            else
+            {
+                pos_x1 = x1a - (object.left / object.zoom);
+                x2 = pos_x1 + (object.right / object.zoom);
+                let x2a = Math.min(x2, bbox.max.x);
+                pos_x = x2a - (object.right / object.zoom);
+            }
+            
+        }
+        
         switch ( scope.controllerType ) {
 
             case CONTROL_TYPE._3D:
@@ -757,20 +762,54 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                 {
                     // _3D_TOP_DOWN - x-red - directed right (on the screen), z-blue directed down (on the screen), y-green directed towards the camera
 
-                    let z1 = object.position.z + (object.bottom / object.zoom);
-                    let z1a = Math.max(z1, bbox.min.z);
-                    let pos_z1 = z1a - (object.bottom / object.zoom);
-                    
-                    let z2 = pos_z1 + (object.top / object.zoom);
-                    let z2a = Math.min(z2, bbox.max.z);
-                    let pos_z = z2a - (object.top / object.zoom);
-                    // console.log('pos_z', pos_z);
+                    let z1 = 0;
+                    let z1a = 0;
+                    let pos_z1 = 0;
+                    let z3 = 0;
+                    if(viewportExtendsOnX)
+                    {
+                        z1 = object.position.z + (object.bottom / object.zoom);
+                        z1a = Math.max(z1, bbox.min.z);
+                        pos_z1 = z1a - (object.bottom / object.zoom);
+                        z3 = object.position.z + (object.top / object.zoom);
+                    }
+                    else
+                    {
+                        z1 = object.position.z + (object.bottom * scope.minZoom / object.zoom);
+                        z1a = Math.max(z1, bbox.min.z);
+                        pos_z1 = z1a - (object.bottom * scope.minZoom / object.zoom);
+                        z3 = object.position.z + (object.top * scope.minZoom / object.zoom);
+                    }
+
+                    let pos_z = 0;
+                    if((z1 <= bbox.min.z) && (z3 >= bbox.max.z))
+                    {
+                        // the camera view exceeds the image
+                        // Center the image (z axis) in the view window
+                        pos_z = (bbox.min.z + bbox.max.z) / 2;
+                    }
+                    else
+                    {
+                        let z2 = 0;
+                        let z2a = 0;
+                        if(viewportExtendsOnX)
+                        {
+                            z2 = pos_z1 + (object.top / object.zoom);
+                            z2a = Math.min(z2, bbox.max.z);
+                            pos_z = z2a - (object.top / object.zoom);
+                        }
+                        else
+                        {
+                            z2 = pos_z1 + (object.top * scope.minZoom / object.zoom);
+                            z2a = Math.min(z2, bbox.max.z);
+                            pos_z = z2a - (object.top * scope.minZoom / object.zoom);
+                        }
+                    }
 
                     // Limit the panning
                     object.position.set(pos_x, object.position.y, pos_z);
                     object.lookAt(pos_x, scope.target.y, pos_z);
                     scope.target.set(pos_x, 0, pos_z);
-                    scope.update();
                 }
                 break;
 
@@ -778,29 +817,59 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                 {
                     // _TEXTURE_2D - x-red - directed right (on the screen), y-green directed up (on the screen), z-blue directed towards the camera
 
-                    let y1 = object.position.y + (object.bottom / object.zoom);
-                    let y1a = Math.max(y1, bbox.min.y);
-                    let pos_y1 = y1a - (object.bottom / object.zoom);
+                    let y1 = 0;
+                    let y1a = 0;
+                    let pos_y1 = 0;
+                    let y3 = 0;
+                    if(viewportExtendsOnX)
+                    {
+                        y1 = object.position.y  + (object.bottom / object.zoom);
+                        y1a = Math.max(y1, bbox.min.y);
+                        pos_y1 = y1a - (object.bottom / object.zoom);
+                        y3 = object.position.y + (object.top / object.zoom);
+                    }
+                    else
+                    {
+                        y1 = object.position.y  + (object.bottom * scope.minZoom / object.zoom);
+                        y1a = Math.max(y1, bbox.min.y);
+                        pos_y1 = y1a - (object.bottom * scope.minZoom / object.zoom);
+                        y3 = object.position.y + (object.top * scope.minZoom / object.zoom);
+                    }
+
+                    let pos_y = 0;
                     
-                    let y2 = pos_y1 + (object.top / object.zoom);
-                    let y2a = Math.min(y2, bbox.max.y);
-                    let pos_y = y2a - (object.top / object.zoom);
-                    // console.log('pos_y', pos_y);
+                    if((y1 <= bbox.min.y) && (y3 >= bbox.max.y))
+                    {
+                        // the camera view exceeds the image
+                        // Center the image (y axis) in the view window
+                        pos_y = (bbox.min.y + bbox.max.y) / 2;
+                    }
+                    else
+                    {
+                        let y2 = 0;
+                        let y2a = 0;
+                        if(viewportExtendsOnX)
+                        {
+                            y2 = pos_y1 + (object.top / object.zoom);
+                            y2a = Math.min(y2, bbox.max.y);
+                            pos_y = y2a - (object.top / object.zoom);
+                        }
+                        else
+                        {
+                            y2 = pos_y1 + (object.top * scope.minZoom / object.zoom);
+                            y2a = Math.min(y2, bbox.max.y);
+                            pos_y = y2a - (object.top * scope.minZoom / object.zoom);
+                        }
 
-                    // console.log('object.position.z', object.position.z);
-                    // console.log('scope.target.z', scope.target.z);
-
+                    }
+                    
                     // Limit the panning
                     object.position.set(pos_x, pos_y, object.position.z);
-                    object.lookAt(pos_x, pos_y, scope.target.z);
                     scope.target.set(pos_x, pos_y, 0);
-                    scope.update();
+                    object.lookAt(pos_x, pos_y, scope.target.z);
                 }
                 break;
         }
-        
-        // console.log('object.position', object.position);
-        // console.log('scope.target', scope.target); 
     };
 
     function handleMouseMovePan( event ) {
@@ -828,26 +897,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         panStart.copy( panEnd );
 
-        switch ( scope.controllerType ) {
-
-            case CONTROL_TYPE._3D:
-                break;
-            case CONTROL_TYPE._3D_TOP_DOWN:
-                {
-                    let bBox = MLJ.core.Scene3DtopDown.getBoundingBox();
-                    limitPanning1(bBox);
-                }
-                break;
-
-            case CONTROL_TYPE._TEXTURE_2D:
-                {
-                    let texturePlugin = MLJ.core.plugin.Manager.getTexturePlugins().getFirst();
-                    let bBox = texturePlugin.getBoundingBox();
-                    limitPanning1(bBox);
-                }
-                break;
-        }
-
         scope.update();
 
     }
@@ -858,6 +907,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         switch ( scope.controllerType ) {
 
             case CONTROL_TYPE._3D:
+                MLJ.core.Scene3D.findIntersections();
                 break;
 
             case CONTROL_TYPE._3D_TOP_DOWN:
@@ -878,6 +928,8 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                 break;
 
             case CONTROL_TYPE._TEXTURE_2D:
+                // console.log('object.position', object.position); 
+                // console.log('scope.target', scope.target); 
                 break;
         }
 
@@ -897,21 +949,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         }
 
-        switch ( scope.controllerType ) {
-
-            case CONTROL_TYPE._3D:
-                break;
-
-            case CONTROL_TYPE._3D_TOP_DOWN:
-                // {
-                //     console.log('scope.object.zoom', scope.object.zoom);    
-                // }
-                break;
-
-            case CONTROL_TYPE._TEXTURE_2D:
-                break;
-        }
-        
         scope.update();
 
     }
@@ -955,7 +992,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     
     function handleTouchStartRotate( event ) {
 
-	console.log( 'BEG handleTouchStartRotate' );
+	// console.log( 'BEG handleTouchStartRotate' );
 
 	rotateStart.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
 
@@ -963,7 +1000,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function handleTouchStartDollyPan( event ) {
 
-	console.log( 'BEG handleTouchStartDollyPan' );
+	// console.log( 'BEG handleTouchStartDollyPan' );
 
 	if ( scope.enableZoom ) {
 
@@ -989,7 +1026,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function handleTouchMoveRotate( event ) {
 
-	console.log( 'BEG handleTouchMoveRotate' );
+	// console.log( 'BEG handleTouchMoveRotate' );
 
 	rotateEnd.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
 
@@ -1009,7 +1046,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function handleTouchMoveDollyPan( event ) {
 
-	console.log( 'BEG handleTouchMoveDollyPan' );
+	// console.log( 'BEG handleTouchMoveDollyPan' );
         
 	if ( scope.enableZoom ) {
 
@@ -1041,19 +1078,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
 	    panStart.copy( panEnd );
 
-            switch ( scope.controllerType ) {
-
-                case CONTROL_TYPE._3D:
-                case CONTROL_TYPE._3D_TOP_DOWN:
-                    break;
-
-                case CONTROL_TYPE._TEXTURE_2D:
-                    {
-                        let bBox = texturePlugin.getBoundingBox();
-                        limitPanning1(bBox);
-                    }
-                    break;
-            }
 	}
 
 	scope.update();
