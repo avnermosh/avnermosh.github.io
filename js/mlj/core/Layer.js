@@ -178,6 +178,8 @@ MLJ.core.Layer = function (id, name)
 
     this.createRectangleMesh = function (intersectedStructure) {
 
+        // console.log('BEG createRectangleMesh');
+        
         var structureRectangleVertices = MLJ.core.Scene3D.getRectangleVertices(intersectedStructure);
 
         if(Object.keys(structureRectangleVertices).length !== 4)
@@ -203,26 +205,27 @@ MLJ.core.Layer = function (id, name)
         overlayRectangleVerticesArray.push(brPoint1);
         overlayRectangleVerticesArray.push(blPoint1);
 
-        console.log('overlayRectangleVerticesArray', overlayRectangleVerticesArray);
-
         var geometry = new THREE.Geometry();
         // default placeholder file until a real image file is dropped
-        let imageFilename = "default_image.jpg";
+        let imageThumbnailFilename = "default_image.thumbnail.jpg";
 
+        // TBD - sanity check - check that default_image.thumbnail.jpg, default_image.jpg are in the zip file
+        // Not done yet...
+        
         var userData = {urlArray: new MLJ.util.AssociativeArray(),
                         origPosition: null,
                         scale: null}
 
-        let imageOrientation = -2;
-        let imageInfo = {imageFilename: imageFilename,
+        let imageOrientation = 1;
+        let imageInfo = {imageFilename: imageThumbnailFilename,
                          imageOrientation: imageOrientation};
         
-        userData.urlArray.set(imageFilename, imageInfo);
+        userData.urlArray.set(imageThumbnailFilename, imageInfo);
 
         let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
-        imageInfoVec.set(imageFilename, imageInfo);
+        imageInfoVec.set(imageThumbnailFilename, imageInfo);
         MLJ.core.Scene3D.setImageInfoVec(imageInfoVec);
-        
+
         var rectangleMeshMaterial = new THREE.MeshPhongMaterial( {
 	    opacity: 0.5,
             transparent: false,

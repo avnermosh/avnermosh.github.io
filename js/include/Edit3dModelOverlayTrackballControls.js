@@ -50,6 +50,8 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
 
     function clampOverlayRectPosition() {
 
+        // console.log('BEG clampOverlayRectPosition');
+        
         ///////////////////////////////////////
         // clamp the position of overlayRect
         ///////////////////////////////////////
@@ -110,6 +112,8 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
 
 
     function updateVertexHelpersLocation() {
+
+        // console.log('BEG updateVertexHelpersLocation');
 
         ///////////////////////////////////////
         // update the location of vertexHelpers
@@ -220,18 +224,19 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
             return;
         }
 
+        event.preventDefault();
+        event.stopPropagation();
+        
         switch ( event.button ) {
 
             case STATE.INSERT_UPDATE_OVERLAY_RECT:
 
-                event.preventDefault();
-
                 _mouse = MLJ.core.Scene3D.getMouse3D();
                 _camera = MLJ.core.Scene3D.getCamera3D();
                 _raycaster.setFromCamera( _mouse, _camera );
-                
+
                 // _selectedStructureObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedStructure', 'object']);
-                _selectedOverlayRectObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayRect', 'object']);
+                 _selectedOverlayRectObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayRect', 'object']);
                 _selectedOverlayVertexObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayVertex', 'object']);
 
                 
@@ -277,7 +282,7 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
 
     function onDocumentMouseMove( event ) {
 
-        // console.log('BEG onDocumentMouseMove');
+//         console.log('BEG onDocumentMouseMove');
         
         if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
@@ -355,7 +360,7 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
     }
 
     function onDocumentMouseCancel( event ) {
-        // console.log('BEG onDocumentMouseCancel');
+//         console.log('BEG onDocumentMouseCancel');
 
         if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
@@ -376,7 +381,7 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
         _domElement.style.cursor = _hovered ? 'pointer' : 'auto';
 
     }
-
+    
     activate();
 
     // API

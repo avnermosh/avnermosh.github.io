@@ -285,22 +285,51 @@ MLJ.core.MeshFile = {
 
                     // topDown struct - add to topDown struct array
                     floorInfo = {};
-                    floorInfo["mesh"] = objInstance;
                     floorInfo["floorName"] = objFileName;
-                    // console.log('objFileName', objFileName);
 
-                    // 638_w17_yossi_havusha.structure.layer0.obj
+                    // Set the bounding box of floorInfo["mesh"] and set its z order
+                    objInstance.traverse(function ( child ) {
+                        if ( child instanceof THREE.Mesh ) {
+
+                            // Set the z order of floorInfo["mesh"] such that other objects that are on the same plane
+                            // (_axisHelperIntersection, _cube_camera3D, _cube_scene3DcameraMouseIntersectionPoint, _cube_scene3DcameraLookAtIntersectionPoint)
+                            // will be rendered on top of it
+                            child.material.polygonOffset = true;
+                            child.material.polygonOffsetUnits = 4;
+                            child.material.polygonOffsetFactor = 1;
+                            
+                            if ( child.name === "ground_1" ) {
+                                // Set the bounding box of floorInfo["mesh"] from the dround background image
+                                let mesh1 = child.clone();
+                                objInstance.bBox.setFromObject( mesh1 );
+                            }
+                        }
+                    });
+                    
+                    // TBD - generalize to get the floorInfo["height"] number from a meta file in the .zip file that gets filled when exporting the 3d model from sh3d
+                    let floorThickness = 12;
+                    let floorHeight = 250;
+                    let heightAboveFloor = floorHeight / 2;
+                    
                     if(layerSubstr == "layer0")
                     {
-                        floorInfo["height"] = 0;
+                        floorInfo["height"] = 0*(floorHeight + floorThickness) + heightAboveFloor;
+                        floorInfo["mesh"] = objInstance;
+                        floorInfo["mesh"].translateY( floorInfo["height"] );
+
+                        layer.addFloorInfo(objFileName, floorInfo);
+                        MLJ.core.Scene3DtopDown.setSelectedFloorInfo(objFileName);
                     }
                     else
                     {
-                        floorInfo["height"] = 250;
-                    }
+                        
+                        floorInfo["height"] = 1*(floorHeight + floorThickness) + heightAboveFloor;
+                        floorInfo["mesh"] = objInstance;
+                        floorInfo["mesh"].translateY( floorInfo["height"] );
 
-                    layer.addFloorInfo(objFileName, floorInfo);
-                    MLJ.core.Scene3DtopDown.setSelectedFloorInfo(objFileName);
+                        // layer.addFloorInfo(objFileName, floorInfo);
+                        // MLJ.core.Scene3DtopDown.setSelectedFloorInfo(objFileName);
+                    }
                 }
                 else if(overlay_rect_re_matched)
                 {
@@ -329,6 +358,7 @@ MLJ.core.MeshFile = {
                                 box.getCenter( overlayRect.position ); // this re-sets the position
                                 
                                 overlayRect.geometry.computeBoundingBox();
+                                // Mesh::geometry.center() repositions the mesh such that its center is at 0
                                 overlayRect.geometry.center();
 
                                 for(var i=0;i<overlayRect.geometry.vertices.length;i++)
@@ -477,25 +507,24 @@ MLJ.core.MeshFile = {
                             // b.
                             // IMG_6399.jpg
 
+                            // regex to get the texture (overlayRect) thumbnail images
+                            // Match any string that contains "IMG" and "thumbnail"
                             // match e.g. IMG_5305_thumbnail.jpg
                             var re1 = /^(IMG.*thumbnail).*$/;
-                            var regex1_matched = filename.match(re1);
+                            var overlayRectThumbnailImageRegexMatched = filename.match(re1);
 
-                            // Do not match e.g. IMG_5305.jpg, IMG_5305_thumbnail.jpg
-                            // match e.g. diagonalStripesPattern.jpg, 638_w17_yossi_havusha.structure.layer0_ground_1.jpg,
-                            //   638_w17_yossi_havusha.structure.layer0_ground_1.png
+                            // regex to all image files except the texture (overlayRect) images
+                            // Match any string that do not contain IMG
                             var re2 = /^(?!IMG).*$/;
-                            var regex2_matched = filename.match(re2);
+                            var nonOverlayRectImageRegexMatched = filename.match(re2);
 
                             // match - IMG_5305_thumbnail.jpg
                             // match - diagonalStripesPattern.jpg
                             // match - 638_w17_yossi_havusha.structure.layer0_ground_1.jpg
                             // match - 638_w17_yossi_havusha.structure.layer0_ground_1.png
                             // Do NOT match - IMG_6399.jpg
-                            if(regex1_matched || regex2_matched)
+                            if(overlayRectThumbnailImageRegexMatched || nonOverlayRectImageRegexMatched)
                             {
-                                console.log('regex1_matched');
-
                                 if (zipLoaderInstance.files[filename].url) {
                                     blobs[filename] = zipLoaderInstance.files[filename].url;
                                 }
@@ -584,6 +613,20 @@ MLJ.core.MeshFile = {
                     {
                         let filename = promises3[i].filename;
                         blobs[filename] = promises3[i].url;
+
+                        if(filename === "noSelectedImage.thumbnail.jpg")
+                        {
+                            // noSelectedImage.thumbnail.jpg is added into MLJ.core.Scene3D::_imageInfoVec
+                            // to serve as a "texture" indicator for cases of no selection (i.e. no intersection)
+                            let imageFilename1 = "noSelectedImage.thumbnail.jpg";
+                            let imageOrientation1 = 1;
+                            let imageInfo1 = {imageFilename: imageFilename1,
+                                              imageOrientation: imageOrientation1};
+                            let imageInfoVec1 = MLJ.core.Scene3D.getImageInfoVec();
+                            imageInfoVec1.set(imageFilename1, imageInfo1);
+                            MLJ.core.Scene3D.setImageInfoVec(imageInfoVec1);
+                        }
+                        
                     }
 
 
@@ -856,6 +899,7 @@ MLJ.core.MeshFile = {
                             case "obj":
                             case "jpg":
                             case "JPG":
+                            case "jpeg":
                             case "png":
                             case "json":
                                 zip.file(fileName, urlToPromise(blobUrl), {binary:true});

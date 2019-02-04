@@ -329,19 +329,17 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                 switch ( this.controllerType ) {
 
                     case CONTROL_TYPE._3D:
-                        // No need to compute rotation from scope.object.quaternion - it is identical to scope.object.rotation
-                        // var rotation = new THREE.Euler().setFromQuaternion( scope.object.quaternion )
-                        MLJ.core.Scene3DtopDown.setArrowHelper(scope.object.rotation);
+                        MLJ.core.Scene3DtopDown.setArrowHelper();
                         break;
                         
                     case CONTROL_TYPE._3D_TOP_DOWN:
                         {
                             let bBox = MLJ.core.Scene3DtopDown.getBoundingBox();
                             let viewportExtendsOnX = false;
-                            if(bBox)
-                            {
-                                limitPanning1(bBox, viewportExtendsOnX);
-                            }
+                             if(bBox)
+                             {
+                                 limitPanning1(bBox, viewportExtendsOnX);
+                             }
                         }
                         break;
                         
@@ -907,7 +905,21 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         switch ( scope.controllerType ) {
 
             case CONTROL_TYPE._3D:
-                MLJ.core.Scene3D.findIntersections();
+                if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
+                {
+                    let selectedThumbnailImageFilename = MLJ.core.Scene3D.getSelectedThumbnailImageFilename();
+                    let selectedThumbnailImageFilenamePrev = MLJ.core.Scene3D.getSelectedThumbnailImageFilenamePrev();
+
+                    if((selectedThumbnailImageFilename) && (selectedThumbnailImageFilename !== selectedThumbnailImageFilenamePrev ))
+                    {
+                        // load selected image to texture pane only on mouse up
+                        if(MLJ.core.Scene3D.loadTheSelectedImageAndRender() == false)
+                        {
+                            console.error('Failed to load and render the selected image.'); 
+                        }
+                    }
+                }
+
                 break;
 
             case CONTROL_TYPE._3D_TOP_DOWN:
@@ -1124,15 +1136,28 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 }
                 else {
+                    switch ( scope.controllerType ) {
 
-                    // if ( scope.enableRotate === false ) return;
-                    if ( scope.enableRotate === true )
-                    {
-                        handleMouseDownRotate( event );
-                        state = STATE.ROTATE;
+                        case CONTROL_TYPE._3D:
+                            {
+                                // For 3d pane use left mouse to rotate 
+                                handleMouseDownRotate( event );
+                                state = STATE.ROTATE;
+                            }
+                            break;
+                            
+                        case CONTROL_TYPE._3D_TOP_DOWN:
+                            {
+                                // no rotation for _3D_TOP_DOWN - remove the state ???
+                                state = STATE.ROTATE;
+                                MLJ.core.Scene3DtopDown.findIntersections();
+                            }
+                            break;
+                            
+                        case CONTROL_TYPE._TEXTURE_2D:
+                            break;
                     }
-                    state = STATE.ROTATE;
-                    MLJ.core.Scene3DtopDown.findIntersections();
+                    
                 }
                 
                 break;
@@ -1189,13 +1214,25 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
             case STATE.ROTATE:
 
-                if ( scope.enableRotate === true )
-                {
-                    handleMouseMoveRotate( event );
+                switch ( scope.controllerType ) {
+
+                    case CONTROL_TYPE._3D:
+                        {
+                            // For 3d pane use left mouse to rotate 
+                            handleMouseMoveRotate( event );
+                        }
+                        break;
+                        
+                    case CONTROL_TYPE._3D_TOP_DOWN:
+                        {
+                            // For scene3DtopDown pane use left mouse to pan 
+                            MLJ.core.Scene3DtopDown.findIntersections();
+                        }
+                        break;
+                        
+                    case CONTROL_TYPE._TEXTURE_2D:
+                        break;
                 }
-                // TBD change to only when clicking on the mouse? (and not while clicking and moving it?)
-                // (to prevent from constantly changing the images when navigating the view?)
-                MLJ.core.Scene3DtopDown.findIntersections();
 
                 break;
 
@@ -1363,17 +1400,32 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
 	    case 1: // one-fingered touch: rotate
 
-		if ( scope.enableRotate === false )
-                {
-                    return;
-                }
 		if ( state !== STATE.TOUCH_ROTATE )
                 {
                     // is this needed?
                     return; 
                 }
 
-		handleTouchMoveRotate( event );
+                switch ( scope.controllerType ) {
+
+                    case CONTROL_TYPE._3D:
+                        {
+                            // For 3d pane use left mouse to rotate 
+		            handleTouchMoveRotate( event );
+                        }
+                        break;
+                        
+                    case CONTROL_TYPE._3D_TOP_DOWN:
+                        {
+                            // For scene3DtopDown pane use left mouse to pan 
+                            MLJ.core.Scene3DtopDown.findIntersections();
+                        }
+                        break;
+                        
+                    case CONTROL_TYPE._TEXTURE_2D:
+                        break;
+                }
+
 
 		break;
 
@@ -1422,11 +1474,9 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function onContextMenu( event ) {
 
-        if ( scope.enabled === false )
-        {
-            return;
-        }
-
+        // TBD enables taking a snapshot of the Scene3D pane. Possible future feature
+        // for now disabling it so that it does not pop up the menu when right clicking in Edit mode
+        
         event.preventDefault();
 
     }

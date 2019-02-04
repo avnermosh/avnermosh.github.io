@@ -56,7 +56,7 @@ THREE.OBJExporter.prototype = {
                         let imageFilename = imageInfo.imageFilename;
                         let imageOrientation = imageInfo.imageOrientation;
                         
-                        if((mat.userData.urlArray.size() > 1) && (imageFilename === 'default_image.jpg'))
+                        if((mat.userData.urlArray.size() > 1) && (imageFilename === 'default_image.thumbnail.jpg'))
                         {
                             // not removing, as this will confuse the iterator
                             // instead just ignore the default image (it won't be added to the list of images)

@@ -9,7 +9,7 @@
 MLJ.core.Scene3DtopDown = {};
 MLJ.core.Scene3DtopDown.timeStamp = 0;
 
-const heightOffset = 100;
+const heightOffset = 1000;
 const camera3DtopDownHeight = 2000;
 var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603);
 
@@ -33,7 +33,9 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
     // Helpers
     ////////////////////////////////////////////////////
 
+    // _cube_camera3D - position of the camera in the 2dPane
     var _cube_camera3D;
+
     var _axisHelperIntersection;
     var _arrowCameraDirection;
     
@@ -46,8 +48,6 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
 
     // intersection of the mouse intersection with the wall,
     var _cube_scene3DcameraMouseIntersectionPoint;
-    
-    var _cube1_scene3DtopDown;
 
     var globalIndex = 0;
     ////////////////////////////////////////////////////
@@ -142,13 +142,14 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         // Set the aspect ratio of _camera3DtopDown
         //////////////////////////////////////////////////////////
 
-        // Set camera frustum from the width height of e.g. 638_w17_yossi_havusha.structure.layer0_ground_1.jpg (829x955)
         if(_selectedFloorInfo)
         {
             _bbox = new THREE.Box3().setFromObject(_selectedFloorInfo["mesh"]);
             // _bbox = _selectedFloorInfo["mesh"].bBox;
 
             _bbox.getCenter( _camera3DtopDown.position ); // this re-sets the position
+            let height = _selectedFloorInfo["height"] + heightOffset;
+            _camera3DtopDown.position.setY(height);
             
             // Update the camera frustum to cover the entire image
             let width1 = (_bbox.max.x - _bbox.min.x) / 2;
@@ -185,6 +186,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
             // console.log('mesh_w_h_ratio', mesh_w_h_ratio); 
             if(guiViewWindowRatio > mesh_w_h_ratio)
             {
+                // console.log('foo0'); 
                 w1 = w0;
                 h1 = w1 / mesh_w_h_ratio;
 
@@ -198,6 +200,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
             }
             else
             {
+                // console.log('foo1'); 
                 h1 = h0;
                 w1 = h1 * mesh_w_h_ratio;
 
@@ -259,9 +262,11 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         // for combination of left,right,top,bottom (-50, 50, 50, -50), and planeMesh.scale (50, 100, 1) the image covers 1/2 of the window on the x axis
         // for combination of left,right,top,bottom (-200, 200, 200, -200), and planeMesh.scale (100, 100, 1) the image covers 1/4 of the window on the x axis, and on the y axis
 
-        // Set camera frustum from the width height of e.g. 638_w17_yossi_havusha.structure.layer0_ground_1.jpg (829x955)
-        let width1 = 829 / 2;
-        let height1 = 955 / 2;
+        // Set camera frustum to arbitrary initial width height
+        // These will change later when a selecting a new floor level
+        let width1 = 1000 / 2;
+        let height1 = 1000 / 2;
+
         let left = -width1;
         let right = width1;
         let top = height1;
@@ -303,6 +308,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         _renderer3DtopDown.domElement.id = 'canvas3DtopDown';
         _renderer3DtopDown.setPixelRatio(window.devicePixelRatio);
         _renderer3DtopDown.setSize(size3DtopDown.width, size3DtopDown.height);
+        // console.log('size3DtopDown.width1', size3DtopDown.width);
         
         $('#_3DtopDown').append(_renderer3DtopDown.domElement);
         
@@ -310,14 +316,40 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         // Helpers
         ////////////////////////////////////////////////////
         
+        // https://sites.google.com/site/threejstuts/home/polygon_offset
+        // When both parameters are negative, (decreased depth), the mesh is pulled towards the camera (hence, gets in front).
+        // When both parameters are positive, (increased depth), the mesh is pushed away from the camera (hence, gets behind).
+        // order from far to near:
+        // floorInfo["mesh"] (polygonOffsetUnits = 4, polygonOffsetFactor = 1)
+        // _axisHelperIntersection (polygonOffsetUnits = -4, polygonOffsetFactor = -1)
+        // _cube_camera3D (red cube) (polygonOffsetUnits = -6, polygonOffsetFactor = -1)
+        // _cube_scene3DcameraMouseIntersectionPoint (orange cube) (polygonOffsetUnits = -8, polygonOffsetFactor = -1)
+        // _cube_scene3DcameraLookAtIntersectionPoint (yellow cube) (polygonOffsetUnits = -9, polygonOffsetFactor = -1)
+        
+
+        
         _axisHelperIntersection = new THREE.AxesHelper(500);
         _axisHelperIntersection.material.linewidth = 20;
+        _axisHelperIntersection.material.polygonOffset = true;
+        _axisHelperIntersection.material.polygonOffsetUnits = -4;
+	// _axisHelperIntersection more in front, compared to e.g. _selectedFloorInfo["mesh"]
+        _axisHelperIntersection.material.polygonOffsetFactor = -1;
+        
         _scene3DtopDown.add(_axisHelperIntersection);
 
-        var geometry1 = new THREE.BoxGeometry( 20, 1, 20 );
+        // Set _cube_camera3D - position of the camera in the 2dPane
+        let cubeWidth = 80;
+        let cubeHeight = 80;
+        let cubeDepth = 80;
+        
+        var geometry1 = new THREE.BoxGeometry( cubeWidth, cubeHeight, cubeDepth );
         var material1 = new THREE.MeshBasicMaterial( {color: MLJ.util.redColor} );
         _cube_camera3D = new THREE.Mesh( geometry1, material1 );
         _cube_camera3D.position.set( 0, 0, 0 );
+        _cube_camera3D.material.polygonOffset = true;
+        _cube_camera3D.material.polygonOffsetUnits = -6;
+	// _cube_camera3D more in front, compared to e.g. _selectedFloorInfo["mesh"]
+        _cube_camera3D.material.polygonOffsetFactor = -1;
         _scene3DtopDown.add( _cube_camera3D );
 
         // https://stackoverflow.com/questions/20554946/three-js-how-can-i-update-an-arrowhelper
@@ -332,26 +364,30 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         _arrowCameraDirection = new THREE.ArrowHelper(direction.clone().normalize(), sourcePos, arrowLength, 0x00ff00);
         _arrowCameraDirection.line.material.linewidth = 20;
         console.log('_arrowCameraDirection', _arrowCameraDirection);
-        
+
         _scene3DtopDown.add(_arrowCameraDirection);
 
-        let geometry2 = new THREE.BoxGeometry( 40, 40, 40 );
+        let geometry2 = new THREE.BoxGeometry( cubeWidth, cubeHeight, cubeDepth );
         let material2 = new THREE.MeshBasicMaterial( {color: MLJ.util.yellowColor} );
         _cube_scene3DcameraLookAtIntersectionPoint = new THREE.Mesh( geometry2, material2 );
         _cube_scene3DcameraLookAtIntersectionPoint.position.set( 0, 0, 0 );
+        _cube_scene3DcameraLookAtIntersectionPoint.material.polygonOffset = true;
+        _cube_scene3DcameraLookAtIntersectionPoint.material.polygonOffsetUnits = -8;
+	// _cube_scene3DcameraLookAtIntersectionPoint more in front, compared to e.g. _selectedFloorInfo["mesh"]
+        _cube_scene3DcameraLookAtIntersectionPoint.material.polygonOffsetFactor = -1;
         _scene3DtopDown.add( _cube_scene3DcameraLookAtIntersectionPoint );
 
+        let geometry3 = new THREE.BoxGeometry( cubeWidth, cubeHeight, cubeDepth );
         material2 = new THREE.MeshBasicMaterial( {color: MLJ.util.darkOrangeColor} );
-        _cube_scene3DcameraMouseIntersectionPoint = new THREE.Mesh( geometry2, material2 );
+        _cube_scene3DcameraMouseIntersectionPoint = new THREE.Mesh( geometry3, material2 );
         _cube_scene3DcameraMouseIntersectionPoint.position.set( 0, 0, 0 );
+        _cube_scene3DcameraMouseIntersectionPoint.material.polygonOffset = true;
+        _cube_scene3DcameraMouseIntersectionPoint.material.polygonOffsetUnits = -9;
+	// _cube_scene3DcameraMouseIntersectionPoint more in front, compared to e.g. _selectedFloorInfo["mesh"]
+        _cube_scene3DcameraMouseIntersectionPoint.material.polygonOffsetFactor = -1;
+        
         _scene3DtopDown.add( _cube_scene3DcameraMouseIntersectionPoint );
 
-        material2 = new THREE.MeshBasicMaterial( {color: MLJ.util.blueColor} );
-        _cube1_scene3DtopDown = new THREE.Mesh( geometry2, material2 );
-        _cube1_scene3DtopDown.position.set( 0, 0, 0 );
-        _scene3DtopDown.add( _cube1_scene3DtopDown );
-
-        
         ////////////////////////////////////////////////////
         // INIT CONTROLS
         ////////////////////////////////////////////////////
@@ -520,40 +556,21 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
     this.setSelectedFloorInfo = function (floorName2) {
         console.log('BEG setSelectedFloorInfo'); 
 
-        let floorName = "638_w17_yossi_havusha.structure.layer0.obj";
-        if(floorName2 == "layer0" || floorName2 == "638_w17_yossi_havusha.structure.layer0.obj")
+        let topDownStructureObjRegexMatched = "na";
+        let floorName = "NA";
+        if( (topDownStructureObjRegexMatched = floorName2.match(/\.structure\.layer[0-9]\.obj$/)) )
         {
-            floorName = "638_w17_yossi_havusha.structure.layer0.obj";
-        }
-        else if (floorName2 == "layer1" || floorName2 == "638_w17_yossi_havusha.structure.layer1.obj")
-        {
-            floorName = "638_w17_yossi_havusha.structure.layer1.obj";
+            floorName = floorName2;
         }
 
-        // console.log('_scene3DtopDown0', _scene3DtopDown);
         if(_selectedFloorInfo)
         {
             // remove the previous _selectedFloorInfo["mesh"]
             _scene3DtopDown.remove(_selectedFloorInfo["mesh"]);
         }
         
-        console.log('_selectedFloorInfo before', _selectedFloorInfo); 
-
         let selectedLayer = MLJ.core.Scene3D.getSelectedLayer();
-        // console.log('floorName', floorName);
-
-        // // console.log('floorInfoArray', selectedLayer.getFloorInfoArray()); 
-        // let iter = selectedLayer.getFloorInfoArray().iterator();
-        // while (iter.hasNext()) {
-        //     let floorInfo = iter.next();
-        //     console.log('floorInfo', floorInfo); 
-        // }
-
-        // console.log('getKeys', selectedLayer.getFloorInfoArray().getKeys()); 
-        
         _selectedFloorInfo = selectedLayer.getFloorInfoByName(floorName);
-
-        console.log('_selectedFloorInfo after', _selectedFloorInfo);
 
         if(_selectedFloorInfo)
         {
@@ -561,10 +578,12 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
             _scene3DtopDown.add(_selectedFloorInfo["mesh"]);
 
             // update the camera positionY to the floor
-            let intersectionHeight = _selectedFloorInfo["height"];
             let height = _selectedFloorInfo["height"] + heightOffset;
-            let intersectionPointCurr2 = new THREE.Vector3(_intersectionPointCurr.x, height, _intersectionPointCurr.z);
-            MLJ.core.Scene3D.setCamera3Dposition(intersectionPointCurr2);
+            // let intersectionPointCurr2 = new THREE.Vector3(_intersectionPointCurr.x, height, _intersectionPointCurr.z);
+            // intersectionPointCurr2.copy(_intersectionPointCurr);
+            
+            // MLJ.core.Scene3D.setCamera3Dposition(intersectionPointCurr2);
+            MLJ.core.Scene3D.setCamera3Dposition(_intersectionPointCurr);
 
             // aspect ratio is not ok, scale is not ok (image does not fill the entire window)
             // _bbox = new THREE.Box3().setFromObject(_selectedFloorInfo["mesh"]);
@@ -575,6 +594,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
             if(_bbox)
             {
                 _bbox.getCenter( _camera3DtopDown.position ); // this re-sets the position
+                _camera3DtopDown.position.setY(height);
             }
             
             // Update the camera frustum to cover the entire image
@@ -618,47 +638,21 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         if(scene3dCameraLookAtIntersectionPoint)
         {
             // console.log('scene3dCameraLookAtIntersectionPoint', scene3dCameraLookAtIntersectionPoint); 
-            // intersection of the scene3D window center 
-            // yellow
-            _cube_scene3DcameraLookAtIntersectionPoint.position.copy(_cube_camera3D.position);
-            _cube_scene3DcameraLookAtIntersectionPoint.position.add(scene3dCameraLookAtIntersectionPoint);
-            if(_selectedFloorInfo)
-            {
-                let intersectionHeight = _selectedFloorInfo["height"];
-                let height = _selectedFloorInfo["height"] + heightOffset;
-                _cube_scene3DcameraLookAtIntersectionPoint.position.setY(height);
-            }
-            else
-            {
-                throw new Error("Reached error condition: if(_selectedFloorInfo)");
-                _cube_scene3DcameraLookAtIntersectionPoint.position.setY(2);
-            }
+            // intersection of the scene3D window center (yellow)
 
+            _cube_scene3DcameraLookAtIntersectionPoint.position.copy(_cube_camera3D.position);
+            // Y doesn't need to be translated, because _cube_camera3D.y is 0, and changing the elevation of the camera3D (changing the y value) does not need to be compensated
+            _cube_scene3DcameraLookAtIntersectionPoint.translateX(scene3dCameraLookAtIntersectionPoint.x);
+            _cube_scene3DcameraLookAtIntersectionPoint.translateZ(scene3dCameraLookAtIntersectionPoint.z);
         }
 
         if(scene3dMouseIntersectionPoint)
         {
-            // console.log('scene3dMouseIntersectionPoint', scene3dMouseIntersectionPoint); 
-            // intersection of the scene3D mouse position 
-            // darkOrangeColor
+            // intersection of the scene3D mouse position (darkOrangeColor)
             _cube_scene3DcameraMouseIntersectionPoint.position.copy(_cube_camera3D.position);
             _cube_scene3DcameraMouseIntersectionPoint.position.add(scene3dMouseIntersectionPoint);
-            
-            if(_selectedFloorInfo)
-            {
-                let intersectionHeight = _selectedFloorInfo["height"];
-                // adding 1000 (10 m) so that the cube can be seen (above the wall)
-                let height = _selectedFloorInfo["height"] + heightOffset + 1000;
-                _cube_scene3DcameraLookAtIntersectionPoint.position.setY(height);
-            }
-            else
-            {
-                throw new Error("Reached error condition: if(_selectedFloorInfo)");
-                _cube_scene3DcameraLookAtIntersectionPoint.position.setY(2);
-            }
         }
 
-        // console.log('_cube_camera3D.position', _cube_camera3D.position); 
     };
 
     this.getBoundingBox = function()
@@ -666,30 +660,33 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         return _bbox;
     };
     
-    this.setArrowHelper = function(rotation)
+    this.setArrowHelper = function()
     {
         // console.log('BEG setArrowHelper'); 
         //     TBD - draw arrow from camera3D_position to camera3D_lookAt_direction
         // https://threejs.org/docs/#api/en/helpers/ArrowHelper
 
-        // direction, rotation - euler coords in radian
-        // let direction = new THREE.Vector3(rotation.x, rotation.y, rotation.z);
-
         let camera3D = MLJ.core.Scene3D.getCamera3D();
 
-        let direction = new THREE.Vector3();
-        camera3D.getWorldDirection( direction );
-        // console.log('direction', direction);
-        // console.log('camera3D.position', camera3D.position);
-        // console.log('rotation', rotation);
+        let direction1 = new THREE.Vector3();
+        camera3D.getWorldDirection( direction1 );
 
-        let arrowLength = 1000;
+        // Set the distance to be from _cube_camera3D.position to _cube_scene3DcameraLookAtIntersectionPoint.position
+        let arrowLength = 5000;
+        if(_cube_scene3DcameraLookAtIntersectionPoint && _cube_camera3D)
+        {
+            let direction2 = new THREE.Vector3().subVectors(_cube_scene3DcameraLookAtIntersectionPoint.position, _cube_camera3D.position);
+            arrowLength = direction2.length();
+        }
 
         if(_arrowCameraDirection)
         {
             _cube_camera3D.position.addVectors(camera3D.position, _intersectionPointCurr);
             _arrowCameraDirection.position.copy(_cube_camera3D.position);
-            _arrowCameraDirection.setDirection(direction.normalize());
+
+            // set direction in Y to 0, i.e. parallel, on the y plane, to _arrowCameraDirection.position.y
+            direction1.setY(0);
+            _arrowCameraDirection.setDirection(direction1.normalize());
             _arrowCameraDirection.setLength(arrowLength);
         }
     };
@@ -708,17 +705,12 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         // To be complete, we are changing here both the cameraTopDown position, and the cameraTopDown target (lookAt)
         /////////////////////////////////////////////////////////////
         
-        var camera3DtopDown = MLJ.core.Scene3DtopDown.getCamera3DtopDown()
-        // console.log('camera3DtopDown.position before restore', camera3DtopDown.position); 
-
         let axisHelperIntersection = MLJ.core.Scene3DtopDown.getAxisHelperIntersection();
-        camera3DtopDown.position.copy(axisHelperIntersection.position);
-        camera3DtopDown.position.setY(camera3DtopDownHeight);
+        _camera3DtopDown.position.copy(axisHelperIntersection.position);
+        _camera3DtopDown.position.setY(camera3DtopDownHeight);
         
-        // console.log('camera3DtopDown.position after update', camera3DtopDown.position); 
-
         let controls3DtopDown = MLJ.core.Scene3DtopDown.getControls3DtopDown();
-        controls3DtopDown.target.copy(camera3DtopDown.position);
+        controls3DtopDown.target.copy(_camera3DtopDown.position);
 
         if(_selectedFloorInfo)
         {
@@ -742,37 +734,37 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
         if(intersects.length > 0)
         {
             _intersectionPointCurr = intersects[0].point;
-            // console.log('_intersectionPointCurr', _intersectionPointCurr); 
+//             console.log('_intersectionPointCurr', _intersectionPointCurr); 
 
             let intersectionHeight = _selectedFloorInfo["height"];
             _intersectionPointCurr.setY(intersectionHeight);
 
             let height = _selectedFloorInfo["height"] + heightOffset;
 
-//             console.log('_intersectionPointPrev', _intersectionPointPrev);
-//             console.log('_intersectionPointCurr', _intersectionPointCurr);
-            
+            // order from far to near:
+//             console.log('_selectedFloorInfo["mesh"].position', _selectedFloorInfo["mesh"].position);
+            console.log('_axisHelperIntersection.position', _axisHelperIntersection.position);
+//             console.log('_cube_camera3D.position', _cube_camera3D.position);
+//             console.log('_cube_scene3DcameraMouseIntersectionPoint.position', _cube_scene3DcameraMouseIntersectionPoint.position);
+//             console.log('_cube_scene3DcameraLookAtIntersectionPoint.position', _cube_scene3DcameraLookAtIntersectionPoint.position);
+
             var dist1 = _intersectionPointCurr.distanceTo( _intersectionPointPrev );
             let epsilon = 1.0;
             if ( dist1 > epsilon )
             {
-                // console.log('dist1', dist1); 
                 _intersectionPointPrev.copy(_intersectionPointCurr);
 
-                _axisHelperIntersection.position.set( _intersectionPointCurr.x, height, _intersectionPointCurr.z );
+                _axisHelperIntersection.position.copy( _intersectionPointCurr );
                 
                 let camera3D = MLJ.core.Scene3D.getCamera3D();
                 _cube_camera3D.position.addVectors(camera3D.position, _intersectionPointCurr);
                 
                 // Update the camera position to the new intersection, keep the previous camera direction
                 _arrowCameraDirection.position.copy(_cube_camera3D.position);
-
+                
                 let intersectionPointCurr2 = new THREE.Vector3(_intersectionPointCurr.x, height, _intersectionPointCurr.z);
-                    
-                // // blue
-                // _cube1_scene3DtopDown.position.copy(_camera3DtopDown.position);
-                // _cube1_scene3DtopDown.position.setY(2)
-                    
+                intersectionPointCurr2.copy(_intersectionPointCurr);
+                
                 // MLJ.core.Scene3D.setCamera3Dposition(_intersectionPointCurr);
                 MLJ.core.Scene3D.setCamera3Dposition(intersectionPointCurr2);
 

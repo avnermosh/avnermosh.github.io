@@ -10,7 +10,6 @@ MLJ.core.Scene3D = {};
 MLJ.core.Scene3D.timeStamp = 0;
 
 var positionPrev = new THREE.Vector3(0,0,0);
-var cameraLookAtIntersectionPoint = undefined;
 
 var globalIndex = 0;
 
@@ -46,10 +45,12 @@ var globalIndex = 0;
     
     var _selectedImageFilename;
     var _selectedThumbnailImageFilename;
+    var _selectedThumbnailImageFilenamePrev;
     
     var _selectedImageFilenames;
     var _selectedImageFilenameIndex = 0;
 
+    // accumulated list of all the overlay images, as they are added 
     var _imageInfoVec = new MLJ.util.AssociativeArray();
 
     ////////////////////////////////////////////////////
@@ -59,6 +60,7 @@ var globalIndex = 0;
     var _edit3dModelOverlayTrackballControls;
 
     var _selectedOverlayVertexHelperGroup = new THREE.Object3D();
+    _selectedOverlayVertexHelperGroup.name = "_selectedOverlayVertexHelperGroup";
 
     var _intersectionInfo = {intersectionLayer: undefined,
                              intersectedStructure: undefined,
@@ -73,6 +75,8 @@ var globalIndex = 0;
     ////////////////////////////////////////////////////
     
     var _originAxisHelper;
+
+    // x-red - directed right (on the screen), y-green directed up (on the screen), z-blue directed towards the camera
     var _axisHelper1;
     
     var _camera3DOffsetFromOrigin = new THREE.Vector3();
@@ -260,7 +264,7 @@ var globalIndex = 0;
                 if(urlArray.size() > 1)
                 {
                     // remove default image if it exists
-                    let keyToRemove = 'default_image.jpg';
+                    let keyToRemove = 'default_image.thumbnail.jpg';
                     let removedEl = urlArray.remove(keyToRemove);
                 }
                     
@@ -387,6 +391,7 @@ var globalIndex = 0;
                             ////////////////////////////////////////////////////
                             
                             _selectedImageFilename = fileToOpenFilename1;
+                            _selectedThumbnailImageFilenamePrev = thumbnailFilename;
                             
                             // The file already exists in memory. Load it from the memory and render in the 2d pane
                             MLJ.core.MeshFile.loadTexture2FromFile(_blobs[fileToOpenFilename1]);
@@ -410,6 +415,9 @@ var globalIndex = 0;
                         ////////////////////////////////////////////////////
                         
                         _selectedImageFilename = fileToOpenFilename1;
+                        _selectedThumbnailImageFilenamePrev = thumbnailFilename;
+                        // TBD RemoveME                        
+                        // _selectedThumbnailImageFilenamePrev = _selectedImageFilename;
                         
                         // The file already exists in memory. Load it from the memory and render in the 2d pane
                         MLJ.core.MeshFile.loadTexture2FromFile(_blobs[fileToOpenFilename1]);
@@ -548,7 +556,7 @@ var globalIndex = 0;
         // Set pan related parameters
         //////////////////////////////////////
 
-        _controls3D.enablePan = true;
+        _controls3D.enablePan = false;
         _controls3D.screenSpacePanning = true;
         // pixels moved per arrow key push
 	_controls3D.keyPanSpeed = 7000.0;
@@ -630,8 +638,9 @@ var globalIndex = 0;
 
         element1JqueryObject.on('doubletap', function(event) {
             // Takes care both of "double touch" (with the finger) and double click (with the mouse)
+            // for the scene3D and topDownScene3D pane
             console.log('User doubletapped #myElement');
-            onDocumentTouchDoubleTap(event);
+            // onDocumentTouchDoubleTap(event);
         });
 
         ////////////////////////////////////////////////////
@@ -735,6 +744,7 @@ var globalIndex = 0;
 
     
     this.deleteRectangularMesh = function () {
+        // console.log('BEG deleteRectangularMesh'); 
 
         var intersectedOverlayRectObjectId = MLJ.util.getNestedObject(_intersectionInfo, ['intersectedOverlayRect', 'object', 'id']);
         if( intersectedOverlayRectObjectId == undefined)
@@ -780,7 +790,8 @@ var globalIndex = 0;
     }
     
     this.insertRectangularMesh = function () {
-
+        // console.log('BEG insertRectangularMesh');
+        
         var intersectedStructureObjectId = MLJ.util.getNestedObject(_intersectionInfo, ['intersectedStructure', 'object', 'id']);
         if( intersectedStructureObjectId == undefined)
         {
@@ -957,7 +968,7 @@ var globalIndex = 0;
         positionPrev.copy( position );
         // update position to new position
         pivotGroup.position.sub(position);
-        
+
         // Here we can play with _controls3D params,
         // e.g. minPolarAngle, minAzimuthAngle, minZoom
         // to change the behavior on the fly
@@ -1066,6 +1077,10 @@ var globalIndex = 0;
         return _selectedThumbnailImageFilename;
     };
     
+    this.getSelectedThumbnailImageFilenamePrev = function () {
+        return _selectedThumbnailImageFilenamePrev;
+    };
+
     this.getSelectedImageFilnameIndex = function () {
         return _selectedImageFilenameIndex;
     };
@@ -1202,7 +1217,27 @@ var globalIndex = 0;
     this.loadTheSelectedImageAndRender = function () {
         // console.log('BEG loadTheSelectedImageAndRender'); 
 
+        if(!_selectedThumbnailImageFilename)
+        {
+            // sanity check. Shouldn't reach here
+            throw '_selectedThumbnailImageFilename is undefined"';
+        }
+
         let imageInfo = _imageInfoVec.getByKey(_selectedThumbnailImageFilename);
+
+        if(!imageInfo)
+        {
+            // sanity check. Shouldn't reach here.
+
+            console.log('_imageInfoVec', _imageInfoVec);
+            let iter1 = _imageInfoVec.iterator();
+            while (iter1.hasNext()) {
+                let imageInfo1 = iter1.next();
+                console.log('imageInfo1', imageInfo1); 
+            }
+            
+            throw 'imageInfo is undefined"';
+        }
         
         // TBD - leave here until showImageInfo button is implemented
         // console.log('_selectedThumbnailImageFilename', _selectedThumbnailImageFilename);
@@ -1212,8 +1247,8 @@ var globalIndex = 0;
         if( _selectedThumbnailImageFilename !== imageInfo.imageFilename)
         {
             // console.error('Reached failure condition: "_selectedThumbnailImageFilename !== imageInfo.imageFilename"');
-            console.log('_selectedThumbnailImageFilename', _selectedThumbnailImageFilename); 
-            console.log('imageInfo.imageFilename', imageInfo.imageFilename);
+            console.error('_selectedThumbnailImageFilename', _selectedThumbnailImageFilename); 
+            console.error('imageInfo.imageFilename', imageInfo.imageFilename);
             throw 'Reached failure condition: "_selectedThumbnailImageFilename !== imageInfo.imageFilename"';
         }
 
@@ -1223,6 +1258,7 @@ var globalIndex = 0;
         if(blobs[_selectedImageFilename])
         {
             // The file already exists in memory. Load it from the memory and render
+            _selectedThumbnailImageFilenamePrev = _selectedThumbnailImageFilename;
             MLJ.core.MeshFile.loadTexture2FromFile(blobs[_selectedImageFilename]);
         }
         else
@@ -1246,6 +1282,7 @@ var globalIndex = 0;
                             console.error('_selectedImageFilename', _selectedImageFilename); 
                             throw 'blobs[_selectedImageFilename] is undefined';
                         }
+                        _selectedThumbnailImageFilenamePrev = _selectedThumbnailImageFilename;
                         MLJ.core.MeshFile.loadTexture2FromFile(blobs[_selectedImageFilename]);
                     }).catch(function(err) {
                         console.error('err from promise3', err); 
@@ -1258,11 +1295,14 @@ var globalIndex = 0;
 
     this.getLayerIntersectionsInfo = function (intersects)
     {
+        // console.log('BEG getLayerIntersectionsInfo');
+        
         let intersectedStructureFound = false;
         let intersectedOverlayRectFound = false;
         let intersectedOverlayVertexFound = false;
 
-        for (var i = 0; i < intersects.length; i++) {
+        for (var i = 0; i < intersects.length; i++)
+        {
             var intersectionCurr = intersects[i];
             if(intersectionCurr.object.type == "Mesh")
             {
@@ -1270,14 +1310,16 @@ var globalIndex = 0;
                 var iter = _layers.iterator();
                 while (iter.hasNext()) {
                     var layer = iter.next();
-                    var structureMeshGroup = layer.getStructureMeshGroup();
+                    let structureMeshGroup = layer.getStructureMeshGroup();
 
-                    // TBD verify that intersectedStructureObject, intersectedOverlayRectObject
-                    // refer to the same layer
+                    // TBD verify that intersectedStructureObject, intersectedOverlayRectObject refer to the same layer
                     var intersectionCurr_object_id = MLJ.util.getNestedObject(intersectionCurr, ['object', 'id']);
 
+                    // Assuming that the intersection results are sorted by distance
                     if(!intersectedStructureFound)
                     {
+                        // Didn't find a structure intersection before so check if the intersectionCurr_object_id refers to a structure 
+                        // object
                         let intersectedStructureObject = structureMeshGroup.getObjectById(intersectionCurr_object_id);
                         if(intersectedStructureObject)
                         {
@@ -1290,6 +1332,8 @@ var globalIndex = 0;
 
                     if(!intersectedOverlayVertexFound)
                     {
+                        // Didn't find an overlay vertex intersection before so check if the intersectionCurr_object_id refers to a overlay vertex 
+                        // object
                         var overlayMeshGroup = layer.getOverlayMeshGroup();
                         var intersectedOverlayVertexObject = _selectedOverlayVertexHelperGroup.getObjectById(intersectionCurr_object_id);
                         if(intersectedOverlayVertexObject)
@@ -1308,7 +1352,6 @@ var globalIndex = 0;
 
                                     _intersectionInfo.intersectedOverlayRect = {object: null};
                                     _intersectionInfo.intersectedOverlayRect.object = intersectedOverlayRectObject;
-                                    // console.log('intersectedOverlayRectObject1', intersectedOverlayRectObject);
                                     
                                 }
                             }
@@ -1324,6 +1367,8 @@ var globalIndex = 0;
 
                     if(!intersectedOverlayRectFound)
                     {
+                        // Didn't find an overlay rect intersection before so check if the intersectionCurr_object_id refers to a overlay rect 
+                        // object
                         var overlayMeshGroup = layer.getOverlayMeshGroup();
                         var intersectedOverlayRectObject = overlayMeshGroup.getObjectById(intersectionCurr_object_id);
                         if(intersectedOverlayRectObject)
@@ -1341,17 +1386,17 @@ var globalIndex = 0;
                                 
                                 var rectangleVerticesArray = _this.getRectangleVerticesAsArray(_intersectionInfo.intersectedOverlayRect);
                                 
-                                for(var i=0;i<rectangleVerticesArray.length;i++)
+                                for(let j=0;j<rectangleVerticesArray.length;j++)
                                 {
-                                    var vertexPosition = rectangleVerticesArray[i];
-                                    _selectedOverlayVertexHelperGroup.children[i].position.copy(vertexPosition);
+                                    var vertexPosition = rectangleVerticesArray[j];
+                                    _selectedOverlayVertexHelperGroup.children[j].position.copy(vertexPosition);
                                 }
                             }
                             else if ( _intersectionInfo.intersectedOverlayRect.object.geometry instanceof THREE.Geometry ) {
-                                for(var i=0;i<_intersectionInfo.intersectedOverlayRect.object.geometry.vertices.length;i++)
+                                for(let j=0;j<_intersectionInfo.intersectedOverlayRect.object.geometry.vertices.length;j++)
                                 {
-                                    let vertex = _intersectionInfo.intersectedOverlayRect.object.geometry.vertices[i];
-                                    _selectedOverlayVertexHelperGroup.children[i].position.copy(vertex);
+                                    let vertex = _intersectionInfo.intersectedOverlayRect.object.geometry.vertices[j];
+                                    _selectedOverlayVertexHelperGroup.children[j].position.copy(vertex);
                                 }
                             }
                             else
@@ -1374,9 +1419,38 @@ var globalIndex = 0;
             else
             {
                 // Can get here e.g. if intersecting with LineSegments
-                // console.log('invalid mesh'); 
+                // console.log('Intersection is not a mesh'); 
             }
         }
+
+        if(_intersectionInfo.intersectedStructure && _intersectionInfo.intersectedOverlayRect)
+        {
+            ////////////////////////////////////////////////////////////////
+            // verify that intersectedStructureObject, intersectedOverlayRectObject
+            // refer to the same wall (distance should be the same)
+            ////////////////////////////////////////////////////////////////
+
+            let diffDist = _intersectionInfo.intersectedStructure.distance - _intersectionInfo.intersectedOverlayRect.distance;
+            let epsilon = 1E-3;
+            if(Math.abs(diffDist) > epsilon)
+            {
+                if(diffDist < 0)
+                {
+                    // Ommit data related to _intersectionInfo.intersectedOverlayRect
+                    // because _intersectionInfo.intersectedOverlayRect belongs to a different (further) wall
+                    _intersectionInfo.intersectedOverlayRect = undefined;
+                }
+                else
+                {
+                    // Sanity check
+                    // Shouldn't reach this situation where overlayRect belongs to a closer wall relative to the intersectedStructure
+                    console.error('The intersectedOverlayRect.distance is smaller than the intersectedStructure.distance');
+                    console.error('which is impossible since there should be a structure wherever there is overlayRect');
+                    throw 'Reached failure condition: "diffDist > 0"';
+                }
+            }
+        }
+
         return;
     };
 
@@ -1438,8 +1512,12 @@ var globalIndex = 0;
 
         var scene3dWindowCenter = new THREE.Vector2();
         _raycaster.setFromCamera( scene3dWindowCenter, _camera3D );
+        
+        // tracing a ray from the camera to the center of the screen.
+        let pivotGroup = _selectedLayer.getPivotGroup();
+        let cameraLookAtIntersects = _raycaster.intersectObjects( pivotGroup.children, true );
 
-        var cameraLookAtIntersects = _raycaster.intersectObjects( _scene3D.children, true );
+        let cameraLookAtIntersectionPoint = new THREE.Vector3();
         if(cameraLookAtIntersects[0])
         {
             cameraLookAtIntersectionPoint = cameraLookAtIntersects[0].point;
@@ -1514,20 +1592,14 @@ var globalIndex = 0;
         {
             if(_edit3dModelOverlayFlag)
             {
-                // Support adding images via the openImage menu instead of dragAndDrop
-                // In edit mode, do findIntersections only on left click (and not continuously)
-                // This causes that on left click, if intersecting with new or used OverlayRect, keep the OverlayRectId after mouseup
-                //
                 // enable openFile button only if there is a selected OverlayRect (yellow for new OverlayRect, or where existing images are for used OverlayRect)
                 // set _intersectionInfo.intersectedOverlayRect to be the selected OverlayRect
 
                 // There is an intersection with overlayRect and in edit mode. Enable the openImageFileButton
                 openImageFileButton.disabled(false);
-                // let isDisabled1 = openImageFileButton.isDisabled();
-                // console.log('isDisabled1', isDisabled1); 
             }
             
-            var intersectedOverlayRectObjectPrev = MLJ.util.getNestedObject(_intersectionInfo, ['intersectedOverlayRectPrev', 'object']);
+            let intersectedOverlayRectObjectPrev = MLJ.util.getNestedObject(_intersectionInfo, ['intersectedOverlayRectPrev', 'object']);
             if ( !intersectedOverlayRectObjectPrev || (intersectedOverlayRectObjectPrev != intersectedOverlayRectObject) )
             {
                 let urlArray = MLJ.util.getNestedObject(_intersectionInfo, ['intersectedOverlayRect', 'object', 'material', 'userData', 'urlArray']);
@@ -1536,14 +1608,11 @@ var globalIndex = 0;
                     // console.log("intersectionObj.material.userData.urlArray is undefined")
                     return false;
                 }
+                
                 _selectedImageFilenames = urlArray.getKeys();
+                // Get the first image in the image stack in intersectedOverlayRect
                 _selectedImageFilenameIndex = 0;
                 _selectedThumbnailImageFilename = _selectedImageFilenames[_selectedImageFilenameIndex];
-                
-                if(_this.loadTheSelectedImageAndRender() == false)
-                {
-                    console.error('Failed to load and render the selected image.'); 
-                }
             }
             
         }
@@ -1554,6 +1623,11 @@ var globalIndex = 0;
                 // There is NO intersection with overlayRect and we are in edit mode. Disable the openImageFileButton
                 openImageFileButton.disabled(true);
             }
+            
+            // There is no overlayRect intersection. Setting the _selectedThumbnailImageFilename to be noSelectedImage.
+            // causes the previous "real" _selectedThumbnailImageFilename if any, to be removed
+            _selectedThumbnailImageFilename = "noSelectedImage.thumbnail.jpg";
+            
         }
         
         _intersectionInfo.intersectedOverlayRect = result.intersectionCurr;
@@ -1563,6 +1637,11 @@ var globalIndex = 0;
 
 
     this.render = function (fromReqAnimFrame) {
+
+        if((_controls3D.isMouseDown || _controls3D.isTouchDown) && !_edit3dModelOverlayFlag)
+        {
+            _this.findIntersections();
+        }
 
         if(_selectedLayer)
         {

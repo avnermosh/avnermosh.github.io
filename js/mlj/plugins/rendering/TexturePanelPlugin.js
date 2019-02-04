@@ -113,9 +113,6 @@ var globalIndex1 = 0;
             layer.texturesNum = 1;
         }
         
-        // remove?
-        scene.render();
-
         $("#texCanvasWrapper").append(texRenderer1.domElement);
         if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
