@@ -91,21 +91,28 @@
                     {content: "layer0", value: "0", selected: true},
                     {content: "layer1", value: "1"},
                     {content: "layer2", value: "2"},
+                    {content: "layer3", value: "3"},
                 ],
                 icon: "img/icons/IcoMoon-Free-master/PNG/48px/0047-stack.png"
             });
             MLJ.gui.disabledOnSceneEmpty(layersComboWidget);
 
-                         // nextImage,
-                         // layersComboWidget);
-            
+            // _toolBar.add(openMeshFileButton,
+            //              saveMeshFileButton,
+            //              edit3dModelOverlay,
+            //              _openImageFileButton,
+            //              addStickyNoteButton,
+            //              resetTrackball3D,
+            //              nextImage);
+
             _toolBar.add(openMeshFileButton,
                          saveMeshFileButton,
                          edit3dModelOverlay,
                          _openImageFileButton,
                          addStickyNoteButton,
                          resetTrackball3D,
-                         nextImage);
+                         nextImage,
+                         layersComboWidget);
             
             // SCENE BAR EVENT HANDLERS
             openMeshFileButton.onChange(function (input) {
@@ -157,7 +164,7 @@
                 let content = layersComboWidget.getSelectedContent();
                 // console.log('content', content); 
 
-                if(val == 0 || val == 1)
+                if(val == 0 || val == 1 || val == 2 || val == 3)
                 {
                     MLJ.core.Scene3DtopDown.setSelectedFloorInfo(content);
                 }

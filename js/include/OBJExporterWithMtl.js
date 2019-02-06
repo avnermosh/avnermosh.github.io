@@ -69,7 +69,8 @@ THREE.OBJExporter.prototype = {
                         }
                     }
                     
-                    console.log('textureFilenames', textureFilenames);
+                    // console.log('textureFilenames', textureFilenames);
+                    mtlOutput += 'Kd 0.8 0.8 0.8\n';
                     
                     // https://en.wikipedia.org/wiki/Wavefront_.obj_file
                     // map_Kd - the diffuse texture map
@@ -79,11 +80,14 @@ THREE.OBJExporter.prototype = {
                 }
                 else
                 {
-                    // red color
-                    // mtlOutput += 'Kd 1.0 0.0 0.0 ' + '\n';
+                    // // red color
+                    // // mtlOutput += 'Kd 1.0 0.0 0.0 ' + '\n';
 
-                    // white
-                    mtlOutput += 'Kd 1.0 1.0 1.0 ' + '\n';
+                    // // white
+                    // mtlOutput += 'Kd 1.0 1.0 1.0 ' + '\n';
+
+                    mtlOutput += 'Kd 0.8 0.8 0.8\n';
+                    
                 }
 
                 // export origPosition
@@ -174,8 +178,44 @@ THREE.OBJExporter.prototype = {
                         vertex.y = vertices.getY( i );
                         vertex.z = vertices.getZ( i );
 
-                        // transfrom the vertex to world space
-                        vertex.applyMatrix4( mesh.matrixWorld );
+                        if((mesh.name == "ground_1") && (i == 0) && (vertex.x < -650) )
+                        {
+                            console.log('vertex', vertex); 
+                        }
+
+                        // Avner - disable transfroming the vertex to world space, as we want the vertex in original coordinates
+                        //  The end effects are:
+                        //  We can set the camera above the floor (heightAboveFloor in MeshFile - to see the room from half the height results in better intersection with the walls)
+                        //  We can move te camera freely in scene3D on the floor, in x,y and the vertices stay the same as the original vertices.
+                        // 
+                        // option1 - disabled this line as we want the vertex in original coordinates ???
+                        // option2 - (better ??) set the pivot position to (0,0,0) this will cause mesh.matrixWorld to be unit matrix
+                        //           We can do it by
+                        //   - placing the camera temporarily in (0,0,0)
+                        //   - Calling save (i.e. triggering this function)
+                        //   - placing the camera back in the previous location
+
+                        // // transfrom the vertex to world space
+                        // vertex.applyMatrix4( mesh.matrixWorld );
+
+                        if(mesh.material.userData.scale)
+                        {
+                            // this is an overlayRect.
+                            //
+                            // mesh.matrix stores the object's transformation relative to the object's parent 
+                            // we want the structure vertices and overlayRect vertices to align
+                            // the structure vertices are relative to the parent "pivotGroup"
+                            // Therefore for overlayRect, we want to get the vertices relative to the parent "pivotGroup" as well
+                            let vertex2 = new THREE.Vector3();
+                            vertex2.copy(vertex);
+                            vertex2.applyMatrix4( mesh.matrix );
+                            vertex.copy(vertex2);
+                        }
+                        
+                        if((mesh.name == "ground_1") && (i == 0) && (vertex.x < -650) )
+                        {
+                            console.log('vertex1', vertex); 
+                        }
 
                         // transform the vertex to export format
                         output += 'v ' + vertex.x + ' ' + vertex.y + ' ' + vertex.z + '\n';

@@ -556,11 +556,29 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
     this.setSelectedFloorInfo = function (floorName2) {
         console.log('BEG setSelectedFloorInfo'); 
 
-        let topDownStructureObjRegexMatched = "na";
-        let floorName = "NA";
-        if( (topDownStructureObjRegexMatched = floorName2.match(/\.structure\.layer[0-9]\.obj$/)) )
+        let selectedLayer = MLJ.core.Scene3D.getSelectedLayer();
+        if (selectedLayer === undefined)
         {
-            floorName = floorName2;
+            console.log('selectedLayer is undefined'); 
+            return;
+        }
+        
+        let floorInfoArray = selectedLayer.getFloorInfoArray();
+
+        // Loop over floorInfoArray and match
+        let floorName = "NA";
+        let iter = floorInfoArray.iterator();
+        while (iter.hasNext()) {
+            let floorInfo = iter.next();
+            console.log('floorInfo', floorInfo);
+
+            let topDownStructureObjRegexMatched = "na";
+            if( (topDownStructureObjRegexMatched = floorInfo["floorName"].match(floorName2)) )
+            {
+                floorName = floorInfo["floorName"];
+                break;
+            }
+            
         }
 
         if(_selectedFloorInfo)
@@ -569,7 +587,6 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
             _scene3DtopDown.remove(_selectedFloorInfo["mesh"]);
         }
         
-        let selectedLayer = MLJ.core.Scene3D.getSelectedLayer();
         _selectedFloorInfo = selectedLayer.getFloorInfoByName(floorName);
 
         if(_selectedFloorInfo)
@@ -743,7 +760,7 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
 
             // order from far to near:
 //             console.log('_selectedFloorInfo["mesh"].position', _selectedFloorInfo["mesh"].position);
-            console.log('_axisHelperIntersection.position', _axisHelperIntersection.position);
+//             console.log('_axisHelperIntersection.position', _axisHelperIntersection.position);
 //             console.log('_cube_camera3D.position', _cube_camera3D.position);
 //             console.log('_cube_scene3DcameraMouseIntersectionPoint.position', _cube_scene3DcameraMouseIntersectionPoint.position);
 //             console.log('_cube_scene3DcameraLookAtIntersectionPoint.position', _cube_scene3DcameraLookAtIntersectionPoint.position);
@@ -765,8 +782,8 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
                 let intersectionPointCurr2 = new THREE.Vector3(_intersectionPointCurr.x, height, _intersectionPointCurr.z);
                 intersectionPointCurr2.copy(_intersectionPointCurr);
                 
-                // MLJ.core.Scene3D.setCamera3Dposition(_intersectionPointCurr);
-                MLJ.core.Scene3D.setCamera3Dposition(intersectionPointCurr2);
+                MLJ.core.Scene3D.setCamera3Dposition(_intersectionPointCurr);
+                // MLJ.core.Scene3D.setCamera3Dposition(intersectionPointCurr2);
 
                 _this.render();
             }

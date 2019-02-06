@@ -968,7 +968,7 @@ var globalIndex = 0;
         positionPrev.copy( position );
         // update position to new position
         pivotGroup.position.sub(position);
-
+        
         // Here we can play with _controls3D params,
         // e.g. minPolarAngle, minAzimuthAngle, minZoom
         // to change the behavior on the fly
@@ -1515,6 +1515,10 @@ var globalIndex = 0;
         
         // tracing a ray from the camera to the center of the screen.
         let pivotGroup = _selectedLayer.getPivotGroup();
+        // console.log('pivotGroup.children[0].children[0].children[0].name', pivotGroup.children[0].children[0].children[0].name); 
+        // console.log('pivotGroup.children[0].children[0].children[0].geometry.boundingBox.min', pivotGroup.children[0].children[0].children[0].geometry.boundingBox.min);
+        // console.log('pivotGroup.children[0].children[0].children[0].geometry.boundingBox.max', pivotGroup.children[0].children[0].children[0].geometry.boundingBox.max);
+        
         let cameraLookAtIntersects = _raycaster.intersectObjects( pivotGroup.children, true );
 
         let cameraLookAtIntersectionPoint = new THREE.Vector3();

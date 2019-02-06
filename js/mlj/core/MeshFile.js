@@ -310,26 +310,35 @@ MLJ.core.MeshFile = {
                     let floorThickness = 12;
                     let floorHeight = 250;
                     let heightAboveFloor = floorHeight / 2;
+                    let floorLevel = 0;
                     
                     if(layerSubstr == "layer0")
                     {
-                        floorInfo["height"] = 0*(floorHeight + floorThickness) + heightAboveFloor;
-                        floorInfo["mesh"] = objInstance;
-                        floorInfo["mesh"].translateY( floorInfo["height"] );
+                        floorLevel = 0;
+                    }
+                    else if(layerSubstr == "layer1")
+                    {
+                        floorLevel = 1;
+                    }
+                    else if(layerSubstr == "layer2")
+                    {
+                        floorLevel = 2;
+                    }
+                    else if(layerSubstr == "layer3")
+                    {
+                        floorLevel = 3;
+                    }
 
-                        layer.addFloorInfo(objFileName, floorInfo);
+                    floorInfo["height"] = (floorLevel *(floorHeight + floorThickness)) + heightAboveFloor;
+                    floorInfo["mesh"] = objInstance;
+                    floorInfo["mesh"].translateY( floorInfo["height"] );
+                    layer.addFloorInfo(objFileName, floorInfo);
+
+                    if(layerSubstr == "layer0")
+                    {
                         MLJ.core.Scene3DtopDown.setSelectedFloorInfo(objFileName);
                     }
-                    else
-                    {
-                        
-                        floorInfo["height"] = 1*(floorHeight + floorThickness) + heightAboveFloor;
-                        floorInfo["mesh"] = objInstance;
-                        floorInfo["mesh"].translateY( floorInfo["height"] );
-
-                        // layer.addFloorInfo(objFileName, floorInfo);
-                        // MLJ.core.Scene3DtopDown.setSelectedFloorInfo(objFileName);
-                    }
+                    
                 }
                 else if(overlay_rect_re_matched)
                 {
@@ -682,7 +691,7 @@ MLJ.core.MeshFile = {
                             return reject(false);
                         }
 
-                        // CheckME: Are objInfo, mtlInfo needed ???
+                        // TBD CheckME: Are objInfo, mtlInfo needed ???
                         var objInfo = _this.loadFile(blobs[objFileName], "text");
                         layer.setObjInfo(objInfo);
 
