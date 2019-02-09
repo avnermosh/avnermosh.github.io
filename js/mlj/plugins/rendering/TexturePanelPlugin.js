@@ -446,9 +446,11 @@ var globalIndex1 = 0;
         // console.log('texturePaneWrapperJqueryObject', texturePaneWrapperJqueryObject); 
 
         texturePaneWrapperJqueryObject.on('doubletap', function(event) {
+            console.log('BEG onDocumentTouchDoubleTap'); 
             // Takes care both of "double touch" (with the finger) and double click (with the mouse)
+            // maximization of texture pane is now handled via a button instead of double tap
             // console.log('User doubletapped #myElement');
-            onDocumentTouchDoubleTap(event);
+            // onDocumentTouchDoubleTap(event);
         });
         
     }
@@ -792,5 +794,5 @@ var globalIndex1 = 0;
             
         }
     });
-    
+
 })(MLJ.core.plugin, MLJ.core, MLJ.core.Scene3D);

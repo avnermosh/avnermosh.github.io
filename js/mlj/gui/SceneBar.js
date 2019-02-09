@@ -77,6 +77,12 @@
             });
             MLJ.gui.disabledOnSceneEmpty(resetTrackball3D);
 
+            var toggleMaximizeTexturePane = new component.Button({
+                tooltip: "Toggle maximization of texture pane",
+                icon: "img/icons/IcoMoon-Free-master/PNG/48px/0138-enlarge.png"
+            });
+            MLJ.gui.disabledOnSceneEmpty(toggleMaximizeTexturePane);
+            
             var nextImage = new component.Button({
                 tooltip: "Next image",
                 icon: "img/icons/IcoMoon-Free-master/PNG/48px/0309-arrow-right.png"
@@ -111,6 +117,7 @@
                          _openImageFileButton,
                          addStickyNoteButton,
                          resetTrackball3D,
+                         toggleMaximizeTexturePane,
                          nextImage,
                          layersComboWidget);
             
@@ -138,7 +145,7 @@
             });
            
             _openImageFileButton.onChange(function (input) {
-                console.log('BEG _openImageFileButton.onChange'); 
+                // console.log('BEG _openImageFileButton.onChange'); 
                 MLJ.core.ImageFile.openImageFile(input.files);
             });
 
@@ -151,6 +158,51 @@
                 MLJ.core.Scene3D.resetTrackball3D();
             })
 
+            this.onToggleMaximizeTexturePane = function () {
+
+                // onToggleMaximizeTexturePane is based on TexturePanelPlugin::onDocumentTouchDoubleTap
+
+                // console.log('BEG onToggleMaximizeTexturePane'); 
+                
+                let element1Id = 'texture-pane-wrapper';
+                let element1JqueryObject = $('#' + element1Id);
+                var element1 = document.getElementById(element1Id);
+                
+                var element2 = document.getElementById('_3DWrapper');
+                
+                if(globalIndex1%2==0)
+                {
+                    // console.log('globalIndex1 is Even');
+
+                    element1JqueryObject.addClass("showFullSize");
+                    element1JqueryObject.removeClass("texturePaneWrapper");
+                    
+                    element2.style.display = "none";
+                }
+                else
+                {
+                    // console.log('globalIndex1 is Odd'); 
+
+                    element1JqueryObject.removeClass("showFullSize");
+                    element1JqueryObject.addClass("texturePaneWrapper");
+                    
+                    element2.style.display = "block";
+                }
+
+                // Center the texture image image after toggling between single pane and multiple panes
+                if(MLJ.core.Scene3D.loadTheSelectedImageAndRender() == false)
+                {
+                    throw('Failed to load and render the selected image.');
+                }
+
+                globalIndex1 += 1;
+            };
+            
+            toggleMaximizeTexturePane.onClick(function() {
+                // console.log('BEG toggleMaximizeTexturePane');
+                onToggleMaximizeTexturePane();
+            })
+            
             nextImage.onClick(function() {
                 MLJ.core.Scene3D.loadNextImage();
             })

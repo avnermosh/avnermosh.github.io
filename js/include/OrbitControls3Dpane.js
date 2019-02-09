@@ -395,7 +395,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     var startEvent = { type: 'start' };
     var endEvent = { type: 'end' };
 
-    var STATE = { NONE: - 1, ROTATE: 0, DOLLY: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_DOLLY_PAN: 4 };
+    var STATE = { NONE: - 1, ROTATE: 0, DOLLY: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_DOLLY: 4, TOUCH_PAN: 5, TOUCH_DOLLY_PAN: 6 };
 
     var state = STATE.NONE;
 
@@ -997,109 +997,83 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     }
 
     function handleKeyUp( event ) {
-
         //console.log( 'handleKeyUp' );
         scope.isKeyDown = false;
     }
     
     function handleTouchStartRotate( event ) {
-
 	// console.log( 'BEG handleTouchStartRotate' );
-
 	rotateStart.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
-
     }
 
-    function handleTouchStartDollyPan( event ) {
+    function handleTouchStartDolly( event ) {
+	// console.log( 'BEG handleTouchStartDolly' );
+	var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+	var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+	var distance = Math.sqrt( dx * dx + dy * dy );
+	dollyStart.set( 0, distance );
+    }
 
-	// console.log( 'BEG handleTouchStartDollyPan' );
+    function handleTouchStartPan1( event ) {
+	// console.log( 'BEG handleTouchStartPan1' );
+	var x = event.touches[ 0 ].pageX;
+	var y = event.touches[ 0 ].pageY;
+	panStart.set( x, y );
+    }
 
-	if ( scope.enableZoom ) {
-
-	    var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
-	    var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
-
-	    var distance = Math.sqrt( dx * dx + dy * dy );
-
-	    dollyStart.set( 0, distance );
-
-	}
-
-	if ( scope.enablePan ) {
-
-	    var x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
-	    var y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
-
-	    panStart.set( x, y );
-
-	}
-
+    function handleTouchStartPan2( event ) {
+	// console.log( 'BEG handleTouchStartPan2' );
+	var x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
+	var y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+	panStart.set( x, y );
     }
 
     function handleTouchMoveRotate( event ) {
-
 	// console.log( 'BEG handleTouchMoveRotate' );
-
 	rotateEnd.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
-
 	rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( scope.rotateSpeed );
-
 	var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
-
 	rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
-
 	rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
-
 	rotateStart.copy( rotateEnd );
-
 	scope.update();
-
     }
 
-    function handleTouchMoveDollyPan( event ) {
-
-	// console.log( 'BEG handleTouchMoveDollyPan' );
-        
-	if ( scope.enableZoom ) {
-
-	    var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
-	    var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
-
-	    var distance = Math.sqrt( dx * dx + dy * dy );
-
-	    dollyEnd.set( 0, distance );
-
-	    dollyDelta.set( 0, Math.pow( dollyEnd.y / dollyStart.y, scope.zoomSpeed ) );
-
-	    dollyIn( dollyDelta.y );
-
-	    dollyStart.copy( dollyEnd );
-
-	}
-
-	if ( scope.enablePan ) {
-
-	    var x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
-	    var y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
-
-	    panEnd.set( x, y );
-
-	    panDelta.subVectors( panEnd, panStart ).multiplyScalar( scope.panSpeed );
-
-	    pan( panDelta.x, panDelta.y );
-
-	    panStart.copy( panEnd );
-
-	}
-
+    function handleTouchMoveDolly( event ) {
+	// console.log( 'BEG handleTouchMoveDolly' );
+	var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+	var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+	var distance = Math.sqrt( dx * dx + dy * dy );
+	dollyEnd.set( 0, distance );
+	dollyDelta.set( 0, Math.pow( dollyEnd.y / dollyStart.y, scope.zoomSpeed ) );
+	dollyIn( dollyDelta.y );
+	dollyStart.copy( dollyEnd );
 	scope.update();
+    }
 
+    function handleTouchMovePan1( event ) {
+	// console.log( 'BEG handleTouchMovePan1' );
+	var x = event.touches[ 0 ].pageX;
+	var y = event.touches[ 0 ].pageY;
+	panEnd.set( x, y );
+	panDelta.subVectors( panEnd, panStart ).multiplyScalar( scope.panSpeed );
+	pan( panDelta.x, panDelta.y );
+	panStart.copy( panEnd );
+	scope.update();
+    }
+
+    function handleTouchMovePan2( event ) {
+	var x = 0.5 * ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX );
+	var y = 0.5 * ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY );
+	panEnd.set( x, y );
+	panDelta.subVectors( panEnd, panStart ).multiplyScalar( scope.panSpeed );
+	pan( panDelta.x, panDelta.y );
+	panStart.copy( panEnd );
+	scope.update();
     }
 
     function handleTouchEnd( event ) {
-
 	console.log( 'BEG handleTouchEnd' );
-
     }
 
     //
@@ -1126,7 +1100,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 if ( event.ctrlKey || event.metaKey ) {
 
-                    // if ( scope.enablePan === false ) return;
                     if ( scope.enablePan === true )
                     {
                         handleMouseDownPan( event );
@@ -1155,6 +1128,11 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                             break;
                             
                         case CONTROL_TYPE._TEXTURE_2D:
+                            if ( scope.enablePan === true )
+                            {
+                                handleMouseDownPan( event );
+                                state = STATE.PAN;
+                            }
                             break;
                     }
                     
@@ -1164,7 +1142,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
             case scope.mouseButtons.MIDDLE:
 
-                // if ( scope.enableZoom === false ) return;
                 if ( scope.enableZoom === true )
                 {
                     handleMouseDownDolly( event );
@@ -1175,11 +1152,22 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
             case scope.mouseButtons.RIGHT:
 
-                // if ( scope.enablePan === false ) return;
-                if ( scope.enablePan === true )
-                {
-                    handleMouseDownPan( event );
-                    state = STATE.PAN;
+                // mouseDown::mouseButtons.RIGHT, and touchDown::2_fingers have the same behavior
+                switch ( scope.controllerType ) {
+
+                    case CONTROL_TYPE._3D:
+                        break;
+                        
+                    case CONTROL_TYPE._3D_TOP_DOWN:
+                        if ( scope.enablePan === true )
+                        {
+                            handleMouseDownPan( event );
+                            state = STATE.PAN;
+                        }
+                        break;
+                        
+                    case CONTROL_TYPE._TEXTURE_2D:
+                        break;
                 }
 
                 break;
@@ -1201,7 +1189,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     }
 
     function onMouseMove( event ) {
-        // console.log('BEG onMouseMove'); 
+        console.log('BEG onMouseMove'); 
         
         if ( scope.enabled === false )
         {
@@ -1343,44 +1331,80 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 	switch ( event.touches.length ) {
 
 	    case 1:	// one-fingered touch: rotate
-                console.log('foo1'); 
-		if ( scope.enableRotate === false )
-                {
-                    return;
+
+                switch ( scope.controllerType ) {
+
+                    case CONTROL_TYPE._3D:
+                        {
+		            if ( scope.enableRotate === false )
+                            {
+                                return;
+                            }
+
+		            handleTouchStartRotate( event );
+
+		            state = STATE.TOUCH_ROTATE;
+                        }
+                        break;
+                        
+                    case CONTROL_TYPE._3D_TOP_DOWN:
+                        {
+                            // there is no rotation for _3D_TOP_DOWN, but we still use the state STATE.ROTATE
+                            // to move the camera in the plan 
+                            state = STATE.ROTATE;
+                            MLJ.core.Scene3DtopDown.findIntersections();
+                        }
+                        break;
+                        
+                    case CONTROL_TYPE._TEXTURE_2D:
+                        if ( scope.enablePan === true )
+                        {
+                            handleTouchStartPan1( event );
+                            state = STATE.TOUCH_PAN;
+                            
+                        }
+                        break;
                 }
-
-		handleTouchStartRotate( event );
-
-		state = STATE.TOUCH_ROTATE;
 
 		break;
 
-	    case 2:	// two-fingered touch: dolly-pan
-                console.log('foo2'); 
+	    case 2:
+                // two-fingered touch: dolly-pan
+                // mouseDown::mouseButtons.RIGHT, and touchDown::2_fingers have the same behavior
 
-		if ( scope.enableZoom === false && scope.enablePan === false )
-                {
-                    return;
+                switch ( scope.controllerType ) {
+
+                    case CONTROL_TYPE._3D:
+                    case CONTROL_TYPE._3D_TOP_DOWN:
+	                if ( scope.enableZoom ) {
+                            handleTouchStartDolly( event );
+                        }
+	                if ( scope.enablePan ) {
+                            handleTouchStartPan2( event );
+                        }
+                        
+		        state = STATE.TOUCH_DOLLY_PAN;
+                        break;
+
+                    case CONTROL_TYPE._TEXTURE_2D:
+		        if ( scope.enableZoom )
+                        {
+		            handleTouchStartDolly( event );
+
+		            state = STATE.TOUCH_DOLLY;
+                        }
+
+                        break;
                 }
-
-		handleTouchStartDollyPan( event );
-
-		state = STATE.TOUCH_DOLLY_PAN;
 
 		break;
 
 	    default:
-                console.log('foo3'); 
-
 		state = STATE.NONE;
-
 	}
 
 	if ( state !== STATE.NONE ) {
-            console.log('foo2'); 
-
 	    scope.dispatchEvent( startEvent );
-
 	}
 
     }
@@ -1400,12 +1424,6 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
 	    case 1: // one-fingered touch: rotate
 
-		if ( state !== STATE.TOUCH_ROTATE )
-                {
-                    // is this needed?
-                    return; 
-                }
-
                 switch ( scope.controllerType ) {
 
                     case CONTROL_TYPE._3D:
@@ -1423,26 +1441,45 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                         break;
                         
                     case CONTROL_TYPE._TEXTURE_2D:
+	                if ( scope.enablePan )
+                        {
+                            handleTouchMovePan1(event);
+                        }
                         break;
                 }
 
 
 		break;
 
-	    case 2: // two-fingered touch: dolly-pan
+	    case 2: 
+		// two-fingered touch: dolly-pan
+                // mouseMove::mouseButtons.RIGHT, and touchMove::2_fingers have the same behavior
 
-		if ( scope.enableZoom === false && scope.enablePan === false )
-                {
-                    return;
-                }
-                
-		if ( state !== STATE.TOUCH_DOLLY_PAN )
-                {
-                    // is this needed?
-                    return;
-                }
+                switch ( scope.controllerType ) {
 
-		handleTouchMoveDollyPan( event );
+                    case CONTROL_TYPE._3D:
+                    case CONTROL_TYPE._3D_TOP_DOWN:
+                        if ( scope.enableZoom || scope.enablePan )
+                        {
+	                    if ( scope.enableZoom )
+                            {
+                                handleTouchMoveDolly(event);
+                            }
+	                    if ( scope.enablePan )
+                            {
+                                handleTouchMovePan2(event);
+                            }
+                        }
+                        break;
+
+                    case CONTROL_TYPE._TEXTURE_2D:
+		        if ( scope.enableZoom )
+                        {
+		            handleTouchMoveDolly( event );
+                        }
+
+                        break;
+                }
 
 		break;
 
