@@ -310,10 +310,10 @@ var globalIndex = 0;
         img.src = base64Image;
     };
 
-
+    
     this.openImageFile = function (filesToOpen) {
         
-        // console.log('BEG openImageFile');
+        console.log('BEG openImageFile');
 
         if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
@@ -332,57 +332,138 @@ var globalIndex = 0;
 
         var filesInfo = "";
 
-        for (var i = 0; i < filesToOpen.length; i++) {
-            var fileToOpen = filesToOpen[i];
+        let fileToOpenUrls = [];
+        let fileToOpenFilenames = []
+        
+        // promiseFoo1
+        return new Promise(function(resolve) {
 
-            // Load the dragged file
+            var promiseArrArr = [[],[]];
+
+            console.log('filesToOpen.length0', filesToOpen.length);
+            console.log('filesToOpen0', filesToOpen); 
             
-            // https://stackoverflow.com/questions/31433413/return-the-array-of-bytes-from-filereader
-            fileToOpenData = new Blob([fileToOpen]);
-            var promise1 = new Promise(getBuffer);
-            
-            promise1.then(function(data) {
-                var fileToOpenUrl = URL.createObjectURL(fileToOpenData);
-
-                var fileToOpenFilename1 = fileToOpen.name;
-                console.log('fileToOpenFilename1', fileToOpenFilename1);
-
-                // Update _blobs with the new image
-                _blobs[fileToOpenFilename1] = fileToOpenUrl;
-
-                let promise2 = _zipLoaderInstance.getOrientation(fileToOpenData);
+            for (var i = 0; i < filesToOpen.length; i++) {
+                let fileToOpen = filesToOpen[i];
                 
-                promise2.then(function(result2) {
-                    let imageOrientation = result2.orientation;
-                    let imageInfo = {imageFilename: fileToOpenFilename1,
-                                     imageOrientation: imageOrientation};
-                    
-                    let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
-                    imageInfoVec.set(fileToOpenFilename1, imageInfo);
-                    MLJ.core.Scene3D.setImageInfoVec(imageInfoVec);
-                    
-                    //////////////////////////////////////////////
-                    // BEG create a thumbnail for the image
-                    //////////////////////////////////////////////
+                // Load the dragged file
+                
+                // https://stackoverflow.com/questions/31433413/return-the-array-of-bytes-from-filereader
+                fileToOpenData = new Blob([fileToOpen]);
 
-                    // TBD generalize the thumblify code block into a function in e.g. imageUtils.js ?
-                    
-                    let thumbnailFilename = fileToOpenFilename1.substr(0, fileToOpenFilename1.lastIndexOf(".")) + ".thumbnail.jpg";
-                    if(!_blobs[thumbnailFilename])
-                    {
-                        thumbnailify(_blobs[fileToOpenFilename1], 100, function(base64Thumbnail) {
-                            console.log('done thumbnailify'); 
-	                    // thumbnail.src = base64Thumbnail;
-                            var thumbnailFileUrl = URL.createObjectURL(base64Thumbnail)
+                let fileToOpenUrl = URL.createObjectURL(fileToOpenData);
+                fileToOpenUrls.push(fileToOpenUrl);
 
-                            _blobs[thumbnailFilename] = thumbnailFileUrl;
+                fileToOpenFilenames.push(fileToOpen.name);
+                
+                // getBuffer reads from fileToOpenData stream and returns (resolves) Uint8Array (bytes) to the result of the promise.
+                // the result of the promise (the byte array) is pushed into promises1
+                let promise1_Uint8Array = new Promise(getBuffer);
+
+                let promise2_InstanceAndOrientation = _zipLoaderInstance.getInstanceAndOrientation(fileToOpenData);
+
+                promiseArrArr[0].push(promise1_Uint8Array);
+                promiseArrArr[1].push(promise2_InstanceAndOrientation);
+            }
+
+            // see 2nd answer in:
+            // https://stackoverflow.com/questions/36094865/how-to-do-promise-all-for-array-of-array-of-promises
+            Promise.all(promiseArrArr.map(Promise.all, Promise))
+                .then(function(promiseArrArrResults) {
+                    // promiseArrArrResults contains an array of multiple Uint8Array's (one for each image)
+                    let typeofPromiseArrArrResults = typeof promiseArrArrResults;
+                    console.log('typeofPromiseArrArrResults', typeofPromiseArrArrResults); 
+                    
+                    // let promiseArrArrResults0ArrayLength = promiseArrArr[0].length;
+                    let promiseArrArrResults0ArrayLength = promiseArrArrResults[0].length;
+                    
+                    console.log('promiseArrArrResults0ArrayLength', promiseArrArrResults0ArrayLength); 
+
+                    // let promiseArrArrResults1ArrayLength = promiseArrArr[1].length;
+                    let promiseArrArrResults1ArrayLength = promiseArrArrResults[1].length;
+                    
+                    console.log('promiseArrArrResults1ArrayLength', promiseArrArrResults1ArrayLength);
+                    
+                    for (let j = 0; j < promiseArrArrResults1ArrayLength; j++) {
+
+                        let zipLoaderInstanceAndOrientation = promiseArrArrResults[1][j];
+                        console.log('zipLoaderInstanceAndOrientation', zipLoaderInstanceAndOrientation);
+
+                        let fileToOpenFilename1 = fileToOpenFilenames[j];
+                        console.log('fileToOpenFilename1', fileToOpenFilename1);
+
+                        let fileToOpenUrl = fileToOpenUrls[j];
+
+                        // Update _blobs with the new image
+                        _blobs[fileToOpenFilename1] = fileToOpenUrl;
+                        
+                        let imageOrientation = zipLoaderInstanceAndOrientation.orientation;
+                        console.log('imageOrientation', imageOrientation);
+                        
+                        let imageInfo = {imageFilename: fileToOpenFilename1,
+                                         imageOrientation: imageOrientation};
+                        
+                        let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
+                        imageInfoVec.set(fileToOpenFilename1, imageInfo);
+                        MLJ.core.Scene3D.setImageInfoVec(imageInfoVec);
+                        
+                        //////////////////////////////////////////////
+                        // Do load: 
+                        // the texture of the intersectedOverlayRect in the 3d model
+                        // the texture in the 2d pane
+                        //////////////////////////////////////////////
+
+                        // TBD generalize the thumblify code block into a function in e.g. imageUtils.js ?
+                        
+                        let thumbnailFilename = fileToOpenFilename1.substr(0, fileToOpenFilename1.lastIndexOf(".")) + ".thumbnail.jpg";
+                        if(!_blobs[thumbnailFilename])
+                        {
+                            //////////////////////////////////////////////
+                            // The thumbnail does not exist in memory
+                            // BEG create a thumbnail for the image
+                            //////////////////////////////////////////////
+                            
+                            thumbnailify(_blobs[fileToOpenFilename1], 100, function(base64Thumbnail) {
+                                console.log('done thumbnailify'); 
+	                        // thumbnail.src = base64Thumbnail;
+                                var thumbnailFileUrl = URL.createObjectURL(base64Thumbnail)
+
+                                _blobs[thumbnailFilename] = thumbnailFileUrl;
+
+                                ////////////////////////////////////////////////////
+                                // refresh the texture of the intersectedOverlayRect in the 3d model
+                                ////////////////////////////////////////////////////
+
+                                let selectedOverlayRectObj = _intersectionInfo.intersectedOverlayRect.object;
+                                
+                                updateMaterial(selectedOverlayRectObj, thumbnailFileUrl, thumbnailFilename, imageOrientation);
+                                
+                                
+                                ////////////////////////////////////////////////////
+                                // refresh the texture in the 2d pane
+                                ////////////////////////////////////////////////////
+                                
+                                _selectedImageFilename = fileToOpenFilename1;
+                                _selectedThumbnailImageFilenamePrev = thumbnailFilename;
+                                
+                                // The file already exists in memory. Load it from the memory and render in the 2d pane
+                                MLJ.core.MeshFile.loadTexture2FromFile(_blobs[fileToOpenFilename1]);
+                                
+                            });
+
+                        }
+                        else
+                        {
+                            //////////////////////////////////////////////
+                            // The thumbnail exists in memory
+                            //////////////////////////////////////////////
 
                             ////////////////////////////////////////////////////
                             // refresh the texture of the intersectedOverlayRect in the 3d model
                             ////////////////////////////////////////////////////
 
                             let selectedOverlayRectObj = _intersectionInfo.intersectedOverlayRect.object;
-                            
+                            let thumbnailFileUrl = _blobs[thumbnailFilename];
                             updateMaterial(selectedOverlayRectObj, thumbnailFileUrl, thumbnailFilename, imageOrientation);
                             
                             
@@ -392,48 +473,25 @@ var globalIndex = 0;
                             
                             _selectedImageFilename = fileToOpenFilename1;
                             _selectedThumbnailImageFilenamePrev = thumbnailFilename;
+                            // TBD RemoveME                        
+                            // _selectedThumbnailImageFilenamePrev = _selectedImageFilename;
                             
                             // The file already exists in memory. Load it from the memory and render in the 2d pane
                             MLJ.core.MeshFile.loadTexture2FromFile(_blobs[fileToOpenFilename1]);
-                            
-                        });
 
-                    }
-                    else
-                    {
-                        ////////////////////////////////////////////////////
-                        // refresh the texture of the intersectedOverlayRect in the 3d model
-                        ////////////////////////////////////////////////////
-
-                        let selectedOverlayRectObj = _intersectionInfo.intersectedOverlayRect.object;
-                        let thumbnailFileUrl = _blobs[thumbnailFilename];
-                        updateMaterial(selectedOverlayRectObj, thumbnailFileUrl, thumbnailFilename, imageOrientation);
-                        
-                        
-                        ////////////////////////////////////////////////////
-                        // refresh the texture in the 2d pane
-                        ////////////////////////////////////////////////////
-                        
-                        _selectedImageFilename = fileToOpenFilename1;
-                        _selectedThumbnailImageFilenamePrev = thumbnailFilename;
-                        // TBD RemoveME                        
-                        // _selectedThumbnailImageFilenamePrev = _selectedImageFilename;
-                        
-                        // The file already exists in memory. Load it from the memory and render in the 2d pane
-                        MLJ.core.MeshFile.loadTexture2FromFile(_blobs[fileToOpenFilename1]);
+                        }
 
                     }
                     
-                }).catch(function(err) {
+                    // promiseFoo1 waits until getting here before exiting openImageFile2
+                    return resolve(true);
+                })
+                .catch((err) => {
+                    // handle errors here
+                    console.error('err from promiseArrArr', err); 
+                });
 
-                    console.error('err1', err); 
-                });                         
-                
-            }).catch(function(err) {
-
-                console.error('err', err); 
-            });
-        }
+        });
     };
 
     // read the file data from blob into Uint8Array buffer in memory
@@ -800,7 +858,8 @@ var globalIndex = 0;
         }
 
         _selectedLayer.createRectangleMesh(_intersectionInfo.intersectedStructure);
-        
+        _this.findIntersections();
+
         return false;
     };
 
@@ -1642,6 +1701,10 @@ var globalIndex = 0;
 
     this.render = function (fromReqAnimFrame) {
 
+//         console.log('_controls3D.isMouseDown', _controls3D.isMouseDown);
+//         console.log('_controls3D.isTouchDown', _controls3D.isTouchDown);
+//         console.log('_edit3dModelOverlayFlag', _edit3dModelOverlayFlag);
+        
         if((_controls3D.isMouseDown || _controls3D.isTouchDown) && !_edit3dModelOverlayFlag)
         {
             _this.findIntersections();

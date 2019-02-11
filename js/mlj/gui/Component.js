@@ -685,9 +685,10 @@ MLJ.gui.component.ComboBox = function (flags) {
             _this.$.append($option);
         });
 
-        _this.$.selectmenu({width: "100%"})
-                .selectmenu("menuWidget")
-                .addClass("overflow");
+        // _this.$.selectmenu({width: "100%"});
+        _this.$.selectmenu({width: "40%"});
+        _this.$.selectmenu("menuWidget");
+        _this.$.addClass("overflow");
     };
 
     this.getSelectedContent = function () {

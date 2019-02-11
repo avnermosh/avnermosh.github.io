@@ -236,11 +236,17 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
             // proportions ok, fills window ok, offset - ok
             _renderer3DtopDown.setViewport ( -x2, -y2, w1, h1 );
         }
-        
-
-        
     }
 
+    function onMouseWheelOrTouchMoveIn_mlj_scenebar_widget(event) {
+        console.log('BEG onMouseWheelOrTouchMoveIn_mlj_scenebar_widget');
+
+        // TBD implement in a more general place. mlj-scenebar-widget does not belong to Scene3DtopDown
+        
+        // intercept wheel/touchmove events and prevent from zooming the DOM element
+        event.preventDefault();
+    }     
+    
     function initScene3DtopDown() {
 
         ////////////////////////////////////////////////////
@@ -501,6 +507,13 @@ var camera3DtopDownPosition0 = new THREE.Vector3(643, camera3DtopDownHeight, 603
             MLJ.core.Scene3DtopDown.render();
         });
 
+
+        let element1 = document.getElementById("mlj-scenebar-widget");
+        console.log('element1', element1);
+        
+        element1.addEventListener( 'wheel', onMouseWheelOrTouchMoveIn_mlj_scenebar_widget, false );
+        element1.addEventListener( 'touchmove', onMouseWheelOrTouchMoveIn_mlj_scenebar_widget, false );
+        
     }
 
     this.lights = {

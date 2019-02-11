@@ -290,6 +290,8 @@ var globalIndex1 = 0;
 
     function onDocumentTouchDoubleTap( event ) {
 
+        // implementation of onDocumentTouchDoubleTap requires jquery.mobile-events/2.0.0/jquery.mobile-events.min.js
+        
         // console.log('BEG onDocumentTouchDoubleTap'); 
 
         let element1Id = 'texture-pane-wrapper';

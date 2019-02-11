@@ -3670,7 +3670,7 @@
                  };
 
 
-                 ZipLoader.prototype.getOrientation = function getOrientation(blob) {
+                 ZipLoader.prototype.getInstanceAndOrientation = function getInstanceAndOrientation(blob) {
 
                      var this4 = this;
                      
@@ -3679,6 +3679,8 @@
                          var reader = new FileReader();
 
                          // https://stackoverflow.com/questions/7584794/accessing-jpeg-exif-rotation-data-in-javascript-on-the-client-side/32490603#32490603
+                         // orientation -2: not jpeg
+                         // orientation -1: not defined
                          reader.zipLoaderInstance = this4;
                          
                          reader.onload = function(e) {
@@ -3769,9 +3771,9 @@
 
                          this3.files[filename].url = URL.createObjectURL(blob);
 
-                         // TBD getOrientation is used also from outside ZipLoader. The function could be generalized out of ZipLoader into
+                         // TBD getInstanceAndOrientation is used also from outside ZipLoader. The function could be generalized out of ZipLoader into
                          // a new js file e.g. imageUtils.js
-                         let promise2 = this3.getOrientation(blob);
+                         let promise2 = this3.getInstanceAndOrientation(blob);
 
                          promise2.then(function(result2) {
 

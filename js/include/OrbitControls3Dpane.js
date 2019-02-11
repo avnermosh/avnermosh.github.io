@@ -1326,7 +1326,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         }
 
 	// event.preventDefault();
-        console.log('event.touches.length1', event.touches.length);
+        // console.log('event.touches.length1', event.touches.length);
 
 	switch ( event.touches.length ) {
 
