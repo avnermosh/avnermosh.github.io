@@ -246,6 +246,23 @@ var globalIndex = 0;
             function ( texture ) {
                 selectedOverlayRectObj.material.map = texture;
 
+                let rotationVal = 0;
+                switch (Number(imageOrientation)) {
+                    case 1:
+                        // landscape
+                        rotationVal = 0;
+                        break;
+                    case 6:
+                        // portrait
+                        rotationVal = (-Math.PI / 2);
+                        break;
+                    default:
+                        break;
+                }
+                
+                selectedOverlayRectObj.material.map.center = new THREE.Vector2(0.5, 0.5);
+                selectedOverlayRectObj.material.map.rotation = rotationVal;
+                
                 let urlArray = MLJ.util.getNestedObject(selectedOverlayRectObj, ['material', 'userData', 'urlArray']);
                 if(!urlArray)
                 {
@@ -266,7 +283,7 @@ var globalIndex = 0;
                     // remove default image if it exists
                     let keyToRemove = 'default_image.thumbnail.jpg';
                     let removedEl = urlArray.remove(keyToRemove);
-                }
+                } 
                     
                 _selectedImageFilenames = urlArray.getKeys();
 

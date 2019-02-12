@@ -104,10 +104,10 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
             _selectedOverlayRectObj.position.copy(positionRectNewClamped);
         }
 
-        console.log('_selectedOverlayRectObj.position', _selectedOverlayRectObj.position); 
-        console.log('_selectedOverlayRectObj.scale', _selectedOverlayRectObj.scale); 
-        console.log('_selectedOverlayRectObj.geometry.vertices', _selectedOverlayRectObj.geometry.vertices); 
-        console.log('_selectedOverlayRectObj.geometry.boundingBox', _selectedOverlayRectObj.geometry.boundingBox); 
+        // console.log('_selectedOverlayRectObj.position', _selectedOverlayRectObj.position); 
+        // console.log('_selectedOverlayRectObj.scale', _selectedOverlayRectObj.scale); 
+        // console.log('_selectedOverlayRectObj.geometry.vertices', _selectedOverlayRectObj.geometry.vertices); 
+        // console.log('_selectedOverlayRectObj.geometry.boundingBox', _selectedOverlayRectObj.geometry.boundingBox); 
     };
 
 
