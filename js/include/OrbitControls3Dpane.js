@@ -315,10 +315,11 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
             // update condition is:
             // min(camera displacement, camera rotation in radians)^2 > EPS
             // using small-angle approximation cos(x/2) = 1 - x^2 / 8
-
+            let positionShift = lastPosition.distanceToSquared( scope.object.position );
+            
             if ( zoomChanged ||
-                 lastPosition.distanceToSquared( scope.object.position ) > EPS ||
-                 8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) ) > EPS ) {
+                 (positionShift > EPS) ||
+                 (8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) ) > EPS) ) {
 
                 scope.dispatchEvent( changeEvent );
 
@@ -400,6 +401,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     var state = STATE.NONE;
 
     var EPS = 0.000001;
+    // var EPS = 0.000000001;
 
     // current position in spherical coordinates
     var spherical = new THREE.Spherical();

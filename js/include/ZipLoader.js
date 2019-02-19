@@ -3330,7 +3330,7 @@
              var CENTRAL_DIRECTORY = 0x02014b50;
              // const END_OF_CENTRAL_DIRECTORY = 0x06054b50;
 
-             var parseZip = function parseZip(buffer, doSkipJPG, offsetInReader)
+             var parseZip = function parseZip(buffer, doSkipJpg, offsetInReader)
              {
                  // console.log('parseZip');
                  // console.log('offsetInReader0', offsetInReader);
@@ -3348,7 +3348,7 @@
                          if (signature === LOCAL_FILE_HEADER) {
                              
                              // console.log('Before parseLocalFile');
-                             var file = parseLocalFile(reader, doSkipJPG);
+                             var file = parseLocalFile(reader, doSkipJpg);
                              // console.log('file.name', file.name);
                              // files[file.name] = { buffer: file.buffer };
                              files[file.name] = { buffer: file.buffer, offset: file.offset };
@@ -3368,7 +3368,7 @@
                  else
                  {
                      reader.skip(offsetInReader);
-                     var file = parseLocalFile(reader, doSkipJPG);
+                     var file = parseLocalFile(reader, doSkipJpg);
                      files[file.name] = { buffer: file.buffer, offset: file.offset };
                      return files;
                  }
@@ -3471,28 +3471,28 @@
              // |        | (f)bytes | Filename                                 |
              // |        | (e)bytes | Extra field                              |
              // |        | (n)bytes | Compressed data                          |
-             var parseLocalFile = function parseLocalFile(reader, doSkipJPG) {
+             var parseLocalFile = function parseLocalFile(reader, doSkipJpg) {
 
                  var fileHeaderAttributes = parseLocalFileHeader(reader);
 
-                 // console.log('doSkipJPG0', doSkipJPG);
-                 if (typeof doSkipJPG === 'undefined') {
-                     // doSkipJPG is undefined. Set it to default of true
-                     doSkipJPG = false;
-                     console.log('doSkipJPG is umdefined. Set it to default of false');
+                 if (typeof doSkipJpg === 'undefined') {
+                     // doSkipJpg is undefined. Set it to default of true
+                     doSkipJpg = false;
+                     console.log('doSkipJpg is umdefined. Set it to default of false');
                  }
-                 // console.log('doSkipJPG0a', doSkipJPG);
                  
                  var file2;
                  
                  // avner - this does speeds up (even high-res), but JPG files are not loaded...
-                 if(doSkipJPG)
+                 if(doSkipJpg)
                  {
-                     // On the first parse, when no specific imageFile is requested, skip over the .JPG files
                      
-                     var re1 = /\.JPG/;
                      var filename = fileHeaderAttributes.filename.join('');
-                     // console.log('filename', filename);
+
+                     // On the first parse, when no specific imageFile is requested, skip over .jpg files that are not thumbnails
+                     // should match strings without "thumbnail" and with "jpg"
+                     var re1 = /^(?!.*thumbnail)(.*\.(jpg|JPG))/gm;
+                     
                      var regex1_matched = filename.match(re1);
                      if(regex1_matched)
                      {
@@ -3613,13 +3613,13 @@
 
              var ZipLoader = function () {
 
-                 ZipLoader.unzip = function unzip(arrayBuffer, doSkipJPG, offsetinreader) {
+                 ZipLoader.unzip = function unzip(arrayBuffer, doSkipJpg, offsetinreader) {
                      // console.log('BEG unzip'); 
                      return new PromiseLike$1(function (resolve) {
                          var instance = new ZipLoader();
 
                          // var arrayBuffer = event.target.result;
-                         instance.files = parseZip(arrayBuffer, doSkipJPG, offsetinreader);
+                         instance.files = parseZip(arrayBuffer, doSkipJpg, offsetinreader);
                          resolve(instance);
 
                      });

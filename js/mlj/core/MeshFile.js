@@ -63,13 +63,6 @@ MLJ.core.MeshFile = {
         return false;
     }
 
-    var getFileExtention = function (filename2)
-    {
-        // http://www.jstips.co/en/javascript/get-file-extension/
-        var fileExt = filename2.slice((filename2.lastIndexOf(".") - 1 >>> 0) + 2);
-        return fileExt;
-    };
-
     this.loadTextureImage2 = function (textureFileName, onTextureLoaded) {
 
         //let's create the layer-dependent texture array
@@ -168,7 +161,7 @@ MLJ.core.MeshFile = {
             for (var key in filenames)
             {
                 var filename = filenames[key];
-                var fileExtention = getFileExtention(filename);
+                var fileExtention = MLJ.util.getFileExtention(filename);
                 switch(fileExtention) {
                     case "jpg":
                     case "JPG":
@@ -467,7 +460,7 @@ MLJ.core.MeshFile = {
         
     };
 
-    this.extractFilesFromZipLoaderInstance = function (zipLoaderInstance, layer, doSkipJPG) {
+    this.extractFilesFromZipLoaderInstance = function (zipLoaderInstance, layer, doSkipJpg) {
 
         // TBD: can promise4 be removed? no one is waiting on it?
         var promise4 = new Promise(function(resolve){
@@ -486,7 +479,7 @@ MLJ.core.MeshFile = {
             {
                 var filename = filenames[key];
 
-                var fileExtention = getFileExtention(filename);
+                var fileExtention = MLJ.util.getFileExtention(filename);
 
                 switch(fileExtention) {
                     case "":
@@ -506,7 +499,7 @@ MLJ.core.MeshFile = {
                     case "jpeg":
                     case "JPG":
                     case "png":
-                        if(doSkipJPG)
+                        if(doSkipJpg)
                         {
                             // separate to 2 groups:
                             // a.
@@ -729,13 +722,13 @@ MLJ.core.MeshFile = {
         return true;
     };
 
-    this.loadFromZipFile = function (arrayBuffer, layer, doSkipJPG) {
+    this.loadFromZipFile = function (arrayBuffer, layer, doSkipJpg) {
         console.log('BEG loadFromZipFile');
 
         // try
         // {
-        ZipLoader.unzip( arrayBuffer, doSkipJPG ).then( function ( zipLoaderInstance ) {
-            if(!_this.extractFilesFromZipLoaderInstance(zipLoaderInstance, layer, doSkipJPG))
+        ZipLoader.unzip( arrayBuffer, doSkipJpg ).then( function ( zipLoaderInstance ) {
+            if(!_this.extractFilesFromZipLoaderInstance(zipLoaderInstance, layer, doSkipJpg))
             {
                 let msgStr = "Failed to extract files from the zip file.";
                 console.error(msgStr);
@@ -819,9 +812,9 @@ MLJ.core.MeshFile = {
 
 
     // Parse the image (get the buffer and offset) into a new zipLoaderInstance
-    function parseImageFromZip(doSkipJPG, offsetInReader) {
+    function parseImageFromZip(doSkipJpg, offsetInReader) {
         return new Promise(function(resolve){
-            var zipLoaderInstance2 = ZipLoader.unzip( MLJ.core.Scene3D._zipFileArrayBuffer, doSkipJPG, offsetInReader );
+            var zipLoaderInstance2 = ZipLoader.unzip( MLJ.core.Scene3D._zipFileArrayBuffer, doSkipJpg, offsetInReader );
             resolve(zipLoaderInstance2);
         });
     };
@@ -862,8 +855,8 @@ MLJ.core.MeshFile = {
                         // Unzip the image file (that were skipped in the initial load)
                         // Load the file from the zip file into memory
                         // Parse the image (get the buffer and offset) into a new zipLoaderInstance
-                        var doSkipJPG = false;
-                        promises2.push(parseImageFromZip(doSkipJPG, offsetInReader));
+                        var doSkipJpg = false;
+                        promises2.push(parseImageFromZip(doSkipJpg, offsetInReader));
                     }
                 }
             }
@@ -902,7 +895,7 @@ MLJ.core.MeshFile = {
                     for (let [fileName, blobUrl] of Object.entries(blobs))
                     {
                         // add file to zip
-                        var fileExtention = getFileExtention(fileName);
+                        var fileExtention = MLJ.util.getFileExtention(fileName);
                         switch(fileExtention) {
                             case "mtl":
                             case "obj":
@@ -959,11 +952,12 @@ MLJ.core.MeshFile = {
             var resOpen = -1;
             if (file.name.split('.').pop() === "zip")
             {
-                var doSkipJPG = true;
-                // doSkipJPG = false;
+                var doSkipJpg = true;
+                // TBD - use doSkipJpg true
+                doSkipJpg = false;
 
                 MLJ.core.Scene3D._zipFileArrayBuffer = fileLoadedEvent.target.result;
-                resOpen = _this.loadFromZipFile(MLJ.core.Scene3D._zipFileArrayBuffer, layer, doSkipJPG);
+                resOpen = _this.loadFromZipFile(MLJ.core.Scene3D._zipFileArrayBuffer, layer, doSkipJpg);
             }
         };
     }

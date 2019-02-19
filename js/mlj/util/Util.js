@@ -74,6 +74,12 @@ MLJ.util.getNestedObject = function (nestedObj, pathArr) {
                           (obj && obj[key] !== 'undefined') ? obj[key] : undefined, nestedObj);
 }
 
+MLJ.util.getFileExtention = function (filename2) {
+    // http://www.jstips.co/en/javascript/get-file-extension/
+    var fileExt = filename2.slice((filename2.lastIndexOf(".") - 1 >>> 0) + 2);
+    return fileExt;
+};
+
 MLJ.util.loadFile = function (path, callback) {
     if (!jQuery.isFunction(callback)) {
         console.warn("The callback paramter must be a funciton.");

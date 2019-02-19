@@ -57,6 +57,17 @@
                 icon: "img/icons/IcoMoon-Free-master/PNG/48px/0146-wrench.png"
             });
             MLJ.gui.disabledOnSceneEmpty(edit3dModelOverlay);
+
+            var editModeComboWidget = new component.ComboBox({
+                tooltip: "Sets the edit mode",
+                options: [
+                    {content: "NewRect", value: "0", selected: true},
+                    {content: "UpdateRect", value: "1"},
+                    {content: "DeleteRect", value: "2"},
+                ],
+                icon: "img/icons/IcoMoon-Free-master/PNG/48px/0047-stack.png"
+            });
+            MLJ.gui.disabledOnSceneEmpty(editModeComboWidget);
             
             _openImageFileButton = new component.FileButton({
                 tooltip: "Open image file",
@@ -89,8 +100,6 @@
             });
             MLJ.gui.disabledOnSceneEmpty(nextImage);
 
-            
-            // var layersComboWidget = new component.LayerSelection({
             var layersComboWidget = new component.ComboBox({
                 tooltip: "Sets the selected floor",
                 options: [
@@ -103,17 +112,10 @@
             });
             MLJ.gui.disabledOnSceneEmpty(layersComboWidget);
 
-            // _toolBar.add(openMeshFileButton,
-            //              saveMeshFileButton,
-            //              edit3dModelOverlay,
-            //              _openImageFileButton,
-            //              addStickyNoteButton,
-            //              resetTrackball3D,
-            //              nextImage);
-
             _toolBar.add(openMeshFileButton,
                          saveMeshFileButton,
                          edit3dModelOverlay,
+                         editModeComboWidget,
                          _openImageFileButton,
                          addStickyNoteButton,
                          resetTrackball3D,
@@ -143,7 +145,23 @@
                 }
                 MLJ.core.Scene3D.setEdit3dModelOverlayFlag(edit3dModelOverlay.isOn());
             });
-           
+
+            editModeComboWidget.onChange(function() {
+                // console.log('BEG editModeComboWidget.onChange');
+
+                let val = editModeComboWidget.getSelectedValue();
+                // console.log('val', val); 
+
+                let content = editModeComboWidget.getSelectedContent();
+                // console.log('content', content); 
+
+                if(val == 0 || val == 1 || val == 2)
+                {
+                    MLJ.core.Scene3D.setEditMode(content);
+                }
+            })
+
+            
             _openImageFileButton.onChange(function (input) {
                 // console.log('BEG _openImageFileButton.onChange'); 
                 MLJ.core.ImageFile.openImageFile(input.files);
@@ -207,7 +225,7 @@
                 MLJ.core.Scene3D.loadNextImage();
             })
                         
-            layersComboWidget.onChange(function(foo) {
+            layersComboWidget.onChange(function() {
                 // console.log('BEG layersComboWidget.onChange');
 
                 let val = layersComboWidget.getSelectedValue();
@@ -220,12 +238,6 @@
                 {
                     MLJ.core.Scene3DtopDown.setSelectedFloorInfo(content);
                 }
-
-                // var layer = MLJ.core.Scene3D.getSelectedLayer();
-                // console.log('layer', layer);
-
-                let layers = MLJ.core.Scene3D.getLayers();
-                // console.log('layers', layers);
             })
             
         }

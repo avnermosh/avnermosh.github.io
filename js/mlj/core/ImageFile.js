@@ -38,6 +38,8 @@ MLJ.core.ImageFile = {
     },
     SupportedExtensions: {
         JPG: ".jpg",
+        // jpg: ".jpg",
+        // JPG: ".JPG",
         PNG: ".png"
     }
 };
@@ -53,18 +55,10 @@ MLJ.core.ImageFile = {
             case ".png":
                 return true;
         }
-
+        throw new Error("extension is not supported " + extension);
         return false;
     }
 
-    var getFileExtention = function (filename2)
-    {
-        // http://www.jstips.co/en/javascript/get-file-extension/
-        var fileExt = filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
-        return fileExt;
-    };
-
-    
     /**
      * Opens a image file or a list of image files     
      * @param {(File | FileList)} toOpen A single image file or a list of image files

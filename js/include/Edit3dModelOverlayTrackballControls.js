@@ -12,7 +12,7 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
                                                        _camera,
                                                        _domElement ) {
 
-    var STATE = { NONE: - 1, INSERT_UPDATE_OVERLAY_RECT: 0, NA: 1, DELETE_OVERLAY_RECT: 2 };
+    var STATE = { NONE: - 1, EDIT_OVERLAY_RECT: 0, NA: 1, DELETE_OVERLAY_RECT: 2 };
     var _raycaster = new THREE.Raycaster();
     var _mouse = new THREE.Vector2();
     var _offset = new THREE.Vector3();
@@ -24,6 +24,8 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
     
     var _hovered = null;
     var scope = this;
+    this.isMouseDown = false;
+    this.isTouchDown = false;
 
     function activate() {
 
@@ -53,64 +55,55 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
         // console.log('BEG clampOverlayRectPosition');
         
         ///////////////////////////////////////
-        // clamp the position of overlayRect
+        // clamp the position of overlayRect - Using bbox
         ///////////////////////////////////////
 
-        let diff_overlayRect_vertex_position = new THREE.Vector3();
-        let positionRange = new THREE.Vector3();
-        
-        if ( _selectedOverlayRectObj.geometry instanceof THREE.Geometry )
-        {
-            diff_overlayRect_vertex_position.copy( _selectedOverlayRectObj.geometry.vertices[0] );
-            
-        }
-        else if ( _selectedOverlayRectObj.geometry instanceof THREE.BufferGeometry ) {
-//             console.error('Handling of _selectedOverlayRectObj.geometry instanceof THREE.BufferGeometry is not implemented yet2');
-//             return;
-    
-            _selectedOverlayRectObj.geometry = new THREE.Geometry().fromBufferGeometry( _selectedOverlayRectObj.geometry );
-            _selectedOverlayRectObj.geometry.mergeVertices();
-            diff_overlayRect_vertex_position.copy( _selectedOverlayRectObj.geometry.vertices[0] );
+        // Get the center and size of of bboxStruct
+        // bboxStruct vertices are relative to pivot
+        let bboxStruct = _selectedStructureObj.geometry.boundingBox;
+        let centerBboxStruct = new THREE.Vector3();
+        bboxStruct.getCenter( centerBboxStruct );
+        let sizeBboxStruct = new THREE.Vector3();
+        bboxStruct.getSize(sizeBboxStruct);
 
-        }
-        else
-        {
-            console.error('Invalid _selectedOverlayRectObj.geometry'); 
-       }
+        // Get the size of bboxORect
+        // bboxORect vertices are relative to bboxORect position
+        let bboxORect = _selectedOverlayRectObj.geometry.boundingBox;
+        let sizeBboxORect = new THREE.Vector3();
+        bboxORect.getSize(sizeBboxORect);
 
-        let scale_complement = new THREE.Vector3();
-        scale_complement.set(1,1,1).sub(_selectedOverlayRectObj.scale);
-        
-        var positionRangeTmp = new THREE.Vector3();
-        positionRangeTmp.multiplyVectors( diff_overlayRect_vertex_position, scale_complement );
-        
-        positionRange.set(Math.abs(positionRangeTmp.x), Math.abs(positionRangeTmp.y), Math.abs(positionRangeTmp.z));
+        let unitScale = new THREE.Vector3(1, 1, 1);
+        // TBD - the vertices are in regard to the original scale factor of 0.8
+        //       this needs to be generalized (maybe on mousedown see comment in this file: "possibly get the original scale here")
+        let origScale = new THREE.Vector3(0.8, 0.8, 0.8);
+        let scaleNormalized = new THREE.Vector3();
+        scaleNormalized.copy(unitScale);
+        scaleNormalized.divide(origScale);
+        scaleNormalized.multiply(_selectedOverlayRectObj.scale);
 
-        let material_userData_origPosition = MLJ.util.getNestedObject(_selectedOverlayRectObj, ['material', 'userData', 'origPosition']);
-        
-        if(material_userData_origPosition)
-        {
-            let positionMin = new THREE.Vector3(0, 0, 0);
-            positionMin.copy(material_userData_origPosition).sub(positionRange);
+        let sizeScaledBboxORect = new THREE.Vector3();
+        sizeScaledBboxORect.multiplyVectors(sizeBboxORect, scaleNormalized);
 
-            let positionMax = new THREE.Vector3(0, 0, 0);
-            positionMax.copy(material_userData_origPosition).add(positionRange);
 
-            var positionRectNewClamped = new THREE.Vector3();
-            positionRectNewClamped.copy(_selectedOverlayRectObj.position);
-            
-            positionRectNewClamped.clamp(positionMin, positionMax);
+        // Set bbox1 - the new overlayRect bbox (possibly scaled, and translated)
+        // center is centerBboxStruct
+        // size is (sizeBboxStruct - (sizeBboxORect*scale))
+        let bbox1 = new THREE.Box3();
+        bbox1.copy (bboxStruct);
+        let centerBbox1 = new THREE.Vector3();
+        bbox1.getCenter( centerBbox1 );
 
-            _selectedOverlayRectObj.position.copy(positionRectNewClamped);
-        }
+        let sizeBbox3 = new THREE.Vector3();
+        sizeBbox3.subVectors(sizeBboxStruct, sizeScaledBboxORect);
 
-        // console.log('_selectedOverlayRectObj.position', _selectedOverlayRectObj.position); 
-        // console.log('_selectedOverlayRectObj.scale', _selectedOverlayRectObj.scale); 
-        // console.log('_selectedOverlayRectObj.geometry.vertices', _selectedOverlayRectObj.geometry.vertices); 
-        // console.log('_selectedOverlayRectObj.geometry.boundingBox', _selectedOverlayRectObj.geometry.boundingBox); 
+        bbox1.setFromCenterAndSize ( centerBbox1, sizeBbox3 );
+
+        let positionRectNewClamped = new THREE.Vector3();
+        bbox1.clampPoint(_selectedOverlayRectObj.position, positionRectNewClamped);
+        _selectedOverlayRectObj.position.copy(positionRectNewClamped);
     };
 
-
+    
     function updateVertexHelpersLocation() {
 
         // console.log('BEG updateVertexHelpersLocation');
@@ -151,17 +144,17 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
     };
     
     function translateOverlayRect() {
-        
+
+        // console.log('BEG translateOverlayRect'); 
+
         ///////////////////////////////////////
         // move the position of overlayRect
         ///////////////////////////////////////
 
         _selectedOverlayRectObj.position.copy( _intersection.point.sub( _offset ) );
-            // console.log('_selectedOverlayRectObj.position', _selectedOverlayRectObj.position);
-
-         clampOverlayRectPosition(); 
-
-         updateVertexHelpersLocation();
+        clampOverlayRectPosition();
+        
+        updateVertexHelpersLocation();
     };
 
 
@@ -169,40 +162,53 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
 
         // console.log('BEG resizeOverlayRect'); 
 
-        let _selectedOverlayRectObj_position = MLJ.util.getNestedObject(_selectedOverlayRectObj, ['position']);
-        if(!_selectedOverlayRectObj_position)
+        let selectedOverlayRectObj_position = MLJ.util.getNestedObject(_selectedOverlayRectObj, ['position']);
+        if(!selectedOverlayRectObj_position)
         {
             return;
         }
 
-        // arg1 - distance between intersection point and the origin of _selectedOverlayRectObj
-        // arg2 - distance between vertexHelper and the origin of _selectedOverlayRectObj
-        var arg1 = new THREE.Vector3();
-
-        _selectedOverlayRectObj.position.add(pivotGroup.position);
+        // bboxORect vertices are relative to bboxORect position, which is relative to pivot position
+        let bboxORect = _selectedOverlayRectObj.geometry.boundingBox;
+        let centerBbox1 = new THREE.Vector3();
+        bboxORect.getCenter( centerBbox1 );
         
-        arg1.copy(_intersection.point).sub(_selectedOverlayRectObj.position);
+        // https://stackoverflow.com/questions/15098479/how-to-get-the-global-world-position-of-a-child-object
+        let selectedOverlayRectObjPosWorld = new THREE.Vector3();
+        selectedOverlayRectObjPosWorld.setFromMatrixPosition( _selectedOverlayRectObj.matrixWorld );
 
-        var arg2 = new THREE.Vector3();
-        arg2.copy(_selectedOverlayVertexObj.position);
+        let centerBbox1World = new THREE.Vector3();
+        centerBbox1World.addVectors(selectedOverlayRectObjPosWorld, centerBbox1);
 
+        // distIntersectionPoint - distance between intersection point and the center of the bbox of selectedOverlayRectObj (in world coords)
+        let distIntersectionPoint = new THREE.Vector3();
+        //  _intersection.point is in world coordinates (https://threejs.org/docs/#api/en/core/Raycaster)
+        distIntersectionPoint.copy(_intersection.point).sub(centerBbox1World);
+
+        let selectedOverlayVertexObjPosWorld = new THREE.Vector3();
+        selectedOverlayVertexObjPosWorld.addVectors(selectedOverlayRectObjPosWorld, _selectedOverlayVertexObj.position);
+
+        // distVertexHelper - distance between vertexHelper and the center of the bbox of selectedOverlayRectObj (in world coords)
+        var distVertexHelper = new THREE.Vector3();
+        distVertexHelper.copy(selectedOverlayVertexObjPosWorld).sub(centerBbox1World);
+        
         let scaleX = 1.0;
-        if(arg2.x != 0) {scaleX = arg1.x / arg2.x;} 
+        if(distVertexHelper.x != 0) {scaleX = distIntersectionPoint.x / distVertexHelper.x;} 
 
         let scaleY = 1.0;
-        if(arg2.y != 0){scaleY = arg1.y / arg2.y;}
+        if(distVertexHelper.y != 0){scaleY = distIntersectionPoint.y / distVertexHelper.y;}
 
         let scaleZ = 1.0;
-        if(arg2.z != 0){scaleZ = arg1.z / arg2.z;}
+        if(distVertexHelper.z != 0){scaleZ = distIntersectionPoint.z / distVertexHelper.z;}
 
         var increaseRatio = new THREE.Vector3(Math.abs(scaleX), Math.abs(scaleY), Math.abs(scaleZ));
         
         // clamp scale
-        let scaleMin = new THREE.Vector3(0.2, 0.2, 0.2);
+        // smallest size can be 5% of the intersectedStructureObject
+        let scaleMin = new THREE.Vector3(0.05, 0.05, 0.05);
         let scaleMax = new THREE.Vector3(1, 1, 1);
 
         increaseRatio.clamp(scaleMin, scaleMax);
-        // console.log('increaseRatio', increaseRatio);
 
         _selectedOverlayRectObj.scale.copy(increaseRatio);
 
@@ -217,6 +223,7 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
     function onDocumentMouseDown( event ) {
 
         // console.log('BEG onDocumentMouseDown');
+        scope.isMouseDown = true;
         
         if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
@@ -229,60 +236,69 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
         
         switch ( event.button ) {
 
-            case STATE.INSERT_UPDATE_OVERLAY_RECT:
+            case STATE.EDIT_OVERLAY_RECT:
 
                 _mouse = MLJ.core.Scene3D.getMouse3D();
                 _camera = MLJ.core.Scene3D.getCamera3D();
                 _raycaster.setFromCamera( _mouse, _camera );
 
-                // _selectedStructureObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedStructure', 'object']);
                  _selectedOverlayRectObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayRect', 'object']);
                 _selectedOverlayVertexObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayVertex', 'object']);
 
-                
-                if(_selectedOverlayRectObj || _selectedOverlayVertexObj)
+
+                let editMode = MLJ.core.Scene3D.getEditMode();
+                console.log('editMode', editMode); 
+
+                if(editMode == 'NewRect')
                 {
-                    if(_selectedOverlayRectObj)
-                    {
-                        let intersects = _raycaster.intersectObjects( structureMeshGroup.children, true );
-                        if(intersects.length > 0)
-                        {
-                            _intersection = intersects[0];
-
-                            _selectedStructureObj = _intersection.object;
-
-                            // set _offset to be the offset between the intersection point and the origin 
-                            _offset.copy( _intersection.point ).sub( _selectedOverlayRectObj.position );
-                        }
-                    }
-
-                    _domElement.style.cursor = 'move';
-
-                    scope.dispatchEvent( { type: 'dragstart', object: _selectedOverlayRectObj } );
-                }
-                else
-                {
-                    var intersectedStructureObjectId = MLJ.util.getNestedObject(intersectionInfo, ['intersectedStructure', 'object', 'id']);
+                    let intersectedStructureObjectId = MLJ.util.getNestedObject(intersectionInfo, ['intersectedStructure', 'object', 'id']);
                     if( intersectedStructureObjectId )
                     {
                         MLJ.core.Scene3D.insertRectangularMesh();
                     }
                 }
+                else if(editMode == 'DeleteRect')
+                {
+                    MLJ.core.Scene3D.deleteRectangularMesh();
+                }
+                else if(editMode == 'UpdateRect')
+                {
+                    if(_selectedOverlayRectObj || _selectedOverlayVertexObj)
+                    {
+                        if(_selectedOverlayRectObj)
+                        {
+                            let intersects = _raycaster.intersectObjects( structureMeshGroup.children, true );
+                            if(intersects.length > 0)
+                            {
+                                _intersection = intersects[0];
 
+                                _selectedStructureObj = _intersection.object;
+
+                                // set _offset to be the offset between
+                                // the intersection point and the _selectedOverlayRectObj position 
+                                _offset.copy(_intersection.point).sub(_selectedOverlayRectObj.position);
+
+                                // TBD - possibly get the original scale here
+                                // see comment in this file "this needs to be generalized"
+                            }
+                        }
+
+                        _domElement.style.cursor = 'move';
+                    }
+                }
+                
                 break;
                 
-            case STATE.DELETE_OVERLAY_RECT:
-                
-                MLJ.core.Scene3D.deleteRectangularMesh();
-                
-                break;
         }
                 
     }
 
     function onDocumentMouseMove( event ) {
 
-//         console.log('BEG onDocumentMouseMove');
+        // console.log('BEG onDocumentMouseMove');
+
+        // disable isMouseDown to prevent calling findIntersections, when resizing the vertices ??
+        // scope.isMouseDown = false;
         
         if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
@@ -362,6 +378,8 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
     function onDocumentMouseCancel( event ) {
 //         console.log('BEG onDocumentMouseCancel');
 
+        scope.isMouseDown = false;
+        
         if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
         {
             // Do nothing. Not in editing mode.

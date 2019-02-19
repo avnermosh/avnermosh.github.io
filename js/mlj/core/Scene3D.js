@@ -38,6 +38,8 @@ var globalIndex = 0;
     var _imagesBoundariesLineSegments;
     
     var _edit3dModelOverlayFlag;
+    var _editMode = new MLJ.util.AssociativeArray();
+    
     var _selectedLayer;
 
     var _structureObjFileName;
@@ -371,7 +373,11 @@ var globalIndex = 0;
                 let fileToOpenUrl = URL.createObjectURL(fileToOpenData);
                 fileToOpenUrls.push(fileToOpenUrl);
 
-                fileToOpenFilenames.push(fileToOpen.name);
+                let fileToOpenName = fileToOpen.name;
+                // replace space with underscore
+                fileToOpenName = fileToOpenName.replace(/ /g, "_");
+                
+                fileToOpenFilenames.push(fileToOpenName);
                 
                 // getBuffer reads from fileToOpenData stream and returns (resolves) Uint8Array (bytes) to the result of the promise.
                 // the result of the promise (the byte array) is pushed into promises1
@@ -416,7 +422,14 @@ var globalIndex = 0;
                         
                         let imageOrientation = zipLoaderInstanceAndOrientation.orientation;
                         console.log('imageOrientation', imageOrientation);
-                        
+
+                        if(imageOrientation == -1)
+                        {
+                            // TBD
+                            // arbitrarily set to 1 so we can go on for now...
+                            imageOrientation = 1;
+                            // throw 'imageOrientation is -1"';
+                        }
                         let imageInfo = {imageFilename: fileToOpenFilename1,
                                          imageOrientation: imageOrientation};
                         
@@ -431,8 +444,10 @@ var globalIndex = 0;
                         //////////////////////////////////////////////
 
                         // TBD generalize the thumblify code block into a function in e.g. imageUtils.js ?
+
+                        let fileExtention = MLJ.util.getFileExtention(fileToOpenFilename1);
                         
-                        let thumbnailFilename = fileToOpenFilename1.substr(0, fileToOpenFilename1.lastIndexOf(".")) + ".thumbnail.jpg";
+                        let thumbnailFilename = fileToOpenFilename1.substr(0, fileToOpenFilename1.lastIndexOf(".")) + ".thumbnail." + fileExtention;
                         if(!_blobs[thumbnailFilename])
                         {
                             //////////////////////////////////////////////
@@ -1121,6 +1136,16 @@ var globalIndex = 0;
         return _layers;
     };
 
+    this.getEditMode = function () {
+        return _editMode;
+    };
+    
+    this.setEditMode = function (editMode) {
+        console.log('BEG setEditMode');
+        _editMode = editMode;
+        console.log('_editMode', _editMode); 
+    };
+
     this.get3DSize = function () {
         return get3DSize();
     };
@@ -1314,7 +1339,7 @@ var globalIndex = 0;
             
             throw 'imageInfo is undefined"';
         }
-        
+
         // TBD - leave here until showImageInfo button is implemented
         // console.log('_selectedThumbnailImageFilename', _selectedThumbnailImageFilename);
         // console.log('imageInfo', imageInfo); 
@@ -1341,14 +1366,20 @@ var globalIndex = 0;
         {
             // The file is not yet in memory.
             var zipLoaderInstance = _this.getZipLoaderInstance();
+            console.log('_selectedImageFilename', _selectedImageFilename);
+            if(!zipLoaderInstance.files[_selectedImageFilename])
+            {
+                throw 'zipLoaderInstance.files[_selectedImageFilename] is undefined';
+            }
+            
             var offsetInReader = zipLoaderInstance.files[_selectedImageFilename].offset;
             if(offsetInReader > 0)
             {
                 // The file is not yet in memory, but its offset is stored in memory.
                 // Load the file from the zip file into memory and render
                 // unzip the image files (that were skipped in the initial load)
-                var doSkipJPG = false;
-                ZipLoader.unzip( _this._zipFileArrayBuffer, doSkipJPG, offsetInReader ).then( function ( zipLoaderInstance ) {
+                var doSkipJpg = false;
+                ZipLoader.unzip( _this._zipFileArrayBuffer, doSkipJpg, offsetInReader ).then( function ( zipLoaderInstance ) {
                     let promise3 = MLJ.core.MeshFile.addImageToBlobs(zipLoaderInstance);
                     promise3.then(function(value) {
                         // At this point all the images finished being added to the blob
@@ -1722,7 +1753,13 @@ var globalIndex = 0;
 //         console.log('_controls3D.isTouchDown', _controls3D.isTouchDown);
 //         console.log('_edit3dModelOverlayFlag', _edit3dModelOverlayFlag);
         
-        if((_controls3D.isMouseDown || _controls3D.isTouchDown) && !_edit3dModelOverlayFlag)
+        let edit3dModelOverlayTrackballControlsIsMouseDown = undefined;
+        if(_edit3dModelOverlayTrackballControls)
+        {
+            edit3dModelOverlayTrackballControlsIsMouseDown = _edit3dModelOverlayTrackballControls.isMouseDown;
+        }
+        if((_controls3D.isMouseDown || _controls3D.isTouchDown ||
+            edit3dModelOverlayTrackballControlsIsMouseDown ))
         {
             _this.findIntersections();
         }
