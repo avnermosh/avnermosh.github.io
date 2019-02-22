@@ -3670,47 +3670,74 @@
                  };
 
 
-                 ZipLoader.prototype.getInstanceAndOrientation = function getInstanceAndOrientation(blob) {
+                 ZipLoader.prototype.getInstanceAndImageTags = function getInstanceAndImageTags(filename, blob) {
 
                      var this4 = this;
                      
                      return new Promise(function(resolve){
-                         let result2 = {};
+                         
                          var reader = new FileReader();
 
                          // https://stackoverflow.com/questions/7584794/accessing-jpeg-exif-rotation-data-in-javascript-on-the-client-side/32490603#32490603
-                         // orientation -2: not jpeg
-                         // orientation -1: not defined
+                         // imageOrientation -2: not jpeg
+                         // imageOrientation -1: not defined
                          reader.zipLoaderInstance = this4;
                          
                          reader.onload = function(e) {
+
+                             var img = new Image;
+
+                             img.onload = function() {
+                                 alert(img.width); // image is loaded; sizes are available
+                             };
+
+                             // img.src = reader.result; // is the data URL because called with readAsDataURL
+                             img.src = e.target.result
+
+                             
                              let zipLoaderInstance = this.zipLoaderInstance;
+
+                             let result2 = {};
+                             result2.filename = filename;
+                             result2.imageOrientation = -1;
+                             result2.imageWidth = -1;
+                             result2.imageHeight = -1;
                              
                              var view = new DataView(e.target.result);
+
+                             // https://www.media.mit.edu/pia/Research/deepview/exif.html
+                             // Every JPEG file starts from binary value '0xFFD8
                              if (view.getUint16(0, false) != 0xFFD8)
                              {
                                  result2.instance = this.zipLoaderInstance;
-                                 result2.orientation = -2;
+                                 result2.imageOrientation = -2;
                                  return resolve(result2);
                              }
                              var length = view.byteLength, offset = 2;
                              while (offset < length) 
                              {
-                                 if (view.getUint16(offset+2, false) <= 8)
+                                 let val1 = view.getUint16(offset+2, false);
+                                 if (val1 <= 8)
                                  {
+                                     console.log('val1', val1); 
+                                     console.error('error reading jpg tags1'); 
                                      result2.instance = this.zipLoaderInstance;
-                                     result2.orientation = -1;
+                                     // result2.imageOrientation = -1;
                                      return resolve(result2);
                                  }
                                  
                                  var marker = view.getUint16(offset, false);
                                  offset += 2;
+
+                                 // https://www.media.mit.edu/pia/Research/deepview/exif.html
+                                 // Also Exif uses an Application Marker for inserting data, but Exif uses APP1(0xFFE1) Marker to avoid a conflict with JFIF format. 
                                  if (marker == 0xFFE1) 
                                  {
                                      if (view.getUint32(offset += 2, false) != 0x45786966) 
                                      {
+                                         console.error('error reading jpg tags2'); 
                                          result2.instance = this.zipLoaderInstance;
-                                         result2.orientation = -1;
+                                         // result2.imageOrientation = -1;
                                          return resolve(result2);
                                      }
 
@@ -3720,11 +3747,49 @@
                                      offset += 2;
                                      for (var i = 0; i < tags; i++)
                                      {
-                                         if (view.getUint16(offset + (i * 12), little) == 0x0112)
+                                         let tag1 = (view.getUint16(offset + (i * 12), little));
+                                         console.log('tag1', tag1);
+
+                                         if (tag1 == 0xa002)
+                                         {
+                                             let exifImageWidth = view.getUint16(offset + (i * 12) + 8, little);
+                                             console.log('exifImageWidth', exifImageWidth);
+                                             result2.imageWidth = exifImageWidth;
+                                         }
+                                         
+                                         if (tag1 == 0xa003)
+                                         {
+                                             let exifImageHeight = view.getUint16(offset + (i * 12) + 8, little);
+                                             console.log('exifImageHeight', exifImageHeight);
+                                             result2.imageHeight = exifImageHeight;
+                                         }
+                                         
+                                         if (tag1 == 0x0100)
+                                         {
+                                             let imageWidth = view.getUint16(offset + (i * 12) + 8, little);
+                                             console.log('imageWidth', imageWidth);
+                                             result2.imageWidth = imageWidth;
+                                         }
+
+                                         if (tag1 == 0x0101)
+                                         {
+                                             let imageHeight = view.getUint16(offset + (i * 12) + 8, little);
+                                             console.log('imageHeight', imageHeight);
+                                             result2.imageHeight = imageHeight;
+                                         }
+
+                                         if (tag1 == 0x0142)
+                                         {
+                                             let tileWidth = view.getUint16(offset + (i * 12) + 8, little);
+                                             console.log('tileWidth', tileWidth);
+                                         }
+
+                                         if (tag1 == 0x0112)
                                          {
                                              result2.instance = this.zipLoaderInstance;
-                                             result2.orientation = view.getUint16(offset + (i * 12) + 8, little);
-                                             return resolve(result2);
+                                             result2.imageOrientation = view.getUint16(offset + (i * 12) + 8, little);
+                                             console.log('foo4'); 
+                                             // return resolve(result2);
                                          }
                                      }
                                  }
@@ -3739,7 +3804,7 @@
                              }
                              
                              result2.instance = this.zipLoaderInstance;
-                             result2.orientation = -1;
+                             // result2.imageOrientation = -1;
                              return resolve(result2);
                          };
                          
@@ -3771,20 +3836,24 @@
 
                          this3.files[filename].url = URL.createObjectURL(blob);
 
-                         // TBD getInstanceAndOrientation is used also from outside ZipLoader. The function could be generalized out of ZipLoader into
+                         // TBD getInstanceAndImageTags is used also from outside ZipLoader. The function could be generalized out of ZipLoader into
                          // a new js file e.g. imageUtils.js
-                         let promise2 = this3.getInstanceAndOrientation(blob);
+                         let promise2 = this3.getInstanceAndImageTags(filename, blob);
 
                          promise2.then(function(result2) {
 
                              let instance = result2.instance;
-                             let orientation = result2.orientation;
-                             
-                             // console.log('orientation', orientation);
-                             instance.files[filename].orientation = orientation;
+                             let imageOrientation = result2.imageOrientation;
+
+                             instance.files[filename].imageOrientation = result2.imageOrientation;
+                             instance.files[filename].imageWidth = result2.imageWidth;
+                             instance.files[filename].imageHeight = result2.imageHeight;
 
                              var result4 = {};
                              result4.filename = filename;
+                             result4.imageOrientation = result2.imageOrientation;
+                             result4.imageWidth = result2.imageWidth;
+                             result4.imageHeight = result2.imageHeight;
                              result4.url = instance.files[filename].url;
                              return resolve(result4);
                              

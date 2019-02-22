@@ -527,10 +527,14 @@ THREE.MTLLoader.MaterialCreator.prototype = {
              for (let i=0; i<imageFilenameArray.length; i++) {
                  let imageFilename = imageFilenameArray[i];
                  let imageOrientation = imageOrientationArray[i];
+                 let imageWidth = -1;
+                 let imageHeight = -1;
                  
                  setMapForType( "map", imageFilename );
 
                  let imageInfo = {imageFilename: imageFilename,
+                                  imageWidth: imageWidth,
+                                  imageHeight: imageHeight,
                                   imageOrientation: imageOrientation};
 
                  params.userData.urlArray.set(imageFilename, imageInfo);

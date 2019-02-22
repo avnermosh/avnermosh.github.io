@@ -217,7 +217,11 @@ MLJ.core.Layer = function (id, name)
                         scale: null}
 
         let imageOrientation = 1;
+        let imageWidth = -1;
+        let imageHeight = -1;
         let imageInfo = {imageFilename: imageThumbnailFilename,
+                         imageWidth: imageWidth,
+                         imageHeight: imageHeight,
                          imageOrientation: imageOrientation};
         
         userData.urlArray.set(imageThumbnailFilename, imageInfo);

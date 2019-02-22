@@ -271,7 +271,12 @@ var globalIndex = 0;
                     selectedOverlayRectObj.material.userData.urlArray = new MLJ.util.AssociativeArray();
                 }
 
+                let imageWidth = -1;
+                let imageHeight = -1;
+                
                 let imageInfo = {imageFilename: fileToOpenFilename,
+                                 imageWidth: imageWidth,
+                                 imageHeight: imageHeight,
                                  imageOrientation: imageOrientation};
                 
                 urlArray.set(fileToOpenFilename, imageInfo);
@@ -383,10 +388,10 @@ var globalIndex = 0;
                 // the result of the promise (the byte array) is pushed into promises1
                 let promise1_Uint8Array = new Promise(getBuffer);
 
-                let promise2_InstanceAndOrientation = _zipLoaderInstance.getInstanceAndOrientation(fileToOpenData);
+                let promise2_InstanceAndImageTags = _zipLoaderInstance.getInstanceAndImageTags(fileToOpenData);
 
                 promiseArrArr[0].push(promise1_Uint8Array);
-                promiseArrArr[1].push(promise2_InstanceAndOrientation);
+                promiseArrArr[1].push(promise2_InstanceAndImageTags);
             }
 
             // see 2nd answer in:
@@ -409,8 +414,8 @@ var globalIndex = 0;
                     
                     for (let j = 0; j < promiseArrArrResults1ArrayLength; j++) {
 
-                        let zipLoaderInstanceAndOrientation = promiseArrArrResults[1][j];
-                        console.log('zipLoaderInstanceAndOrientation', zipLoaderInstanceAndOrientation);
+                        let zipLoaderInstanceAndImageTags = promiseArrArrResults[1][j];
+                        console.log('zipLoaderInstanceAndImageTags', zipLoaderInstanceAndImageTags);
 
                         let fileToOpenFilename1 = fileToOpenFilenames[j];
                         console.log('fileToOpenFilename1', fileToOpenFilename1);
@@ -420,7 +425,7 @@ var globalIndex = 0;
                         // Update _blobs with the new image
                         _blobs[fileToOpenFilename1] = fileToOpenUrl;
                         
-                        let imageOrientation = zipLoaderInstanceAndOrientation.orientation;
+                        let imageOrientation = zipLoaderInstanceAndImageTags.imageOrientation;
                         console.log('imageOrientation', imageOrientation);
 
                         if(imageOrientation == -1)
@@ -431,6 +436,8 @@ var globalIndex = 0;
                             // throw 'imageOrientation is -1"';
                         }
                         let imageInfo = {imageFilename: fileToOpenFilename1,
+                                         imageWidth: imageWidth,
+                                         imageHeight: imageHeight,
                                          imageOrientation: imageOrientation};
                         
                         let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();

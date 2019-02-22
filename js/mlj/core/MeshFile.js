@@ -462,8 +462,8 @@ MLJ.core.MeshFile = {
 
     this.extractFilesFromZipLoaderInstance = function (zipLoaderInstance, layer, doSkipJpg) {
 
-        // TBD: can promise4 be removed? no one is waiting on it?
-        var promise4 = new Promise(function(resolve){
+        // creating a promise (promise4) so that we return only when the promise is fully done
+        return new Promise(function(resolve){
             
             // loop over keys
             var promises3 = [];
@@ -615,20 +615,47 @@ MLJ.core.MeshFile = {
                     {
                         let filename = promises3[i].filename;
                         blobs[filename] = promises3[i].url;
-
-                        if(filename === "noSelectedImage.thumbnail.jpg")
-                        {
-                            // noSelectedImage.thumbnail.jpg is added into MLJ.core.Scene3D::_imageInfoVec
-                            // to serve as a "texture" indicator for cases of no selection (i.e. no intersection)
-                            let imageFilename1 = "noSelectedImage.thumbnail.jpg";
-                            let imageOrientation1 = 1;
-                            let imageInfo1 = {imageFilename: imageFilename1,
-                                              imageOrientation: imageOrientation1};
-                            let imageInfoVec1 = MLJ.core.Scene3D.getImageInfoVec();
-                            imageInfoVec1.set(imageFilename1, imageInfo1);
-                            MLJ.core.Scene3D.setImageInfoVec(imageInfoVec1);
-                        }
                         
+                        // if(filename === "noSelectedImage.thumbnail.jpg")
+                        // {
+                        //     // noSelectedImage.thumbnail.jpg is added into MLJ.core.Scene3D::_imageInfoVec
+                        //     // to serve as a "texture" indicator for cases of no selection (i.e. no intersection)
+                        //     // let imageOrientation1 = 1;
+                        //     // let imageWidth1 = -1;
+                        //     // let imageHeight1 = -1;
+                            
+                        //     let imageInfo1 = {imageFilename: filename,
+                        //                       imageWidth: promises3[i].imageWidth,
+                        //                       imageHeight: promises3[i].imageHeight,
+                        //                       imageOrientation: promises3[i].imageOrientation};
+                            
+                        //     let imageInfoVec1 = MLJ.core.Scene3D.getImageInfoVec();
+                        //     imageInfoVec1.set(filename, imageInfo1);
+                        //     MLJ.core.Scene3D.setImageInfoVec(imageInfoVec1);
+                        // }
+                        
+
+                        let fileExtention = MLJ.util.getFileExtention(filename);
+                        switch(fileExtention) {
+                            case "jpg":
+                            case "JPG":
+                            case "jpeg":
+                            case "png":
+                                let imageInfo1 = {imageFilename: filename,
+                                                  imageWidth: promises3[i].imageWidth,
+                                                  imageHeight: promises3[i].imageHeight,
+                                                  imageOrientation: promises3[i].imageOrientation};
+
+                                console.log('imageInfo1', imageInfo1); 
+                                
+                                let imageInfoVec1 = MLJ.core.Scene3D.getImageInfoVec();
+                                imageInfoVec1.set(filename, imageInfo1);
+                                MLJ.core.Scene3D.setImageInfoVec(imageInfoVec1);
+                                break;
+                            default:
+                                break;
+                        }
+
                     }
 
 
@@ -638,7 +665,8 @@ MLJ.core.MeshFile = {
                     {
                         // should not reach here
                         console.error('Version validation failed');
-                        return reject(false);
+                        // return reject(false);
+                        reject(false);
                     }
                     
                     MLJ.core.Scene3D.setBlobs(blobs);
@@ -681,7 +709,8 @@ MLJ.core.MeshFile = {
                         {
                             // should not reach here
                             console.error('obj file is not supported. Obj filename: ' + objFileName);
-                            return reject(false);
+                            reject(false);
+                            // return reject(false);
                         }
 
                         // TBD CheckME: Are objInfo, mtlInfo needed ???
@@ -694,7 +723,8 @@ MLJ.core.MeshFile = {
 
                         if(! _this.loadObjectAndMaterialFiles(objFileName, mtlFileName, layer))
                         {
-                            return reject(false);
+                            reject(false);
+                            // return reject(false);
                         }
                     });
 
@@ -711,7 +741,8 @@ MLJ.core.MeshFile = {
                     MLJ.core.Scene3D.setZipLoaderInstance(zipLoaderInstance);
 
                     // for promise4
-                    return resolve(true);
+                    // return resolve(true);
+                    resolve(true);
                 })
                 .catch((err) => {
                     // handle errors here
@@ -719,7 +750,6 @@ MLJ.core.MeshFile = {
                 });
         });
 
-        return true;
     };
 
     this.loadFromZipFile = function (arrayBuffer, layer, doSkipJpg) {
