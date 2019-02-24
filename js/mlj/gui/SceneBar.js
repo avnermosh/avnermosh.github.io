@@ -207,13 +207,13 @@
                     element2.style.display = "block";
                 }
 
+                globalIndex1 += 1;
+
                 // Center the texture image image after toggling between single pane and multiple panes
                 if(MLJ.core.Scene3D.loadTheSelectedImageAndRender() == false)
                 {
                     throw('Failed to load and render the selected image.');
                 }
-
-                globalIndex1 += 1;
             };
             
             toggleMaximizeTexturePane.onClick(function() {

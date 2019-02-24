@@ -133,6 +133,9 @@ var globalIndex1 = 0;
                 if (!layer.texture[i].planeMesh) {
 
                     var map2 = layer.texture[0].data.material.map;
+            console.log('map2a', map2);
+            map2.needsUpdate = true;
+            console.log('map2a', map2);
 
                     // let blobs = MLJ.core.Scene3D.getBlobs();
                     let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
@@ -186,7 +189,7 @@ var globalIndex1 = 0;
                     
                     texCamera.aspect = image_w_h_ratio;
                     texCamera.updateProjectionMatrix();
-
+ 
                     var material = new THREE.SpriteMaterial( { map: map2,
                                                                color: 0xffffff,
                                                                rotation: rotationVal,
@@ -218,12 +221,14 @@ var globalIndex1 = 0;
                 }
             }
 
-            //Add the mesh to the scene
+            // Reset the camera control attributes (e.g. position, view angle, zoom of the camera)
             texControls.reset();
 
             // The plane mesh is always visible
+            console.log('layer.selectedTexture', layer.selectedTexture); 
             planeMesh1 = layer.texture[layer.selectedTexture].planeMesh;
-
+            console.log('planeMesh1', planeMesh1);
+            
             bbox = new THREE.Box3().setFromObject(planeMesh1);
             if(planeMesh1.material.rotation === 0)
             {
@@ -240,8 +245,16 @@ var globalIndex1 = 0;
                 bbox.max.x = bbox.max.y;
                 bbox.max.y = maxX;
             }
+            // planeMesh1.material.needsUpdate1 = true;
+            // planeMesh1.material.map.needsUpdate = true;
+            // planeMesh1.material.map.foo = true;
+
+            // console.log('planeMesh1.material.map.needsUpdate', planeMesh1.material.map.needsUpdate);
+            // console.log('planeMesh1.material.map', planeMesh1.material.map);
             
+            //Add the mesh to the scene
             texScene.add(planeMesh1);
+            // console.log('texScene', texScene);
             texCamera.position.set( 0, 0, 80 );
 
             this.showStickyNotes(layer);
@@ -450,7 +463,21 @@ var globalIndex1 = 0;
 
     function render() {
         // console.log('BEG TexturePanelPlugin render');
-
+        // console.log('texScene.children.length', texScene.children.length); 
+        if(texScene.children.length > 0)
+        {
+            // console.log('texScene.children[0]', texScene.children[0]);
+            // console.log('texScene.children[0].material', texScene.children[0].material);
+//             console.log('texScene.children[0].material.needsUpdate', texScene.children[0].material.needsUpdate); 
+//             texScene.children[0].material.needsUpdate = true;
+//             console.log('texScene.children[0].material.needsUpdate1', texScene.children[0].material.needsUpdate); 
+        }
+        else
+        {
+        }
+        // console.log('texScene.children[0].material.map', texScene.children[0].material.map);
+        // console.log('texCamera', texCamera);
+        
         texRenderer1.render(texScene, texCamera);
         if(MLJ.core.Scene3D.isStickyNotesEnabled())
         {
@@ -605,6 +632,10 @@ var globalIndex1 = 0;
             // proportions ok, fills window ok, offset - ok
             texRenderer1.setViewport ( -x2, -y2, w1, h1 );
         }
+        else
+        {
+            let a =3;
+        }
 
     }
     
@@ -654,6 +685,10 @@ var globalIndex1 = 0;
         if(imageInfo)
         {
             scaleAndCenterTheSelectedImage(imageInfo);
+        }
+        else
+        {
+            let a =3;
         }
         
     }

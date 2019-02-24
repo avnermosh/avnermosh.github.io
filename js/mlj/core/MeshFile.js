@@ -329,7 +329,8 @@ MLJ.core.MeshFile = {
 
                     if(layerSubstr == "layer0")
                     {
-                        MLJ.core.Scene3DtopDown.setSelectedFloorInfo(objFileName);
+                        // layer is still not ready to present the floor at this point 
+//                         MLJ.core.Scene3DtopDown.setSelectedFloorInfo(objFileName);
                     }
                     
                 }
@@ -621,12 +622,8 @@ MLJ.core.MeshFile = {
                         //     // noSelectedImage.thumbnail.jpg is added into MLJ.core.Scene3D::_imageInfoVec
                         //     // to serve as a "texture" indicator for cases of no selection (i.e. no intersection)
                         //     // let imageOrientation1 = 1;
-                        //     // let imageWidth1 = -1;
-                        //     // let imageHeight1 = -1;
                             
                         //     let imageInfo1 = {imageFilename: filename,
-                        //                       imageWidth: promises3[i].imageWidth,
-                        //                       imageHeight: promises3[i].imageHeight,
                         //                       imageOrientation: promises3[i].imageOrientation};
                             
                         //     let imageInfoVec1 = MLJ.core.Scene3D.getImageInfoVec();
@@ -642,8 +639,6 @@ MLJ.core.MeshFile = {
                             case "jpeg":
                             case "png":
                                 let imageInfo1 = {imageFilename: filename,
-                                                  imageWidth: promises3[i].imageWidth,
-                                                  imageHeight: promises3[i].imageHeight,
                                                   imageOrientation: promises3[i].imageOrientation};
 
                                 console.log('imageInfo1', imageInfo1); 

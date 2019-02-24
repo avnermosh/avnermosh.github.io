@@ -55,6 +55,7 @@ var globalIndex = 0;
     // accumulated list of all the overlay images, as they are added 
     var _imageInfoVec = new MLJ.util.AssociativeArray();
 
+    var _doDisableRotateUpIn_3D = true;
     ////////////////////////////////////////////////////
     // OverlayRect
     ////////////////////////////////////////////////////
@@ -271,12 +272,7 @@ var globalIndex = 0;
                     selectedOverlayRectObj.material.userData.urlArray = new MLJ.util.AssociativeArray();
                 }
 
-                let imageWidth = -1;
-                let imageHeight = -1;
-                
                 let imageInfo = {imageFilename: fileToOpenFilename,
-                                 imageWidth: imageWidth,
-                                 imageHeight: imageHeight,
                                  imageOrientation: imageOrientation};
                 
                 urlArray.set(fileToOpenFilename, imageInfo);
@@ -388,7 +384,7 @@ var globalIndex = 0;
                 // the result of the promise (the byte array) is pushed into promises1
                 let promise1_Uint8Array = new Promise(getBuffer);
 
-                let promise2_InstanceAndImageTags = _zipLoaderInstance.getInstanceAndImageTags(fileToOpenData);
+                let promise2_InstanceAndImageTags = _zipLoaderInstance.getInstanceAndImageTags(fileToOpenName, fileToOpenData);
 
                 promiseArrArr[0].push(promise1_Uint8Array);
                 promiseArrArr[1].push(promise2_InstanceAndImageTags);
@@ -436,8 +432,6 @@ var globalIndex = 0;
                             // throw 'imageOrientation is -1"';
                         }
                         let imageInfo = {imageFilename: fileToOpenFilename1,
-                                         imageWidth: imageWidth,
-                                         imageHeight: imageHeight,
                                          imageOrientation: imageOrientation};
                         
                         let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
@@ -620,9 +614,21 @@ var globalIndex = 0;
         _controls3D.enableRotate = true;
         // _controls3D.enableRotate = false;
         _controls3D.rotateSpeed = 2.0;
+
         // How far you can orbit vertically, upper and lower limits.
-        _controls3D.minPolarAngle = Math.PI/2; // radians
-        _controls3D.maxPolarAngle = Math.PI/2; // radians
+        _doDisableRotateUpIn_3D = true;
+        if(_doDisableRotateUpIn_3D)
+        {
+            _controls3D.minPolarAngle = Math.PI/2; // radians
+            _controls3D.maxPolarAngle = Math.PI/2; // radians
+        }
+        else
+        {
+            // TBD - Add ceiling and ground rotate scene 360 deg
+            _controls3D.minPolarAngle = 0; // radians
+            _controls3D.maxPolarAngle = Math.PI; // radians
+        }
+
         // How far you can orbit horizontally, upper and lower limits.
         // If set, must be a sub-interval of the interval [ - Math.PI, Math.PI ].
         _controls3D.minAzimuthAngle = - Infinity; // radians
@@ -821,6 +827,8 @@ var globalIndex = 0;
     };
 
     this.addLayer = function (layer) {
+        // TBD - why addLayer is called multiple times
+        
         if (!(layer instanceof MLJ.core.Layer)) {
             console.error("The parameter must be an instance of MLJ.core.Layer");
             return;
@@ -834,6 +842,14 @@ var globalIndex = 0;
         _layers.set(layer.name, layer);
         
         _selectedLayer = layer;
+
+        // let floorInfo = _selectedLayer.floorInfoArray.getFirst();
+        let floorInfoArray = _selectedLayer.getFloorInfoArray();
+        let floorInfo = floorInfoArray.getFirst();
+        // let selectedFloorInfo = MLJ.core.Scene3DtopDown.getSelectedFloorInfo();
+        let floorName = floorInfo["floorName"];
+        console.log('floorName', floorName); 
+        MLJ.core.Scene3DtopDown.setSelectedFloorInfo(floorName);
 
         $(document).trigger("SceneLayerAdded", [layer, _layers.size()]);
         _this.render();
@@ -1089,6 +1105,10 @@ var globalIndex = 0;
         
     };
 
+    this.isDisableRotateUpIn_3D = function () {
+        return _doDisableRotateUpIn_3D;
+    };
+    
     this.getEdit3dModelOverlayFlag = function () {
         return _edit3dModelOverlayFlag;
     };

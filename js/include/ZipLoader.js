@@ -3700,8 +3700,6 @@
                              let result2 = {};
                              result2.filename = filename;
                              result2.imageOrientation = -1;
-                             result2.imageWidth = -1;
-                             result2.imageHeight = -1;
                              
                              var view = new DataView(e.target.result);
 
@@ -3719,7 +3717,7 @@
                                  let val1 = view.getUint16(offset+2, false);
                                  if (val1 <= 8)
                                  {
-                                     console.log('val1', val1); 
+//                                      console.log('val1', val1); 
                                      console.error('error reading jpg tags1'); 
                                      result2.instance = this.zipLoaderInstance;
                                      // result2.imageOrientation = -1;
@@ -3748,34 +3746,34 @@
                                      for (var i = 0; i < tags; i++)
                                      {
                                          let tag1 = (view.getUint16(offset + (i * 12), little));
-                                         console.log('tag1', tag1);
+//                                          console.log('tag1', tag1);
 
                                          if (tag1 == 0xa002)
                                          {
                                              let exifImageWidth = view.getUint16(offset + (i * 12) + 8, little);
                                              console.log('exifImageWidth', exifImageWidth);
-                                             result2.imageWidth = exifImageWidth;
+                                             // result2.imageWidth = exifImageWidth;
                                          }
                                          
                                          if (tag1 == 0xa003)
                                          {
                                              let exifImageHeight = view.getUint16(offset + (i * 12) + 8, little);
                                              console.log('exifImageHeight', exifImageHeight);
-                                             result2.imageHeight = exifImageHeight;
+                                             // result2.imageHeight = exifImageHeight;
                                          }
                                          
                                          if (tag1 == 0x0100)
                                          {
                                              let imageWidth = view.getUint16(offset + (i * 12) + 8, little);
                                              console.log('imageWidth', imageWidth);
-                                             result2.imageWidth = imageWidth;
+                                             // result2.imageWidth = imageWidth;
                                          }
 
                                          if (tag1 == 0x0101)
                                          {
                                              let imageHeight = view.getUint16(offset + (i * 12) + 8, little);
                                              console.log('imageHeight', imageHeight);
-                                             result2.imageHeight = imageHeight;
+                                             // result2.imageHeight = imageHeight;
                                          }
 
                                          if (tag1 == 0x0142)
@@ -3846,14 +3844,14 @@
                              let imageOrientation = result2.imageOrientation;
 
                              instance.files[filename].imageOrientation = result2.imageOrientation;
-                             instance.files[filename].imageWidth = result2.imageWidth;
-                             instance.files[filename].imageHeight = result2.imageHeight;
+                             // instance.files[filename].imageWidth = result2.imageWidth;
+                             // instance.files[filename].imageHeight = result2.imageHeight;
 
                              var result4 = {};
                              result4.filename = filename;
                              result4.imageOrientation = result2.imageOrientation;
-                             result4.imageWidth = result2.imageWidth;
-                             result4.imageHeight = result2.imageHeight;
+                             // result4.imageWidth = result2.imageWidth;
+                             // result4.imageHeight = result2.imageHeight;
                              result4.url = instance.files[filename].url;
                              return resolve(result4);
                              

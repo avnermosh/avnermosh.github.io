@@ -15,20 +15,20 @@
 
 var globalIndex = 0;
 var doUsePanForChangeSettingIn_3D = false;
-var doDisableRotateUpIn_3D = false;
+// var doDisableRotateUpIn_3D = false;
 
 THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     console.log('domElement', domElement);
 
-    var CONTROL_TYPE = { NONE: -1, _3D: 0, _3D_TOP_DOWN: 1, _TEXTURE_2D: 2 };
+    var CONTROL_TYPE = { NONE: -1, SCENE_3D: 0, _3D_TOP_DOWN: 1, _TEXTURE_2D: 2 };
     this.controllerType = CONTROL_TYPE.NONE;
 
     this.domElement = ( domElement !== undefined ) ? domElement : document;
 
     if(this.domElement.id === '_3D')
     {
-        this.controllerType = CONTROL_TYPE._3D;
+        this.controllerType = CONTROL_TYPE.SCENE_3D;
         // doUsePanForChangeSettingIn_3D = true;
         // doDisableRotateUpIn_3D = true;
     }
@@ -117,6 +117,20 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     this.position0 = this.object.position.clone();
     this.zoom0 = this.object.zoom;
 
+    switch ( this.controllerType ) {
+
+        case CONTROL_TYPE.SCENE_3D:
+            console.log('this.target0', this.target0);
+            console.log('this.position0', this.position0);
+            console.log('this.zoom0', this.zoom0); 
+            break;
+
+        case CONTROL_TYPE._3D_TOP_DOWN:
+        case CONTROL_TYPE._TEXTURE_2D:
+            break;
+            
+    }
+    
     this.isKeyDown = false;
     this.isMouseDown = false;
     this.isTouchDown = false;
@@ -147,9 +161,39 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     this.reset = function () {
 
+        // switch ( this.controllerType ) {
+
+        //     case CONTROL_TYPE.SCENE_3D:
+        //         console.log('scope.target', scope.target);
+        //         console.log('scope.target0', scope.target0); 
+        //         console.log('scope.object.position', scope.object.position);
+        //         console.log('scope.position0', scope.position0); 
+        //         console.log('scope.object.zoom', scope.object.zoom);
+        //         console.log('scope.zoom0', scope.zoom0); 
+        //         break;
+
+        //     case CONTROL_TYPE._3D_TOP_DOWN:
+        //     case CONTROL_TYPE._TEXTURE_2D:
+        //         break;
+                
+        // }
         scope.target.copy( scope.target0 );
-        scope.object.position.copy( scope.position0 );
+        // scope.object.position.copy( scope.position0 );
         scope.object.zoom = scope.zoom0;
+
+        // switch ( this.controllerType ) {
+
+        //     case CONTROL_TYPE.SCENE_3D:
+        //         console.log('scope.target1', scope.target); 
+        //         console.log('scope.position1', scope.position); 
+        //         console.log('scope.zoom1', scope.zoom); 
+        //         break;
+
+        //     case CONTROL_TYPE._3D_TOP_DOWN:
+        //     case CONTROL_TYPE._TEXTURE_2D:
+        //         break;
+                
+        // }
 
         scope.object.updateProjectionMatrix();
         scope.dispatchEvent( changeEvent );
@@ -234,13 +278,13 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         var lastQuaternion = new THREE.Quaternion();
 
         return function update() {
-            // console.log('BEG this.update12');
+//             console.log('BEG this.update12');
             
             var position = scope.object.position;
 
             switch ( this.controllerType ) {
 
-                case CONTROL_TYPE._3D:
+                case CONTROL_TYPE.SCENE_3D:
                     // console.log('scope.object.position2', scope.object.position); 
                     break;
 
@@ -316,10 +360,24 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
             // min(camera displacement, camera rotation in radians)^2 > EPS
             // using small-angle approximation cos(x/2) = 1 - x^2 / 8
             let positionShift = lastPosition.distanceToSquared( scope.object.position );
+            let condition3 = 8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) );
+
+            switch ( this.controllerType ) {
+
+                case CONTROL_TYPE.SCENE_3D:
+                    // console.log('condition3', condition3);
+                    // console.log('scope.object.quaternion', scope.object.quaternion);
+                    // console.log('lastQuaternion', lastQuaternion); 
+                    break;
+                    
+                case CONTROL_TYPE._3D_TOP_DOWN:
+                case CONTROL_TYPE._TEXTURE_2D:
+                    break;
+            }
             
             if ( zoomChanged ||
                  (positionShift > EPS) ||
-                 (8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) ) > EPS) ) {
+                 (condition3 > EPS) ) {
 
                 scope.dispatchEvent( changeEvent );
 
@@ -329,7 +387,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 switch ( this.controllerType ) {
 
-                    case CONTROL_TYPE._3D:
+                    case CONTROL_TYPE.SCENE_3D:
                         MLJ.core.Scene3DtopDown.setArrowHelper();
                         break;
                         
@@ -444,7 +502,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     function rotateUp( angle ) {
 
         sphericalDelta.phi -= angle;
-
+        // console.log('sphericalDelta.phi', sphericalDelta.phi); 
     }
 
     var panLeft = function () {
@@ -513,7 +571,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 // we use only clientHeight here so aspect ratio does not distort speed
                 switch ( scope.controllerType ) {
-                    case CONTROL_TYPE._3D:
+                    case CONTROL_TYPE.SCENE_3D:
                         // disable panLeft
                         // panLeft( 2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
                         break;
@@ -604,8 +662,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         // console.log( 'handleMouseDownRotate' );
 
+        // console.log('event.clientX', event.clientX);
+        // console.log('event.clientY', event.clientY);
+        
         rotateStart.set( event.clientX, event.clientY );
-
     }
 
     function handleMouseDownDolly( event ) {
@@ -622,7 +682,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         switch ( scope.controllerType ) {
 
-            case CONTROL_TYPE._3D:
+            case CONTROL_TYPE.SCENE_3D:
                 if(doUsePanForChangeSettingIn_3D)
                 {
                     scope.changeSettings();
@@ -654,11 +714,10 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         switch ( scope.controllerType ) {
 
-            case CONTROL_TYPE._3D:
-                if(doDisableRotateUpIn_3D)
+            case CONTROL_TYPE.SCENE_3D:
+                if(!MLJ.core.Scene3D.isDisableRotateUpIn_3D())
                 {
-                    // Disable rotateUp
-                    // rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
+                    rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
                 }
                 
                 break;
@@ -755,7 +814,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         
         switch ( scope.controllerType ) {
 
-            case CONTROL_TYPE._3D:
+            case CONTROL_TYPE.SCENE_3D:
                 break;
 
             case CONTROL_TYPE._3D_TOP_DOWN:
@@ -877,7 +936,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         // console.log( 'BEG handleMouseMovePan' );
         switch ( scope.controllerType ) {
 
-            case CONTROL_TYPE._3D:
+            case CONTROL_TYPE.SCENE_3D:
                 if(doUsePanForChangeSettingIn_3D)
                 {
                     return;
@@ -906,13 +965,17 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         switch ( scope.controllerType ) {
 
-            case CONTROL_TYPE._3D:
+            case CONTROL_TYPE.SCENE_3D:
                 if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
                 {
                     let selectedThumbnailImageFilename = MLJ.core.Scene3D.getSelectedThumbnailImageFilename();
                     let selectedThumbnailImageFilenamePrev = MLJ.core.Scene3D.getSelectedThumbnailImageFilenamePrev();
 
-                    if((selectedThumbnailImageFilename) && (selectedThumbnailImageFilename !== selectedThumbnailImageFilenamePrev ))
+                    // TBD - for now loadTheSelectedImageAndRender even if the same image.
+                    // This is a workaround for the problem of loading the first image
+                    // Otherwise the first time, the image dowsn't show up...
+                    // if((selectedThumbnailImageFilename) && (selectedThumbnailImageFilename !== selectedThumbnailImageFilenamePrev ))
+                    if((selectedThumbnailImageFilename) )
                     {
                         // load selected image to texture pane only on mouse up
                         if(MLJ.core.Scene3D.loadTheSelectedImageAndRender() == false)
@@ -1113,7 +1176,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                 else {
                     switch ( scope.controllerType ) {
 
-                        case CONTROL_TYPE._3D:
+                        case CONTROL_TYPE.SCENE_3D:
                             {
                                 // For 3d pane use left mouse to rotate 
                                 handleMouseDownRotate( event );
@@ -1157,7 +1220,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                 // mouseDown::mouseButtons.RIGHT, and touchDown::2_fingers have the same behavior
                 switch ( scope.controllerType ) {
 
-                    case CONTROL_TYPE._3D:
+                    case CONTROL_TYPE.SCENE_3D:
                         break;
                         
                     case CONTROL_TYPE._3D_TOP_DOWN:
@@ -1206,7 +1269,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 switch ( scope.controllerType ) {
 
-                    case CONTROL_TYPE._3D:
+                    case CONTROL_TYPE.SCENE_3D:
                         {
                             // For 3d pane use left mouse to rotate 
                             handleMouseMoveRotate( event );
@@ -1336,7 +1399,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 switch ( scope.controllerType ) {
 
-                    case CONTROL_TYPE._3D:
+                    case CONTROL_TYPE.SCENE_3D:
                         {
 		            if ( scope.enableRotate === false )
                             {
@@ -1376,7 +1439,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 switch ( scope.controllerType ) {
 
-                    case CONTROL_TYPE._3D:
+                    case CONTROL_TYPE.SCENE_3D:
                     case CONTROL_TYPE._3D_TOP_DOWN:
 	                if ( scope.enableZoom ) {
                             handleTouchStartDolly( event );
@@ -1428,7 +1491,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 switch ( scope.controllerType ) {
 
-                    case CONTROL_TYPE._3D:
+                    case CONTROL_TYPE.SCENE_3D:
                         {
                             // For 3d pane use left mouse to rotate 
 		            handleTouchMoveRotate( event );
@@ -1459,7 +1522,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
                 switch ( scope.controllerType ) {
 
-                    case CONTROL_TYPE._3D:
+                    case CONTROL_TYPE.SCENE_3D:
                     case CONTROL_TYPE._3D_TOP_DOWN:
                         if ( scope.enableZoom || scope.enablePan )
                         {
