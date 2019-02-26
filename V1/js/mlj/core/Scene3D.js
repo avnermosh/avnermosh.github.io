@@ -884,9 +884,11 @@ var globalIndex = 0;
             }
             else
             {
-                // console.log('material_userData_urlArray.size() before pop', material_userData_urlArray.size()); 
-                let keyToRemove = material_userData_urlArray.getLastKey();
-                material_userData_urlArray.remove(keyToRemove);
+                // Remove the selected image and update to display the next image in texture pane and scene3d pane
+                let imageFilenameToRemove = _selectedThumbnailImageFilename;
+                material_userData_urlArray.remove(imageFilenameToRemove);
+                _selectedImageFilenameIndex = (_selectedImageFilenameIndex - 1) % _selectedImageFilenames.length
+                this.loadNextImage();
             }
             _selectedImageFilenames = material_userData_urlArray.getKeys();
         }
