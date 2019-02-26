@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<meta charset="utf-8"/>
+<html>
+    <script src="js/include/jquery-3.3.1.min.js"></script>
+    <script src="js/include/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css">
+    <script src="scale_text_on_canvas.js"></script>
+    <link rel="stylesheet" href="scale_text_on_canvas.css">
+    <body>
+        
+        <h1>Drag the ballon.</h1>
+
+        <div id="container1">
+            <canvas id="canvas" width="480" height="320"></canvas>
+
+            <img src="http://i.imgur.com/PWSOy.jpg" id="background" />
+            <img src="http://i.imgur.com/6l6v2.png" id="ballon" />
+
+            <div id="box">
+                <div id="editor" class="note">
+                    <p>Hello World!</p>
+                </div>	
+                <h3>Headline</h3>
+                <p>text 1</p>
+            </div>
+
+            
+        </div>
+
+        <button id="scale_up">Scale up</button>
+        <button id="scale_down">Scale down</button>
+        
+    </body>
+</html>
