@@ -232,7 +232,7 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
 
     function onDocumentMouseDown( event ) {
 
-        console.log('BEG onDocumentMouseDown');
+//         console.log('BEG onDocumentMouseDown');
         scope.isMouseDown = true;
         
         if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
@@ -267,10 +267,7 @@ THREE.Edit3dModelOverlayTrackballControls = function ( pivotGroup,
                  _selectedOverlayRectObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayRect', 'object']);
                 _selectedOverlayVertexObj = MLJ.util.getNestedObject(intersectionInfo, ['intersectedOverlayVertex', 'object']);
 
-                console.log('_selectedOverlayRectObj', _selectedOverlayRectObj); 
-
                 let editMode = MLJ.core.Scene3D.getEditMode();
-                console.log('editMode', editMode); 
 
                 if(editMode == 'NewRect')
                 {

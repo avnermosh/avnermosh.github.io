@@ -1428,7 +1428,7 @@ var globalIndex = 0;
 
     this.getIntersectionInfo = function ()
     {
-        console.log('BEG getIntersectionInfo');
+//         console.log('BEG getIntersectionInfo');
         return _intersectionInfo;
     };
     
@@ -1845,6 +1845,18 @@ var globalIndex = 0;
         {
             _selectedImageFilenameIndex = (_selectedImageFilenameIndex + 1) % _selectedImageFilenames.length
             _selectedThumbnailImageFilename = _selectedImageFilenames[_selectedImageFilenameIndex];
+
+            let overlayMeshGroup = _intersectionInfo.intersectionLayer.getOverlayMeshGroup();
+            let intersectedOverlayRectObjectId = MLJ.util.getNestedObject(_intersectionInfo, ['intersectedOverlayRect', 'object', 'id']);
+            let intersectedOverlayRectObject = overlayMeshGroup.getObjectById(intersectedOverlayRectObjectId);
+            if(intersectedOverlayRectObject && _blobs[_selectedThumbnailImageFilename])
+            {
+                let imageInfo = _imageInfoVec.getByKey(_selectedThumbnailImageFilename);
+                updateMaterial(intersectedOverlayRectObject,
+                               _blobs[_selectedThumbnailImageFilename],
+                               _selectedThumbnailImageFilename,
+                               imageInfo.imageOrientation);
+            }
             
             if(MLJ.core.Scene3D.loadTheSelectedImageAndRender() == false)
             {

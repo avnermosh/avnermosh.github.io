@@ -97,7 +97,7 @@ var globalIndex1 = 0;
     };
 
     plug._applyTo = function (layer, layersNum, $) {
-        console.log('BEG plug._applyTo');
+//         console.log('BEG plug._applyTo');
         
         // // RemoveME:
         // console.clear();
@@ -133,17 +133,17 @@ var globalIndex1 = 0;
                 if (!layer.texture[i].planeMesh) {
 
                     var map2 = layer.texture[0].data.material.map;
-            console.log('map2a', map2);
-            map2.needsUpdate = true;
-            console.log('map2a', map2);
+            // console.log('map2a', map2);
+            // map2.needsUpdate = true;
+            // console.log('map2a', map2);
 
                     // let blobs = MLJ.core.Scene3D.getBlobs();
                     let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
                     let selectedThumbnailImageFilename = MLJ.core.Scene3D.getSelectedThumbnailImageFilename();
-                    console.log('selectedThumbnailImageFilename', selectedThumbnailImageFilename); 
+//                     console.log('selectedThumbnailImageFilename', selectedThumbnailImageFilename); 
 
                     let selectedImageFilename = MLJ.core.Scene3D.getSelectedImageFilename();
-                    console.log('selectedImageFilename', selectedImageFilename);
+//                     console.log('selectedImageFilename', selectedImageFilename);
                     
                     // let imageInfo = imageInfoVec.getByKey(selectedThumbnailImageFilename);
 
@@ -225,9 +225,9 @@ var globalIndex1 = 0;
             texControls.reset();
 
             // The plane mesh is always visible
-            console.log('layer.selectedTexture', layer.selectedTexture); 
+//             console.log('layer.selectedTexture', layer.selectedTexture); 
             planeMesh1 = layer.texture[layer.selectedTexture].planeMesh;
-            console.log('planeMesh1', planeMesh1);
+//             console.log('planeMesh1', planeMesh1);
             
             bbox = new THREE.Box3().setFromObject(planeMesh1);
             if(planeMesh1.material.rotation === 0)
@@ -679,7 +679,7 @@ var globalIndex1 = 0;
         // let imageInfo = imageInfoVec.getByKey(selectedThumbnailImageFilename);
 
         let selectedImageFilename = MLJ.core.Scene3D.getSelectedImageFilename();
-        console.log('selectedImageFilename', selectedImageFilename);
+//         console.log('selectedImageFilename', selectedImageFilename);
         let imageInfo = imageInfoVec.getByKey(selectedImageFilename);
         
         if(imageInfo)

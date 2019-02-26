@@ -261,7 +261,7 @@ MLJ.core.MeshFile = {
                             child.material.side = THREE.DoubleSide;
                             child.material.polygonOffset = true;
                             child.material.polygonOffsetUnits = 1;
-                            // structure.obj less in front, compared to overlay.obj
+                            // structure.obj less in front (higher polygonOffsetFactor), compared to overlay.obj
                             child.material.polygonOffsetFactor = 0;
                         }
                     });
@@ -344,7 +344,7 @@ MLJ.core.MeshFile = {
                                 child.material.side = THREE.DoubleSide;
                                 child.material.polygonOffset = true;
                                 child.material.polygonOffsetUnits = 1;
-	                        // overlay.obj more in front, compared to structure.obj
+	                        // overlay.obj more in front (lower polygonOffsetFactor), compared to structure.obj
                                 child.material.polygonOffsetFactor = -1;
                             }
 
