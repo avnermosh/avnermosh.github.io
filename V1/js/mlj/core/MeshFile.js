@@ -48,6 +48,7 @@ MLJ.core.MeshFile = {
 (function () {
     var _this = this;
     var _openedList = new MLJ.util.AssociativeArray();
+    var imageInfoVecGlobal = new MLJ.util.AssociativeArray();
 
     function isExtensionValid(extension) {
 
@@ -63,10 +64,14 @@ MLJ.core.MeshFile = {
         return false;
     }
 
-    this.loadTextureImage2 = function (textureFileName, onTextureLoaded) {
+    this.getImageInfoVecGlobal = function () {
+        return imageInfoVecGlobal;
+    }
+
+    this.loadTextureImage2 = function (textureFileUrl, onTextureLoaded) {
 
         //let's create the layer-dependent texture array
-        var texture2 = new THREE.TextureLoader().load( textureFileName, function ( texture2 ) {
+        var texture2 = new THREE.TextureLoader().load( textureFileUrl, function ( texture2 ) {
             // This anonymous function will be called when the texture2 has finished loading
             var format = THREE.RGBFormat;
             var texComponentsTitle = "RGB";
@@ -76,14 +81,15 @@ MLJ.core.MeshFile = {
             
             texture2.needsUpdate = true; //We need to update the texture2
             texture2.minFilter = THREE.LinearFilter;   //Needed when texture2 is not a power of 2
-            
-            let blobs = MLJ.core.Scene3D.getBlobs();
-            let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
-            let selectedThumbnailImageFilename = MLJ.core.Scene3D.getSelectedThumbnailImageFilename();
+
+            let selectedLayer = MLJ.core.Model.getSelectedLayer();
+            let blobs = selectedLayer.getBlobs();
+            let imageInfoVec = selectedLayer.getImageInfoVec();
+            let selectedThumbnailImageFilename = selectedLayer.getSelectedThumbnailImageFilename();
             let imageInfo = imageInfoVec.getByKey(selectedThumbnailImageFilename);
 
             let rotationVal = 0;
-            switch (Number(imageInfo.imageOrientation)) {
+            switch (Number(imageInfo.orientation)) {
                 case 1:
                     // landscape
                     rotationVal = 0;
@@ -110,7 +116,7 @@ MLJ.core.MeshFile = {
             // object-fit: objectFitVal,
             
             var texture3 = {
-                fileName: textureFileName,
+                fileName: textureFileUrl,
                 components: texComponentsTitle,
                 format: format,
                 data: sprite2
@@ -143,7 +149,8 @@ MLJ.core.MeshFile = {
         for(var i=0; i<promises1.length; i++)
         {
             let filename = promises1[i].filename;
-            blobs[filename] = promises1[i].url;
+            // blobs[filename] = promises1[i].url;
+            blobs.set(filename, promises1[i].url);
         }
         
         return resolve(true);
@@ -157,7 +164,9 @@ MLJ.core.MeshFile = {
             
             // loop over keys
             var promises1 = [];
-            var blobs = MLJ.core.Scene3D.getBlobs();
+            
+            let selectedLayer = MLJ.core.Model.getSelectedLayer();
+            var blobs = selectedLayer.getBlobs();
             for (var key in filenames)
             {
                 var filename = filenames[key];
@@ -167,7 +176,7 @@ MLJ.core.MeshFile = {
                     case "JPG":
                     case "png":
                         if (zipLoaderInstance.files[filename].url) {
-                            blobs[filename] = zipLoaderInstance.files[filename].url;
+                            blobs.set(filename, zipLoaderInstance.files[filename].url);
                         }
                         else
                         {
@@ -206,7 +215,7 @@ MLJ.core.MeshFile = {
             return false;
         }
         
-        var blobs = MLJ.core.Scene3D.getBlobs();
+        var blobs = layer.getBlobs();
         console.log( 'mtlFileName: ' + mtlFileName );
         console.log( 'objFileName: ' + objFileName );
 
@@ -215,19 +224,20 @@ MLJ.core.MeshFile = {
         // Initialize loading manager with URL callback.
         var objectURLs = [];
         loadingManager.setURLModifier( ( url ) => {
-            if(!blobs[ url ])
+            if(!blobs.getByKey(url))
             {
                 url = url.replace(/\.\//i, '');
             }
 
-            url = blobs[ url ];
+            url = blobs.getByKey(url);
+
             objectURLs.push( url );
             return url;
         } );
         
         let mtlLoader = new THREE.MTLLoader(loadingManager);
         mtlLoader.setMaterialOptions( {side: THREE.DoubleSide} );
-        
+
         mtlLoader.load( mtlFileName, function( materials ) {
             materials.preload();
 
@@ -244,6 +254,7 @@ MLJ.core.MeshFile = {
                         objInstance.bBox = child.geometry.boundingBox;
                     }
                 });
+//                 objInstance.name = objFileName;
 
                 let structure_obj_re = /.*structure\.obj/;
                 let structure_obj_re_matched = objFileName.match(structure_obj_re);
@@ -277,14 +288,12 @@ MLJ.core.MeshFile = {
                     // console.log('layerSubstr', layerSubstr); 
 
                     // topDown struct - add to topDown struct array
-                    floorInfo = {};
-                    floorInfo["floorName"] = objFileName;
 
-                    // Set the bounding box of floorInfo["mesh"] and set its z order
+                    // Set the bounding box of floorInfo.mesh and set its z order
                     objInstance.traverse(function ( child ) {
                         if ( child instanceof THREE.Mesh ) {
 
-                            // Set the z order of floorInfo["mesh"] such that other objects that are on the same plane
+                            // Set the z order of floorInfo.mesh such that other objects that are on the same plane
                             // (_axesHelperIntersection, _cube_camera3D, _cube_scene3DcameraMouseIntersectionPoint, _cube_scene3DcameraLookAtIntersectionPoint)
                             // will be rendered on top of it
                             child.material.polygonOffset = true;
@@ -292,7 +301,7 @@ MLJ.core.MeshFile = {
                             child.material.polygonOffsetFactor = 1;
                             
                             if ( child.name === "ground_1" ) {
-                                // Set the bounding box of floorInfo["mesh"] from the dround background image
+                                // Set the bounding box of floorInfo.mesh from the dround background image
                                 let mesh1 = child.clone();
                                 objInstance.bBox.setFromObject( mesh1 );
                             }
@@ -322,17 +331,15 @@ MLJ.core.MeshFile = {
                         floorLevel = 3;
                     }
 
-                    floorInfo["height"] = (floorLevel *(floorHeight + floorThickness)) + heightAboveFloor;
-                    floorInfo["mesh"] = objInstance;
-                    floorInfo["mesh"].translateY( floorInfo["height"] );
+                    let floorInfo = new FloorInfo({name: objFileName,
+                                                   floorLevel: floorLevel,
+                                                   floorHeight: floorHeight,
+                                                   floorThickness: floorThickness,
+                                                   heightAboveFloor: heightAboveFloor,
+                                                   mesh: objInstance});
+                    
                     layer.addFloorInfo(objFileName, floorInfo);
 
-                    if(layerSubstr == "layer0")
-                    {
-                        // layer is still not ready to present the floor at this point 
-//                         MLJ.core.Scene3DtopDown.setSelectedFloorInfo(objFileName);
-                    }
-                    
                 }
                 else if(overlay_rect_re_matched)
                 {
@@ -371,7 +378,8 @@ MLJ.core.MeshFile = {
                                     overlayRect.geometry.vertices[i].multiply(scale0);
                                 }
                                 
-                                overlayRect.scale.set(material_userData_scale.x, material_userData_scale.y, material_userData_scale.z)
+                                overlayRect.scale.set(material_userData_scale.x, material_userData_scale.y, material_userData_scale.z);
+                                overlayRect.updateMatrixWorld();
                             }
                             layer.addToOverlayMeshGroup(overlayRect);
                         }
@@ -393,37 +401,38 @@ MLJ.core.MeshFile = {
     };
 
     
-    this.validateVersion = function (generalMetadataFilename) {
+    this.validateVersion = function (layer, generalMetadataFilename) {
 
-        var blobs = MLJ.core.Scene3D.getBlobs();
-        if(!blobs[generalMetadataFilename])
+        var blobs = layer.getBlobs();
+        if(!blobs.getByKey(generalMetadataFilename))
         {
             // should not reach here
             console.error('Missing file: ' + generalMetadataFilename );
             return false;
         }
         
-        var generalInfo = _this.loadFile(blobs[generalMetadataFilename], "json");
+        var generalInfo = _this.loadFile(blobs.getByKey(generalMetadataFilename), "json");
         
         var generalInfo_modelVersion = MLJ.util.getNestedObject(generalInfo, ['generalInfo', 'modelVersion']);
 
-        if(!generalInfo_modelVersion || (MLJ.core.Scene3D.getReleaseVersion() !== generalInfo_modelVersion))
+        if(!generalInfo_modelVersion || (MLJ.core.Model.getReleaseVersion() !== generalInfo_modelVersion))
         {
             // should not reach here
-            console.error('Version are not matching. Release version: ' + MLJ.core.Scene3D.getReleaseVersion() +
+            console.error('Version are not matching. Release version: ' + MLJ.core.Model.getReleaseVersion() +
                           " , Model version: " + generalInfo_modelVersion);
             return false;
         }
 
-        MLJ.core.Scene3D.setModelVersion( generalInfo_modelVersion );
+        MLJ.core.Model.setModelVersion( generalInfo_modelVersion );
 
         return true;
     };
 
     this.loadNotesFromJsonFile = function (layer, notesFilename) {
         
-        var blobs = MLJ.core.Scene3D.getBlobs();
-        let notesArray1 = _this.loadFile(blobs[notesFilename], "json");
+        let selectedLayer = MLJ.core.Model.getSelectedLayer();
+        var blobs = selectedLayer.getBlobs();
+        let notesArray1 = _this.loadFile(blobs.getByKey(notesFilename), "json");
 
         let stickyNoteGroup = layer.getStickyNoteGroup();
         let texturePlugin = MLJ.core.plugin.Manager.getTexturePlugins().getFirst();
@@ -472,7 +481,7 @@ MLJ.core.MeshFile = {
             filenames = Object.keys(zipLoaderInstance.files);
             
             // loop over keys
-            var blobs = MLJ.core.Scene3D.getBlobs();
+            var blobs = layer.getBlobs();
             var mtlFileNames = [];
             var objFileNames = [];
             
@@ -488,7 +497,7 @@ MLJ.core.MeshFile = {
                         break;
                         // case "zip":
                         //     console.log( 'create layer with name: ' + filename );
-                        //     var layer1 = MLJ.core.Scene3D.createLayer(filename);
+                        //     var layer1 = MLJ.core.Model.createLayer(filename);
                         //     layer1.fileName = filename;
                         
                         //     var zipLoader1 = new ZipLoader( filename );
@@ -529,7 +538,7 @@ MLJ.core.MeshFile = {
                             if(overlayRectThumbnailImageRegexMatched || nonOverlayRectImageRegexMatched)
                             {
                                 if (zipLoaderInstance.files[filename].url) {
-                                    blobs[filename] = zipLoaderInstance.files[filename].url;
+                                    blobs.set(filename, zipLoaderInstance.files[filename].url);
                                 }
                                 else
                                 {
@@ -545,13 +554,13 @@ MLJ.core.MeshFile = {
                             }
                             else
                             {
-                                blobs[filename] = null;
+                                blobs.set(filename, null);
                             }
                         }
                         else
                         {
                             if (zipLoaderInstance.files[filename].url) {
-                                blobs[filename] = zipLoaderInstance.files[filename].url;
+                                blobs.set(filename, zipLoaderInstance.files[filename].url);
                             }
                             else
                             {
@@ -561,19 +570,19 @@ MLJ.core.MeshFile = {
 
                         break;
                     case "mtl":
-                        blobs[filename] = zipLoaderInstance.extractAsBlobUrl( filename, 'text/plain' );
+                        blobs.set(filename, zipLoaderInstance.extractAsBlobUrl( filename, 'text/plain' ));
                         mtlFileNames.push(filename);
                         
                         break;
                     case "obj":
-                        blobs[filename] = zipLoaderInstance.extractAsBlobUrl( filename, 'text/plain' );
+                        blobs.set(filename, zipLoaderInstance.extractAsBlobUrl( filename, 'text/plain' ));
                         objFileNames.push(filename);
                         
                         break;
                     case "json":
-                        blobs[filename] = zipLoaderInstance.extractAsBlobUrl( filename, 'text/plain' );
+                        blobs.set(filename, zipLoaderInstance.extractAsBlobUrl( filename, 'text/plain' ));
 
-                        var metadata = _this.loadFile(blobs[filename], "json");
+                        var metadata = _this.loadFile(blobs.getByKey(filename), "json");
                         
                         var general_metadata_re = /general_metadata/;
                         var general_metadata_re_matched = filename.match(general_metadata_re);
@@ -587,7 +596,7 @@ MLJ.core.MeshFile = {
                         }
                         else if(notes_metadata_re_matched)
                         {
-                            if(MLJ.core.Scene3D.isStickyNotesEnabled())
+                            if(MLJ.core.Model.isStickyNotesEnabled())
                             {
                                 // found notes metadata json file, i.e. sticky notes
                                 _this.loadNotesFromJsonFile(layer, filename);
@@ -615,37 +624,19 @@ MLJ.core.MeshFile = {
                     for(var i=0; i<promises3.length; i++)
                     {
                         let filename = promises3[i].filename;
-                        blobs[filename] = promises3[i].url;
+                        blobs.set(filename, promises3[i].url)
                         
-                        // if(filename === "noSelectedImage.thumbnail.jpg")
-                        // {
-                        //     // noSelectedImage.thumbnail.jpg is added into MLJ.core.Scene3D::_imageInfoVec
-                        //     // to serve as a "texture" indicator for cases of no selection (i.e. no intersection)
-                        //     // let imageOrientation1 = 1;
-                            
-                        //     let imageInfo1 = {imageFilename: filename,
-                        //                       imageOrientation: promises3[i].imageOrientation};
-                            
-                        //     let imageInfoVec1 = MLJ.core.Scene3D.getImageInfoVec();
-                        //     imageInfoVec1.set(filename, imageInfo1);
-                        //     MLJ.core.Scene3D.setImageInfoVec(imageInfoVec1);
-                        // }
-                        
-
                         let fileExtention = MLJ.util.getFileExtention(filename);
                         switch(fileExtention) {
                             case "jpg":
                             case "JPG":
                             case "jpeg":
                             case "png":
-                                let imageInfo1 = {imageFilename: filename,
-                                                  imageOrientation: promises3[i].imageOrientation};
+                                let imageInfo = new ImageInfo({filename: filename,
+                                                               orientation: promises3[i].imageOrientation});
 
-                                console.log('imageInfo1', imageInfo1); 
-                                
-                                let imageInfoVec1 = MLJ.core.Scene3D.getImageInfoVec();
-                                imageInfoVec1.set(filename, imageInfo1);
-                                MLJ.core.Scene3D.setImageInfoVec(imageInfoVec1);
+                                // console.log('imageInfo', imageInfo); 
+                                imageInfoVecGlobal.set(filename, imageInfo);
                                 break;
                             default:
                                 break;
@@ -656,7 +647,7 @@ MLJ.core.MeshFile = {
 
                     // Validate version
                     let generalMetadataFilename = "general_metadata.json";
-                    if( !_this.validateVersion(generalMetadataFilename) )
+                    if( !_this.validateVersion(layer, generalMetadataFilename) )
                     {
                         // should not reach here
                         console.error('Version validation failed');
@@ -664,9 +655,7 @@ MLJ.core.MeshFile = {
                         reject(false);
                     }
                     
-                    MLJ.core.Scene3D.setBlobs(blobs);
-                    var scene3D = MLJ.core.Scene3D.getScene3D();
-                    var scene3DtopDown = MLJ.core.Scene3DtopDown.getScene3DtopDown();
+                    layer.setBlobs(blobs);
 
                     objFileNames.forEach(function(objFileName) {
 
@@ -685,11 +674,10 @@ MLJ.core.MeshFile = {
                         let overlay_rect_re = /.*overlay\.obj/;
                         let overlay_rect_re_matched = objFileName.match(overlay_rect_re);
 
-                        
                         if(structure_obj_re_matched)
                         {
                             // this is a structure mesh file
-                            scene3D._structureObjFileName = objFileName;
+                            MLJ.core.Model.setStructureObjFileName(objFileName);
                         }
                         else if(top_down_structure_obj_re_matched)
                         {
@@ -698,7 +686,7 @@ MLJ.core.MeshFile = {
                         else if(overlay_rect_re_matched)
                         {
                             // this is an overlay mesh file
-                            scene3D._overlayObjFileName = objFileName;
+                            MLJ.core.Model.setOverlayObjFileName(objFileName);
                         }
                         else
                         {
@@ -709,11 +697,11 @@ MLJ.core.MeshFile = {
                         }
 
                         // TBD CheckME: Are objInfo, mtlInfo needed ???
-                        var objInfo = _this.loadFile(blobs[objFileName], "text");
+                        var objInfo = _this.loadFile(blobs.getByKey(objFileName), "text");
                         layer.setObjInfo(objInfo);
 
 
-                        var mtlInfo = _this.loadFile(blobs[mtlFileName], "text");
+                        var mtlInfo = _this.loadFile(blobs.getByKey(mtlFileName), "text");
                         layer.setMtlInfo(mtlInfo);
 
                         if(! _this.loadObjectAndMaterialFiles(objFileName, mtlFileName, layer))
@@ -723,17 +711,21 @@ MLJ.core.MeshFile = {
                         }
                     });
 
-                    let pivotGroup = layer.getPivotGroup();
-                    pivotGroup.add(layer.getStructureMeshGroup());
-                    pivotGroup.add(layer.getOverlayMeshGroup());
-                    let selectedOverlayVertexHelperGroup = MLJ.core.Scene3D.getSelectedOverlayVertexHelperGroup();
-                    pivotGroup.add(selectedOverlayVertexHelperGroup);
+                    if(MLJ.core.Model.isScene3DpaneEnabled())
+                    {
+                        let pivotGroup = layer.getPivotGroup();
+                        pivotGroup.add(layer.getStructureMeshGroup());
+                        pivotGroup.add(layer.getOverlayMeshGroup());
+                        let selectedOverlayVertexHelperGroup = MLJ.core.Scene3D.getSelectedOverlayVertexHelperGroup();
+                        pivotGroup.add(selectedOverlayVertexHelperGroup);
+                        
+                        MLJ.core.Scene3D.getScene3D().add(pivotGroup);
+                    }
                     
-                    MLJ.core.Scene3D.addToScene3D( pivotGroup );
-                    
-                    MLJ.core.Scene3D.render();
+                    // MLJ.core.Scene3D.render();
+                    MLJ.core.Scene3DtopDown.render();
 
-                    MLJ.core.Scene3D.setZipLoaderInstance(zipLoaderInstance);
+                    MLJ.core.Model.setZipLoaderInstance(zipLoaderInstance);
 
                     // for promise4
                     // return resolve(true);
@@ -787,21 +779,31 @@ MLJ.core.MeshFile = {
         // console.log('BEG exportObjAndMtlFiles');
 
         var exporter = new THREE.OBJExporter();
+        if(objFileName == "overlay.obj")
+        {
+            let a = 3;
+        }
         var exportedResult = exporter.parse( meshGroup );
         var objExported = exportedResult.obj;
-        //         console.log('objExported', objExported);
+        // if(objFileName == "overlay.obj")
+        // {
+        //     console.log('objExported', objExported);
+        // }
         var objExportedBlob = new Blob([objExported]);
         var objExportedBlobUrl = URL.createObjectURL(objExportedBlob);
-        blobs[objFileName] = objExportedBlobUrl;
+        blobs.set(objFileName, objExportedBlobUrl);
 
         // var mtlFileName = objFileName + ".mtl";
         let mtlFileName = objFileName.substr(0, objFileName.lastIndexOf(".")) + ".mtl";
         var mtlExported = exportedResult.mtl;
-        //         console.log('mtlExported', mtlExported);
+        // if(objFileName == "overlay.obj")
+        // {
+        //     console.log('mtlExported', mtlExported);
+        // }
 
         var mtlExportedBlob = new Blob([mtlExported]);
         var mtlExportedBlobUrl = URL.createObjectURL(mtlExportedBlob);
-        blobs[mtlFileName] = mtlExportedBlobUrl;
+        blobs.set(mtlFileName, mtlExportedBlobUrl);
     };
 
 
@@ -832,20 +834,20 @@ MLJ.core.MeshFile = {
         var notesExportedBlob = new Blob([notesExported2], {type: 'application/json'});
 
         var notesExportedBlobUrl = URL.createObjectURL(notesExportedBlob);
-        blobs[notesFileName] = notesExportedBlobUrl;
+        blobs.set(notesFileName, notesExportedBlobUrl);
     };
 
 
     // Parse the image (get the buffer and offset) into a new zipLoaderInstance
     function parseImageFromZip(doSkipJpg, offsetInReader) {
         return new Promise(function(resolve){
-            var zipLoaderInstance2 = ZipLoader.unzip( MLJ.core.Scene3D._zipFileArrayBuffer, doSkipJpg, offsetInReader );
+            var zipLoaderInstance2 = ZipLoader.unzip( MLJ.core.Model.getZipFileArrayBuffer(), doSkipJpg, offsetInReader );
             resolve(zipLoaderInstance2);
         });
     };
 
     this.saveToZipFile = function (layer, zipFileName) {
-        console.log('BEG saveToZipFile');
+//         console.log('BEG saveToZipFile');
 
         var zip = new JSZip();
 
@@ -854,25 +856,25 @@ MLJ.core.MeshFile = {
         var promise = new Promise(function(resolve){
 
             // load skipped files
-            var blobs = MLJ.core.Scene3D.getBlobs();
+            var blobs = layer.getBlobs();
             // console.log('blobs', blobs);
             
             // Add the files that were not loaded to memory yet
             // unzip the image files that were skipped in the initial load
             var promises2 = [];
             
-            filenames = Object.keys(blobs);
+            filenames = blobs.getKeys();
             for (var key in filenames)
             {
                 let filename = filenames[key];
                 let re1 = /IMG.*/;
                 let regex1_matched = filename.match(re1);
-                let blobUrl = blobs[filename];
-                
+                let blobUrl = blobs.getByKey(filename);
+
                 if(regex1_matched && !blobUrl)
                 {
                     // The file is not yet in memory. Load it to the memory
-                    var zipLoaderInstance = MLJ.core.Scene3D.getZipLoaderInstance();
+                    let zipLoaderInstance = MLJ.core.Model.getZipLoaderInstance();
                     var offsetInReader = zipLoaderInstance.files[filename].offset;
                     if(offsetInReader > 0)
                     {
@@ -893,32 +895,41 @@ MLJ.core.MeshFile = {
                         // extract images as blob url and add to the blobs list
                         MLJ.core.MeshFile.addImageToBlobs(values[i]);
                     }
-                    var scene3D = MLJ.core.Scene3D.getScene3D();
-                    var blobs = MLJ.core.Scene3D.getBlobs();
+                    var blobs = layer.getBlobs();
 
                     // Export the structure obj and mtl to files
                     // meshGroup, objInstance exports ok - meshGroup of type "Group" and has "Mesh" child
                     
                     var structureMeshGroup = layer.getStructureMeshGroup();
-                    exportObjAndMtlFiles(blobs, structureMeshGroup, scene3D._structureObjFileName);
+                    let structureObjFileName = MLJ.core.Model.getStructureObjFileName();
+                    exportObjAndMtlFiles(blobs, structureMeshGroup, structureObjFileName);
 
+                    // Export the selectedFloorInfo.mesh obj and mtl to files
                     // TBD - store the height in userData
-                    let selectedFloorInfo = MLJ.core.Scene3DtopDown.getSelectedFloorInfo();
+                    let selectedLayer = MLJ.core.Model.getSelectedLayer();
+                    let selectedFloorInfo = selectedLayer.getSelectedFloorInfo();
+                    
                     exportObjAndMtlFiles(blobs,
                                          selectedFloorInfo.mesh,
-                                         selectedFloorInfo["floorName"]);
+                                         selectedFloorInfo.name);
 
                     // Export the overlayMesh obj and mtl to files
                     let overlayMeshGroup = layer.getOverlayMeshGroup();
-                    exportObjAndMtlFiles(blobs, overlayMeshGroup, scene3D._overlayObjFileName);
+                    let overlayObjFileName = MLJ.core.Model.getOverlayObjFileName();
+                    exportObjAndMtlFiles(blobs, overlayMeshGroup, overlayObjFileName);
 
                     // Export the notes to file
                     exportNotesToFile(layer, blobs, "notes.json");
                     
                     // At this point all the files should be in memory
                     // Add the files to the saved zip
-                    for (let [fileName, blobUrl] of Object.entries(blobs))
+                    let iter = blobs.iterator();
+                    while (iter.hasNext())
                     {
+                        let keyVal = iter.nextKeyVal();
+                        var fileName = keyVal[0];
+                        var blobUrl = keyVal[1];
+                        
                         // add file to zip
                         var fileExtention = MLJ.util.getFileExtention(fileName);
                         switch(fileExtention) {
@@ -981,8 +992,10 @@ MLJ.core.MeshFile = {
                 // TBD - use doSkipJpg true
                 doSkipJpg = false;
 
-                MLJ.core.Scene3D._zipFileArrayBuffer = fileLoadedEvent.target.result;
-                resOpen = _this.loadFromZipFile(MLJ.core.Scene3D._zipFileArrayBuffer, layer, doSkipJpg);
+                MLJ.core.Model.setZipFileArrayBuffer(fileLoadedEvent.target.result);
+                let zipFileArrayBuffer = MLJ.core.Model.getZipFileArrayBuffer();
+                resOpen = _this.loadFromZipFile(zipFileArrayBuffer, layer, doSkipJpg);
+                
             }
         };
     }
@@ -990,6 +1003,8 @@ MLJ.core.MeshFile = {
     this.onLoadendMesh = function (loaded, layer) {
         if (loaded) {
             console.log('Trigger "MeshFileOpened"');
+
+            layer.setImageInfoVec(imageInfoVecGlobal);
 
             // Trigger event to indicate that the mesh file finished openning
             // (this will cause to add a new layer via addLayer)
@@ -1004,7 +1019,7 @@ MLJ.core.MeshFile = {
     this.openSingleMeshFile = function (fileObj) {
         
         if (!(fileObj instanceof File)) {
-            console.error("MLJ.MeshFile.openMeshFile(fileObj): the parameter 'fileObj' must be a File instace.");
+            console.error("MLJ.MeshFile.openSingleMeshFile(fileObj): the parameter 'fileObj' must be a File instace.");
             return;
         }
 
@@ -1020,7 +1035,7 @@ MLJ.core.MeshFile = {
             return;
         }
 
-        var layer = MLJ.core.Scene3D.createLayer(fileObj.name);
+        var layer = MLJ.core.Model.createLayer(fileObj.name);
         layer.fileName = fileObj.name;
 
         _this.loadMeshDataFromFile(fileObj, layer);
@@ -1041,11 +1056,9 @@ MLJ.core.MeshFile = {
         // toOpen is a FileList
         // typeOfToOpen is object
         // let typeOfToOpen = typeof toOpen;
-        
+
         $(toOpen).each(function (key, file) {
-
             _this.openSingleMeshFile(file);
-
         });
     };
 
@@ -1054,9 +1067,8 @@ MLJ.core.MeshFile = {
     };
 
 
-    this.loadTexture2FromFile = function (fileName) {
-        
-        this.loadTextureImage2(fileName, function (loaded, texture3) {
+    this.loadTexture2FromFile = function (fileUrl) {
+        this.loadTextureImage2(fileUrl, function (loaded, texture3) {
             if (loaded) {
                 // console.log('Trigger "MeshFileOpened"');
                 

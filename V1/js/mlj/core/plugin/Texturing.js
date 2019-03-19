@@ -30,7 +30,7 @@ MLJ.core.plugin.Texturing = function (parameters, defaults) {
         globalIndex++;
 
         // update parameter
-        var layer = MLJ.core.Scene3D.getSelectedLayer();
+        var layer = MLJ.core.Model.getSelectedLayer();
         if (layer === undefined)
         {
             return;
@@ -56,45 +56,39 @@ MLJ.core.plugin.Texturing = function (parameters, defaults) {
     $(document).on("SceneLayerAdded", function (event, layer) {
         //The texCanvasComponent will be shown only when the first mesh is loaded
         //it is the only way to hide
-        if (MLJ.core.Scene3D.getLayers().size() === 1)
+        if (MLJ.core.Model.getLayers().size() === 1)
         {
             texCanvasComponent.$.show();
         }
 
-        update();
         _this._applyTo(layer, 1, $);
     });
 
     $(document).on("SceneLayerSelected", function (event, layer) {
-        update();
         _this._applyTo(layer, 1, $);
     });
 
     $(document).on("SceneLayerRemoved", function (event, layer, layersNum) {
-        update();
         _this._applyTo(layer, layersNum, $);
     });
 
     $(document).on("Texture2FileOpened", function (event, texture3) {
 
-        var layer = MLJ.core.Scene3D.getSelectedLayer();
+        var layer = MLJ.core.Model.getSelectedLayer();
         if (layer === undefined)
+        {
             return;
-
+        }
+        
         layer.texture[0] = texture3;
         
-        if (MLJ.core.Scene3D.getLayers().size() === 1)
+        if (MLJ.core.Model.getLayers().size() === 1)
         {
             texCanvasComponent.$.show();
         }
 
-        update();
         _this._applyTo(layer, 1, $);
     });
 
-
-    function update() {
-        // console.log('BEG Texturing::update'); 
-    }
 };
 MLJ.extend(MLJ.core.plugin.Plugin, MLJ.core.plugin.Texturing);

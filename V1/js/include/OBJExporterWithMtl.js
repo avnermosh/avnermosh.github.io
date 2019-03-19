@@ -40,8 +40,16 @@ THREE.OBJExporter.prototype = {
                     mtlOutput += 'newmtl material' + mat.id + '\n';
                 
                 mtlOutput += 'illum 2\n';
-                
-                if (mat.map && mat.map instanceof THREE.Texture) {
+
+                // needed for diagonal stripes
+                let condition1 = (mat.map && mat.map instanceof THREE.Texture);
+
+                // needed for newRect via topDown pane (which doesn't have "material.map")
+                let condition2 = (mat.userData.urlArray && mat.userData.urlArray.size() > 0);
+
+                // if (mat.map && mat.map instanceof THREE.Texture)
+                if (condition1 || condition2)
+                {
 
                     // var file = mat.map.image.currentSrc.slice( mat.map.image.currentSrc.slice.lastIndexOf("/"), mat.map.image.currentSrc.length - 1 );
                     // mtlOutput += 'map_Ka ' + file + '\n';
@@ -53,8 +61,8 @@ THREE.OBJExporter.prototype = {
                     var iter = mat.userData.urlArray.iterator();
                     while (iter.hasNext()) {
                         let imageInfo = iter.next();
-                        let imageFilename = imageInfo.imageFilename;
-                        let imageOrientation = imageInfo.imageOrientation;
+                        let imageFilename = imageInfo.filename;
+                        let imageOrientation = imageInfo.orientation;
                         
                         if((mat.userData.urlArray.size() > 1) && (imageFilename === 'default_image.thumbnail.jpg'))
                         {

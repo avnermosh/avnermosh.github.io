@@ -419,6 +419,11 @@ label[for='textureName'].error{
     position: absolute;
 }
 
+.imageTextInfo {
+    background-color: yellow;
+    display: block;
+}
+
 .editor {
     background-color: #0000ff;
 }
@@ -472,6 +477,12 @@ label[for='textureName'].error{
     height: 100%;
     top: 0%;
     left: 75%;
+}
+
+._3DtopDown {
+    position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 .showFullSize {

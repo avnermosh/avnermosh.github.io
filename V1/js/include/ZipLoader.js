@@ -3691,6 +3691,7 @@
                                  alert(img.width); // image is loaded; sizes are available
                              };
 
+                             // console.log('filename', filename); 
                              // img.src = reader.result; // is the data URL because called with readAsDataURL
                              img.src = e.target.result
 
@@ -3765,14 +3766,14 @@
                                          if (tag1 == 0x0100)
                                          {
                                              let imageWidth = view.getUint16(offset + (i * 12) + 8, little);
-                                             console.log('imageWidth', imageWidth);
+                                             // console.log('imageWidth', imageWidth);
                                              // result2.imageWidth = imageWidth;
                                          }
 
                                          if (tag1 == 0x0101)
                                          {
                                              let imageHeight = view.getUint16(offset + (i * 12) + 8, little);
-                                             console.log('imageHeight', imageHeight);
+                                             // console.log('imageHeight', imageHeight);
                                              // result2.imageHeight = imageHeight;
                                          }
 
@@ -3786,9 +3787,23 @@
                                          {
                                              result2.instance = this.zipLoaderInstance;
                                              result2.imageOrientation = view.getUint16(offset + (i * 12) + 8, little);
-                                             console.log('foo4'); 
+                                             // console.log('foo4'); 
                                              // return resolve(result2);
                                          }
+
+                                         if (tag1 == 0x9003)
+                                         {
+                                       	     // TBD not done yet 	
+                                             result2.instance = this.zipLoaderInstance;
+                                             result2.dateTimeOriginal = view.getUint16(offset + (i * 12) + 8, little);
+                                         }
+                                         if (tag1 == 0x9004)
+                                         {
+                                       	     // TBD not done yet 	
+                                             result2.instance = this.zipLoaderInstance;
+                                             result2.createDate = view.getUint16(offset + (i * 12) + 8, little);
+                                         }
+                                         
                                      }
                                  }
                                  else if ((marker & 0xFF00) != 0xFF00)
@@ -3831,8 +3846,16 @@
                      return new Promise(function(resolve){
 
                          var blob = new Blob([this3.files[filename].buffer], { type: type });
-
+                         let file1 = new File([blob], filename);
+                         console.log('file1', file1);
+                         // Returns the last modified time of the file, in millisecond since the UNIX epoch (January 1st, 1970 at Midnight).
+                         // IMG_6602.jpg
+                         // 1551650117625 -> Sun Mar 03 2019 21:55:17
+                         // https://currentmillis.com/
+                         // convert from millisecond since the UNIX epoch to actual date
+                         
                          this3.files[filename].url = URL.createObjectURL(blob);
+                         this3.files[filename].sizeInBytes = blob.size;
 
                          // TBD getInstanceAndImageTags is used also from outside ZipLoader. The function could be generalized out of ZipLoader into
                          // a new js file e.g. imageUtils.js
@@ -3840,8 +3863,11 @@
 
                          promise2.then(function(result2) {
 
+                             // console.log('result2', result2); 
                              let instance = result2.instance;
                              let imageOrientation = result2.imageOrientation;
+                             let dateTimeOriginal = result2.dateTimeOriginal;
+                             let createDate = result2.createDate;
 
                              instance.files[filename].imageOrientation = result2.imageOrientation;
                              // instance.files[filename].imageWidth = result2.imageWidth;

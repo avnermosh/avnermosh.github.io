@@ -19,7 +19,7 @@ var doUsePanForChangeSettingIn_3D = false;
 
 THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
-    console.log('domElement', domElement);
+    // console.log('domElement', domElement);
 
     var CONTROL_TYPE = { NONE: -1, SCENE_3D: 0, _3D_TOP_DOWN: 1, _TEXTURE_2D: 2 };
     this.controllerType = CONTROL_TYPE.NONE;
@@ -388,13 +388,16 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                 switch ( this.controllerType ) {
 
                     case CONTROL_TYPE.SCENE_3D:
-                        MLJ.core.Scene3DtopDown.setArrowHelper();
+                        if(MLJ.core.Model.isScene3DpaneEnabled())
+                        {
+                            MLJ.core.Scene3DtopDown.setDirectionArrow();
+                        }
                         break;
                         
                     case CONTROL_TYPE._3D_TOP_DOWN:
                         {
                             let bBox = MLJ.core.Scene3DtopDown.getBoundingBox();
-                            let viewportExtendsOnX = false;
+                            let viewportExtendsOnX = MLJ.core.Scene3DtopDown.doesViewportExtendOnX();
                              if(bBox)
                              {
                                  limitPanning1(bBox, viewportExtendsOnX);
@@ -442,6 +445,162 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         //scope.dispatchEvent( { type: 'dispose' } ); // should this be added here?
 
+    };
+
+    this.setCameraFrustumAspectAndZoom = function (guiWindowWidth,
+                                                   guiWindowHeight,
+                                                   imageWidth,
+                                                   imageHeight,
+                                                   orientation) {
+        
+        //////////////////////////////////////////////////////////
+        // Set the camera frustum, aspect, zoom
+        //////////////////////////////////////////////////////////
+
+        let scaleX;
+        let scaleY;
+        let imageOrientation = Number(orientation);
+        let image_w_h_ratio = 0;
+        let guiWindow_w_h_Ratio = guiWindowWidth / guiWindowHeight;
+
+        switch (imageOrientation) {
+            case -1:
+            case 1:
+                {
+                    // landscape
+//                     console.log('landscape'); 
+                    image_w_h_ratio = imageWidth / imageHeight;
+
+                    // Update the camera frustum to cover the entire image
+                    this.object.left = -imageWidth/2;
+                    this.object.right = imageWidth/2;
+                    this.object.top = imageHeight/2;
+                    this.object.bottom = -imageHeight/2;
+
+                    scaleX = (this.object.right - this.object.left);
+                    scaleY = (this.object.top - this.object.bottom);
+                    break;
+                }
+            case 6:
+                {
+                    // portrait
+//                     console.log('portrait'); 
+                    image_w_h_ratio = imageHeight / imageWidth;
+
+                    // Update the camera frustum to cover the entire image
+                    this.object.left = -imageHeight/2;
+                    this.object.right = imageHeight/2;
+                    this.object.top = imageWidth/2;
+                    this.object.bottom = -imageWidth/2;
+
+                    scaleX = (this.object.top - this.object.bottom);
+                    scaleY = (this.object.right - this.object.left);
+                    break;
+                }
+            default:
+                let msgStr = "imageOrientation is not supported: " + imageOrientation;
+                console.log('msgStr', msgStr); 
+                throw(msgStr);
+                break;
+        }
+
+        this.object.aspect = image_w_h_ratio;
+
+        if(guiWindow_w_h_Ratio > image_w_h_ratio)
+        {
+            let zoomFactor = image_w_h_ratio / guiWindow_w_h_Ratio;
+            this.minZoom = zoomFactor;
+            this.setZoom(zoomFactor);
+        }
+        else
+        {
+            // canvasWidth is bigger than guiWindowWidth
+            let zoomFactor = guiWindow_w_h_Ratio / image_w_h_ratio;
+            this.minZoom = zoomFactor;
+            this.setZoom(zoomFactor);
+        }
+
+        this.object.updateProjectionMatrix();
+        
+        let retVal = {
+            scaleX: scaleX,
+            scaleY: scaleY,
+            image_w_h_ratio: image_w_h_ratio
+        };
+
+        return retVal;
+    };
+    
+    this.setCanvas = function (guiWindowWidth, guiWindowHeight, image_w_h_ratio) {
+
+        // canvasWidth, canvasHeight - the canvas size that preserves the aspectRatio of the image.
+        // The canvas size exceeds the gui window, i.e. canvasWidth>=guiWindowWidth, canvasHeight>=guiWindowHeight
+        // canvasWidth, canvasHeight is also the size of the viewport.
+        let canvasWidth = 0;
+        let canvasHeight = 0;
+        
+        // canvasOffsetLeft, canvasOffsetTop - offset from the orgin of the gui window to the origin of the canvas and the viewport
+        let canvasOffsetLeft = 0;
+        let canvasOffsetTop = 0;
+
+        let guiWindow_w_h_Ratio = guiWindowWidth / guiWindowHeight;
+        let viewportExtendsOnX = false;
+
+        if(guiWindow_w_h_Ratio > image_w_h_ratio)
+        {
+            // canvasHeight is bigger than guiWindowHeight
+            canvasWidth = guiWindowWidth;
+            canvasHeight = canvasWidth / image_w_h_ratio;
+
+            canvasOffsetTop = (canvasHeight - guiWindowHeight) / 2;
+            viewportExtendsOnX = false;
+        }
+        else
+        {
+            // canvasWidth is bigger than guiWindowWidth
+            canvasHeight = guiWindowHeight;
+            canvasWidth = canvasHeight * image_w_h_ratio;
+            
+            canvasOffsetLeft = (canvasWidth - guiWindowWidth) / 2;
+            viewportExtendsOnX = true;
+        }
+
+        let retVal = {
+            viewportExtendsOnX: viewportExtendsOnX,
+            canvasOffsetLeft: canvasOffsetLeft,
+            canvasOffsetTop: canvasOffsetTop,
+            canvasWidth: canvasWidth,
+            canvasHeight: canvasHeight
+        };
+
+        return retVal;
+    };
+
+    this.setCameraAndCanvas = function (guiWindowWidth,
+                                        guiWindowHeight,
+                                        imageWidth,
+                                        imageHeight,
+                                        orientation) {
+
+        let retVal0 = this.setCameraFrustumAspectAndZoom(guiWindowWidth,
+                                                         guiWindowHeight,
+                                                         imageWidth,
+                                                         imageHeight,
+                                                         orientation);
+        
+        let retVal1 = this.setCanvas(guiWindowWidth, guiWindowHeight, retVal0.image_w_h_ratio);
+
+        let retVal = {
+            scaleX: retVal0.scaleX,
+            scaleY: retVal0.scaleY,
+            viewportExtendsOnX: retVal1.viewportExtendsOnX,
+            canvasOffsetLeft: retVal1.canvasOffsetLeft,
+            canvasOffsetTop: retVal1.canvasOffsetTop,
+            canvasWidth: retVal1.canvasWidth,
+            canvasHeight: retVal1.canvasHeight
+        };
+
+        return retVal;
     };
 
     //
@@ -793,18 +952,17 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
         }
         else
         {
-            let pos_x1 = 0;
             let x2 = 0;
             if(viewportExtendsOnX)
             {
-                pos_x1 = x1a - (object.left * scope.minZoom / object.zoom);
+                let pos_x1 = x1a - (object.left * scope.minZoom / object.zoom);
                 x2 = pos_x1 + (object.right * scope.minZoom / object.zoom);
                 let x2a = Math.min(x2, bbox.max.x);
                 pos_x = x2a - (object.right * scope.minZoom / object.zoom);
             }
             else
             {
-                pos_x1 = x1a - (object.left / object.zoom);
+                let pos_x1 = x1a - (object.left / object.zoom);
                 x2 = pos_x1 + (object.right / object.zoom);
                 let x2a = Math.min(x2, bbox.max.x);
                 pos_x = x2a - (object.right / object.zoom);
@@ -962,14 +1120,16 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function handleMouseUp( event ) {
         // console.log( 'BEG handleMouseUp' );
-
+        let selectedLayer = MLJ.core.Model.getSelectedLayer();
+        
         switch ( scope.controllerType ) {
 
             case CONTROL_TYPE.SCENE_3D:
-                if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
+                if( !selectedLayer.getEditOverlayRectFlag() )
                 {
-                    let selectedThumbnailImageFilename = MLJ.core.Scene3D.getSelectedThumbnailImageFilename();
-                    let selectedThumbnailImageFilenamePrev = MLJ.core.Scene3D.getSelectedThumbnailImageFilenamePrev();
+                    let selectedLayer = MLJ.core.Model.getSelectedLayer();
+                    let selectedThumbnailImageFilename = selectedLayer.getSelectedThumbnailImageFilename();
+                    let selectedThumbnailImageFilenamePrev = selectedLayer.getSelectedThumbnailImageFilenamePrev();
 
                     // TBD - for now loadTheSelectedImageAndRender even if the same image.
                     // This is a workaround for the problem of loading the first image
@@ -978,7 +1138,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                     if((selectedThumbnailImageFilename) )
                     {
                         // load selected image to texture pane only on mouse up
-                        if(MLJ.core.Scene3D.loadTheSelectedImageAndRender() == false)
+                        if(selectedLayer.loadTheSelectedImageAndRender() == false)
                         {
                             console.error('Failed to load and render the selected image.'); 
                         }
@@ -994,6 +1154,25 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
                         case STATE.ROTATE:
                             // // move the view window such that the intersection point is in the center of the view window 
                             // MLJ.core.Scene3DtopDown.centerIntersectionPointInTopDownView();
+                            if( !selectedLayer.getEditOverlayRectFlag() )
+                            {
+                                let selectedLayer = MLJ.core.Model.getSelectedLayer();
+                                let selectedThumbnailImageFilename = selectedLayer.getSelectedThumbnailImageFilename();
+                                let selectedThumbnailImageFilenamePrev = selectedLayer.getSelectedThumbnailImageFilenamePrev();
+
+                                // TBD - for now loadTheSelectedImageAndRender even if the same image.
+                                // This is a workaround for the problem of loading the first image
+                                // Otherwise the first time, the image dowsn't show up...
+                                // if((selectedThumbnailImageFilename) && (selectedThumbnailImageFilename !== selectedThumbnailImageFilenamePrev ))
+                                if((selectedThumbnailImageFilename) )
+                                {
+                                    // load selected image to texture pane only on mouse up
+                                    if(selectedLayer.loadTheSelectedImageAndRender() == false)
+                                    {
+                                        console.error('Failed to load and render the selected image.'); 
+                                    }
+                                }
+                            }
                             break;
 
                         case STATE.DOLLY:
@@ -1138,7 +1317,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     }
 
     function handleTouchEnd( event ) {
-	console.log( 'BEG handleTouchEnd' );
+	// console.log( 'BEG handleTouchEnd' );
     }
 
     //
@@ -1152,7 +1331,8 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
         if ( scope.enabled === false )
         {
-            // Need to manage event listener for mouseup so that _controls3D.isMouseDown can be updated on mouseup, even when the scope is disabled
+            // Need to manage event listener for mouseup so that isMouseDown (e.g. _controls3D.isMouseDown)
+            // can be updated on mouseup, even when the scope is disabled
             document.addEventListener( 'mouseup', onMouseUp, false );
             return;
         }
@@ -1254,7 +1434,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     }
 
     function onMouseMove( event ) {
-        console.log('BEG onMouseMove'); 
+//         console.log('BEG onMouseMove'); 
         
         if ( scope.enabled === false )
         {
@@ -1475,7 +1655,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
     }
 
     function onTouchMove( event ) {
-        console.log('BEG onTouchMove');
+//         console.log('BEG onTouchMove');
         
 	if ( scope.enabled === false )
         {
@@ -1558,7 +1738,7 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 
     function onTouchEnd( event ) {
 
-        console.log('BEG onTouchEnd');
+//         console.log('BEG onTouchEnd');
         scope.isTouchDown = false;
         
 	if ( scope.enabled === false )
@@ -1606,127 +1786,4 @@ THREE.OrbitControls3Dpane = function ( object, domElement ) {
 THREE.OrbitControls3Dpane.prototype = Object.create( THREE.EventDispatcher.prototype );
 THREE.OrbitControls3Dpane.prototype.constructor = THREE.OrbitControls3Dpane;
 
-Object.defineProperties( THREE.OrbitControls3Dpane.prototype, {
 
-    center: {
-
-        get: function () {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .center has been renamed to .target' );
-            return this.target;
-
-        }
-
-    },
-
-    // backward compatibility
-
-    noZoom: {
-
-        get: function () {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .noZoom has been deprecated. Use .enableZoom instead.' );
-            return ! this.enableZoom;
-
-        },
-
-        set: function ( value ) {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .noZoom has been deprecated. Use .enableZoom instead.' );
-            this.enableZoom = ! value;
-
-        }
-
-    },
-
-    noRotate: {
-
-        get: function () {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .noRotate has been deprecated. Use .enableRotate instead.' );
-            return ! this.enableRotate;
-
-        },
-
-        set: function ( value ) {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .noRotate has been deprecated. Use .enableRotate instead.' );
-            this.enableRotate = ! value;
-
-        }
-
-    },
-
-    noPan: {
-
-        get: function () {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .noPan has been deprecated. Use .enablePan instead.' );
-            return ! this.enablePan;
-
-        },
-
-        set: function ( value ) {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .noPan has been deprecated. Use .enablePan instead.' );
-            this.enablePan = ! value;
-
-        }
-
-    },
-
-    noKeys: {
-
-        get: function () {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .noKeys has been deprecated. Use .enableKeys instead.' );
-            return ! this.enableKeys;
-
-        },
-
-        set: function ( value ) {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .noKeys has been deprecated. Use .enableKeys instead.' );
-            this.enableKeys = ! value;
-
-        }
-
-    },
-
-    staticMoving: {
-
-        get: function () {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .staticMoving has been deprecated. Use .enableDamping instead.' );
-            return ! this.enableDamping;
-
-        },
-
-        set: function ( value ) {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .staticMoving has been deprecated. Use .enableDamping instead.' );
-            this.enableDamping = ! value;
-
-        }
-
-    },
-
-    dynamicDampingFactor: {
-
-        get: function () {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .dynamicDampingFactor has been renamed. Use .dampingFactor instead.' );
-            return this.dampingFactor;
-
-        },
-
-        set: function ( value ) {
-
-            console.warn( 'THREE.OrbitControls3Dpane: .dynamicDampingFactor has been renamed. Use .dampingFactor instead.' );
-            this.dampingFactor = value;
-
-        }
-
-    }
-
-} );

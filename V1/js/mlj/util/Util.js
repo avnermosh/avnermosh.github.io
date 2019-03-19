@@ -54,6 +54,7 @@ MLJ.util.Orchid2 = 0xEE7AE9;
 MLJ.util.Orchid3 = 0xCD69C9;
 MLJ.util.darkOrangeColor = 0xFF8C00;
 MLJ.util.sandyBrownColor = 0xF4A460;
+MLJ.util.acquaColor = 0x00FFFF;
 
 // https://www.abeautifulsite.net/adding-and-removing-elements-on-the-fly-using-javascript
 // add html elemnt dynamically
@@ -125,6 +126,13 @@ MLJ.util.loadFile = function (path, callback) {
     }
     
     _loadNextFile();
+};
+
+MLJ.util.sleep = function (miliseconds) {
+    var currentTime = new Date().getTime();
+
+    while (currentTime + miliseconds >= new Date().getTime()) {
+    }
 };
 
 /**
@@ -202,13 +210,24 @@ MLJ.util.AssociativeArray = function () {
         };
 
         /**
-         * Returns the next element in the iteration
+         * Returns the next element (val) in the iteration
          * @returns {Object} the next element in the iteration
          */
         this.next = function () {
             var next = values[keys[_ind]];
             _ind++;
             return next;
+        };
+
+        /**
+         * Returns the next element (key, and val) in the iteration
+         * @returns {Object} the next element in the iteration
+         */
+        this.nextKeyVal = function () {
+            var nextKey = keys[_ind];
+            var nextVal = values[keys[_ind]];
+            _ind++;
+            return [nextKey, nextVal];
         };
     };
     

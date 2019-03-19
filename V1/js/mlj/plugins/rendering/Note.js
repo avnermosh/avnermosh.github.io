@@ -117,7 +117,8 @@ Note = function (noteId,
         event.preventDefault();
         event.stopPropagation();
 
-        if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
+        let selectedLayer = MLJ.core.Model.getSelectedLayer();
+        if( !selectedLayer.getEditOverlayRectFlag() )
         {
             // Make the note read only
             // Disable the editing area. Not in editing mode.
@@ -159,7 +160,8 @@ Note = function (noteId,
 
     function onDocumentMouseUp1( event ) {
 
-        if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
+        let layer = MLJ.core.Model.getSelectedLayer();
+        if( !layer.getEditOverlayRectFlag() )
         {
             // Do nothing. Not in editing mode.
             return;
@@ -167,7 +169,6 @@ Note = function (noteId,
         
         event.preventDefault();
 
-        let layer = MLJ.core.Scene3D.getSelectedLayer();
         let stickyNoteGroup = layer.getStickyNoteGroup();
 
         if(!_domElement)
@@ -190,7 +191,7 @@ Note = function (noteId,
 
     function calcPositionFromTranslateAttribute2( noteElement ) {
 
-        let layer = MLJ.core.Scene3D.getSelectedLayer();
+        let layer = MLJ.core.Model.getSelectedLayer();
 
         let noteElementStyle = noteElement.style;
         let noteElementStyleTransform = noteElementStyle.transform;
@@ -255,7 +256,8 @@ Note = function (noteId,
 
     function onDocumentMouseMove1( event ) {
 
-        if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
+        let selectedLayer = MLJ.core.Model.getSelectedLayer();
+        if( !selectedLayer.getEditOverlayRectFlag() )
         {
             // Do nothing. Not in editing mode.
             return;
@@ -285,7 +287,8 @@ Note = function (noteId,
 
         function dragMouseDown(e) {
 
-            if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
+            let selectedLayer = MLJ.core.Model.getSelectedLayer();
+            if( !selectedLayer.getEditOverlayRectFlag() )
             {
                 // Do nothing. Not in editing mode.
                 return;
@@ -324,7 +327,8 @@ Note = function (noteId,
 
     function onDocumentMouseCancel1( event ) {
 
-        if( !MLJ.core.Scene3D.getEdit3dModelOverlayFlag() )
+        let selectedLayer = MLJ.core.Model.getSelectedLayer();
+        if( !selectedLayer.getEditOverlayRectFlag() )
         {
             // Do nothing. Not in editing mode.
             return;
@@ -345,7 +349,7 @@ Note = function (noteId,
     }
 
     function dispose( noteElement ) {
-        let layer = MLJ.core.Scene3D.getSelectedLayer();
+        let layer = MLJ.core.Model.getSelectedLayer();
 
         // remove the note from stickyNoteGroup (also removes the noteElement from the DOM)
         let stickyNoteGroup = layer.getStickyNoteGroup();

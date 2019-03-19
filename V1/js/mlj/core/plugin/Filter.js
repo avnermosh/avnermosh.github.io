@@ -79,7 +79,7 @@ MLJ.core.plugin.Filter = function (parameters) {
         entry.addHeaderButton(apply);
         apply.onClick(function () {
             //reset of all the boolean CalledPtrMesh and clear of the mesh history after the current time
-            var layersIt = MLJ.core.Scene.getLayers().iterator();
+            var layersIt = MLJ.core.Model.getLayers().iterator();
             while (layersIt.hasNext())
             {
                 var layerTmp = layersIt.next();

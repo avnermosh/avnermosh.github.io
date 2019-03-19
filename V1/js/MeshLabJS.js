@@ -49,13 +49,20 @@
 
     var _3DWrapper = $('<div id="_3DWrapper"></div>');
 
-    var _3D = $('<div id="_3D"></div>');
+    var _3D;
+    if(MLJ.core.Model.isScene3DpaneEnabled())
+    {
+        _3D = $('<div id="_3D"></div>');
+    }
+
     var _3DtopDown = $('<div id="_3DtopDown"></div>');
     
-
     this.makeGUI = function (title) {
 
-        _3DWrapper.append(_3D);
+        if(MLJ.core.Model.isScene3DpaneEnabled())
+        {
+            _3DWrapper.append(_3D);
+        }
         _3DWrapper.append(_3DtopDown);
         
         $('body').append(_$texturePaneWrapper, _3DWrapper);
@@ -65,18 +72,25 @@
         _$texturePaneWrapper.append(texCanvasWrapper);
         
         _3DWrapper.addClass("_3DWrapper");
+        
+        if(MLJ.core.Model.isScene3DpaneEnabled())
+        {
+            _3D.css({
+                position: "relative",
+                width: "100%",
+                height: "50%"
+            });
 
-        _3D.css({
-            position: "relative",
-            width: "100%",
-            height: "50%"
-        });
-
-        _3DtopDown.css({
-            position: "relative",
-            width: "100%",
-            height: "50%"
-        });
+            _3DtopDown.css({
+                position: "relative",
+                width: "100%",
+                height: "50%"
+            });
+        }
+        else
+        {
+            _3DtopDown.addClass("_3DtopDown");
+        }
 
     };
     

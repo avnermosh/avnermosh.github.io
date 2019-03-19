@@ -316,7 +316,7 @@ MLJ.gui.Param.LayerSelection = function (flags) {
      */
     this.getSelectedLayer = function() {
         console.log('BEG getSelectedLayer'); 
-        return MLJ.core.Scene3D.getLayerByName(this.selector.getSelectedEntry());
+        return MLJ.core.Model.getLayerByName(this.selector.getSelectedEntry());
     };
 
     MLJ.gui.Param.call(this);

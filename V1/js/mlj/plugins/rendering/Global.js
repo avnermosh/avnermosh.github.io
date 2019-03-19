@@ -32,9 +32,9 @@
             defval: DEFAULTS.FieldOfView,
             bindTo: (function() {
                 var bindToFun = function (size, overlay) {
-                   scene.getCamera3D().fov=fovWidget.getValue();
-                   scene.getCamera3D().updateProjectionMatrix();
-                   MLJ.core.Scene3D.render();
+                    scene.getCamera3D().fov=fovWidget.getValue();
+                    scene.getCamera3D().updateProjectionMatrix();
+                    MLJ.core.Scene3DtopDown.render();
                 };
                 bindToFun.toString = function () { return 'FieldOfView'; }
                 return bindToFun;
@@ -89,7 +89,7 @@
             color: "#" + DEFAULTS.DefaultUpColor.getHexString(),
             bindTo: (function() {
                 var bindToFun = function (color) {
-                    $('#_3D').css('background', 'linear-gradient('+topColor.getColor()+','+bottomColor.getColor()+')');
+                    $('#_3DtopDown').css('background', 'linear-gradient('+topColor.getColor()+','+bottomColor.getColor()+')');
                 };
                 bindToFun.toString = function () { return 'DefaultUpColor'; }
                 return bindToFun;
@@ -101,7 +101,7 @@
             color:  "#" + DEFAULTS.DefaultDownColor.getHexString(),
             bindTo: (function() {
                 var bindToFun = function (color) {
-                    $('#_3D').css('background', 'linear-gradient('+topColor.getColor()+','+bottomColor.getColor()+')');
+                    $('#_3DtopDown').css('background', 'linear-gradient('+topColor.getColor()+','+bottomColor.getColor()+')');
                 };
                 bindToFun.toString = function () { return 'DefaultDownColor'; }
                 return bindToFun;

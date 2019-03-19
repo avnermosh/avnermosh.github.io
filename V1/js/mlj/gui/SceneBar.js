@@ -52,12 +52,19 @@
             });
             MLJ.gui.disabledOnSceneEmpty(saveMeshFileButton);
 
-            var edit3dModelOverlay = new component.ToggleButton({
+            var editOverlayRect = new component.ToggleButton({
                 tooltip: "Edit model overlay",
                 icon: "img/icons/IcoMoon-Free-master/PNG/48px/0146-wrench.png"
             });
-            MLJ.gui.disabledOnSceneEmpty(edit3dModelOverlay);
+            MLJ.gui.disabledOnSceneEmpty(editOverlayRect);
 
+            var imageInfo = new component.ToggleButton({
+                tooltip: "Image info",
+                icon: "img/icons/IcoMoon-Free-master/PNG/48px/0269-info.png"
+            });
+            MLJ.gui.disabledOnSceneEmpty(imageInfo);
+            
+            
             var editModeComboWidget = new component.ComboBox({
                 tooltip: "Sets the edit mode",
                 options: [
@@ -114,7 +121,8 @@
 
             _toolBar.add(openMeshFileButton,
                          saveMeshFileButton,
-                         edit3dModelOverlay,
+                         editOverlayRect,
+                         imageInfo,
                          editModeComboWidget,
                          _openImageFileButton,
                          addStickyNoteButton,
@@ -129,12 +137,12 @@
             });
 
             saveMeshFileButton.onClick(function () {
-                var layer = MLJ.core.Scene3D.getSelectedLayer();
+                var layer = MLJ.core.Model.getSelectedLayer();
                 MLJ.core.MeshFile.saveMeshFile(layer, "meshModel.zip");
             });
 
-            edit3dModelOverlay.onClick(function () {
-                if(edit3dModelOverlay.isOn())
+            editOverlayRect.onClick(function () {
+                if(editOverlayRect.isOn())
                 {
                     _openImageFileButton.disabled(false);
                 }
@@ -143,9 +151,14 @@
                     // disable _openImageFileButton
                     _openImageFileButton.disabled(true);
                 }
-                MLJ.core.Scene3D.setEdit3dModelOverlayFlag(edit3dModelOverlay.isOn());
+                let selectedLayer = MLJ.core.Model.getSelectedLayer();
+                selectedLayer.setEditOverlayRectFlag(editOverlayRect.isOn());
             });
 
+            imageInfo.onClick(function () {
+                onToggleImageInfo(imageInfo.isOn());
+            });
+            
             editModeComboWidget.onChange(function() {
                 // console.log('BEG editModeComboWidget.onChange');
 
@@ -157,7 +170,8 @@
 
                 if(val == 0 || val == 1 || val == 2)
                 {
-                    MLJ.core.Scene3D.setEditMode(content);
+                    var layer = MLJ.core.Model.getSelectedLayer();
+                    layer.setEditMode(content);
                 }
             })
 
@@ -168,13 +182,30 @@
             });
 
             addStickyNoteButton.onClick(function () {
-                var layer = MLJ.core.Scene3D.getSelectedLayer();
+                var layer = MLJ.core.Model.getSelectedLayer();
                 layer.addStickyNote();
             });
            
             resetTrackball3D.onClick(function() {
-                MLJ.core.Scene3D.resetTrackball3D();
+                if(MLJ.core.Model.isScene3DpaneEnabled())
+                {
+                    MLJ.core.Scene3D.resetTrackball3D();
+                }
             })
+
+            this.onToggleImageInfo = function (isOn) {
+                let texturePlugin = MLJ.core.plugin.Manager.getTexturePlugins().getFirst();
+                let texScene = texturePlugin.getTexScene();
+                let imageTextInfoObj = texScene.getObjectByName( "imageTextInfo", true );
+                if(isOn)
+                {
+                    imageTextInfoObj.element.style.display = '';
+                }
+                else
+                {
+                    imageTextInfoObj.element.style.display = 'none';
+                }
+            };
 
             this.onToggleMaximizeTexturePane = function () {
 
@@ -210,7 +241,8 @@
                 globalIndex1 += 1;
 
                 // Center the texture image image after toggling between single pane and multiple panes
-                if(MLJ.core.Scene3D.loadTheSelectedImageAndRender() == false)
+                let selectedLayer = MLJ.core.Model.getSelectedLayer();
+                if(selectedLayer.loadTheSelectedImageAndRender() == false)
                 {
                     throw('Failed to load and render the selected image.');
                 }
@@ -222,7 +254,8 @@
             })
             
             nextImage.onClick(function() {
-                MLJ.core.Scene3D.loadNextImage();
+                let selectedLayer = MLJ.core.Model.getSelectedLayer();
+                selectedLayer.loadNextImage();
             })
                         
             layersComboWidget.onChange(function() {
@@ -236,10 +269,10 @@
 
                 if(val == 0 || val == 1 || val == 2 || val == 3)
                 {
-                    MLJ.core.Scene3DtopDown.setSelectedFloorInfo(content);
+                    let selectedLayer = MLJ.core.Model.getSelectedLayer();
+                    selectedLayer.setSelectedFloorInfo(content);
                 }
             })
-            
         }
 
         /**

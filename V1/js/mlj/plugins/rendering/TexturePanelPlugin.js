@@ -9,7 +9,8 @@
 var animationDuration = 200;
 var globalIndex1 = 0;
 
-(function (plugin, core, scene) {
+(function (plugin, core)
+ {
     
     var texCamera;
     var texScene;
@@ -20,6 +21,7 @@ var globalIndex1 = 0;
     var planeMesh1;
     var bbox;
     var viewportExtendsOnX = false;
+    var currentViewportNormalized;
     
     var DEFAULTS = {
         uvParam: false,
@@ -75,8 +77,9 @@ var globalIndex1 = 0;
                 console.error( 'noteElement is not defined for noteElementId:', noteElementId );
                 continue;
             }
-            
-            let selectedImageFilename = MLJ.core.Scene3D.getSelectedImageFilename();
+
+            let selectedLayer = MLJ.core.Model.getSelectedLayer();
+            let selectedImageFilename = selectedLayer.getSelectedImageFilename();
             
             if(note.getImageFilename() === selectedImageFilename)
             {
@@ -101,7 +104,7 @@ var globalIndex1 = 0;
         
         // // RemoveME:
         // console.clear();
-
+        
         //if the array has been defined then there was at least a texture, for now, we are gonna show ONLY the first one
         layer.texturesNum = 0;
         if (layer.texture.length > 0) {
@@ -109,14 +112,13 @@ var globalIndex1 = 0;
         }
         
         $("#texCanvasWrapper").append(texRenderer1.domElement);
-        if(MLJ.core.Scene3D.isStickyNotesEnabled())
+        if(MLJ.core.Model.isStickyNotesEnabled())
         {
             $("#texCanvasWrapper").append(texLabelRenderer.domElement);
         }
 
         //Always remove everything from the scene when creating the meshes and adding them to the scene
         for (var i = texScene.children.length - 1; i >= 0; i--) {
-
             if(texScene.children[i].type == "Sprite")
             {
                 texScene.remove(texScene.children[i]);
@@ -137,27 +139,21 @@ var globalIndex1 = 0;
             // map2.needsUpdate = true;
             // console.log('map2a', map2);
 
-                    // let blobs = MLJ.core.Scene3D.getBlobs();
-                    let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
-                    let selectedThumbnailImageFilename = MLJ.core.Scene3D.getSelectedThumbnailImageFilename();
-//                     console.log('selectedThumbnailImageFilename', selectedThumbnailImageFilename); 
+                    let imageInfoVec = layer.getImageInfoVec();
+                    let selectedThumbnailImageFilename = layer.getSelectedThumbnailImageFilename();
 
-                    let selectedImageFilename = MLJ.core.Scene3D.getSelectedImageFilename();
-//                     console.log('selectedImageFilename', selectedImageFilename);
-                    
-                    // let imageInfo = imageInfoVec.getByKey(selectedThumbnailImageFilename);
-
-                    // let iter = imageInfoVec.iterator();
-                    // while (iter.hasNext()) {
-                    //     let imageInfo1 = iter.next();
-                    //     console.log('imageInfo1', imageInfo1); 
-                    // }
-                    
+                    let selectedImageFilename = layer.getSelectedImageFilename();
                     let imageInfo = imageInfoVec.getByKey(selectedImageFilename);
+                    if(!imageInfo.width) {
+                        imageInfo.width = map2.image.width;
+                        imageInfo.height = map2.image.height;
+                    }
+                    imageInfoVec.set(selectedImageFilename, imageInfo);
+                    layer.setImageInfoVec(imageInfoVec);
 
                     let image_w_h_ratio = 0;
 
-                    switch (Number(imageInfo.imageOrientation)) {
+                    switch (Number(imageInfo.orientation)) {
                         case -1:
                         case 1:
                             // landscape
@@ -199,7 +195,7 @@ var globalIndex1 = 0;
                     let scaleX = (texCamera.right - texCamera.left);
                     let scaleY = (texCamera.top - texCamera.bottom);
 
-                    switch (Number(imageInfo.imageOrientation)) {
+                    switch (Number(imageInfo.orientation)) {
                         case -1:
                         case 1:
                             // landscape
@@ -251,10 +247,29 @@ var globalIndex1 = 0;
 
             // console.log('planeMesh1.material.map.needsUpdate', planeMesh1.material.map.needsUpdate);
             // console.log('planeMesh1.material.map', planeMesh1.material.map);
+
+            ////////////////////////////////////////////////////////////////////
+            // Update imageTextInfo with the information of the selected image
+            ////////////////////////////////////////////////////////////////////
+            
+            let imageTextInfoId = "imageTextInfo";
+            let html = '<div id="editor1a">';
+            MLJ.util.addElement('texCanvasWrapper', 'div', imageTextInfoId, html, 'imageTextInfo');
+            let box1div = document.getElementById('imageTextInfo');
+            // box1div.className = 'imageTextInfo';
+            let imageTextInfo = new THREE.CSS2DObject( box1div );
+            imageTextInfo.position.set( 0, 0, 0 );
+            imageTextInfo.name = 'imageTextInfo';
+            planeMesh1.add( imageTextInfo );
+
+            let imageInfoVec = layer.getImageInfoVec();
+            let selectedImageFilename = layer.getSelectedImageFilename();
+            let imageInfo = imageInfoVec.getByKey(selectedImageFilename);
+            imageTextInfo.element.innerText = imageInfo.toString(imageInfo);
             
             //Add the mesh to the scene
             texScene.add(planeMesh1);
-            // console.log('texScene', texScene);
+
             texCamera.position.set( 0, 0, 80 );
 
             this.showStickyNotes(layer);
@@ -264,8 +279,7 @@ var globalIndex1 = 0;
             hideWidgets();
         }
 
-        //This will resize the windows properly and trigger the resizeCanvas function
-        $(window).trigger('resize');
+        resizeCanvas();
 
         //Always render, if nothing is shown, then no layer is selected
         render();
@@ -278,7 +292,7 @@ var globalIndex1 = 0;
         {
             event.preventDefault();
 
-            console.log('event.touches.length', event.touches.length); 
+//             console.log('event.touches.length', event.touches.length); 
             render();
         }
     }
@@ -325,7 +339,8 @@ var globalIndex1 = 0;
         }
 
         // Center the texture image image after toggling between single pane and multiple panes
-        if(MLJ.core.Scene3D.loadTheSelectedImageAndRender() == false)
+        let selectedLayer = MLJ.core.Model.getSelectedLayer();
+        if(selectedLayer.loadTheSelectedImageAndRender() == false)
         {
             throw('Failed to load and render the selected image.');
         }
@@ -430,7 +445,7 @@ var globalIndex1 = 0;
 
         setTexControls();
 
-        if(MLJ.core.Scene3D.isStickyNotesEnabled())
+        if(MLJ.core.Model.isStickyNotesEnabled())
         {
             texLabelRenderer = new THREE.CSS2DRenderer();
             texLabelRenderer.domElement.id = 'canvasTexLabel';
@@ -479,7 +494,7 @@ var globalIndex1 = 0;
         // console.log('texCamera', texCamera);
         
         texRenderer1.render(texScene, texCamera);
-        if(MLJ.core.Scene3D.isStickyNotesEnabled())
+        if(MLJ.core.Model.isStickyNotesEnabled())
         {
             texLabelRenderer.render(texScene, texCamera);
         }
@@ -505,147 +520,47 @@ var globalIndex1 = 0;
         };
     }
 
-    
-    function scaleAndCenterTheSelectedImage(imageInfo) {
-        // console.log('BEG scaleAndCenterTheSelectedImage');
+     function scaleAndCenterTheSelectedImage(orientation) {
+//          console.log('BEG scaleAndCenterTheSelectedImage'); 
 
-        // texCanvasWrapperSize - the size of the gui window
-        var texCanvasWrapperSize = getTexCanvasWrapperSize();
-        
-        //////////////////////////////////////////////////////////
-        // Set the aspect ratio of texCamera
-        // always set to imageAspectPortrait for portrait or 1/imageAspectPortrait for landscape
-        //////////////////////////////////////////////////////////
+         // texCanvasWrapperSize - the size of the gui window
+         let texCanvasWrapperSize = getTexCanvasWrapperSize();
 
-        if(planeMesh1)
-        {
-            let imageOrientation = Number(imageInfo.imageOrientation);
-            // console.log('imageOrientation', imageOrientation); 
-            let image_w_h_ratio = 0;
-            let scaleX = 1;
-            let scaleY = 1;
-            switch (imageOrientation) {
-                case -1:
-                case 1:
-                    {
-                        // landscape
-                        image_w_h_ratio = planeMesh1.material.map.image.width / planeMesh1.material.map.image.height;
+         let imageWidth = planeMesh1.material.map.image.width;
+         let imageHeight = planeMesh1.material.map.image.height;
 
-                        // Update the camera frustum to cover the entire image
-                        texCamera.left = -planeMesh1.material.map.image.width/2;
-                        texCamera.right = planeMesh1.material.map.image.width/2;
-                        texCamera.top = planeMesh1.material.map.image.height/2;
-                        texCamera.bottom = -planeMesh1.material.map.image.height/2;
+         let retVal = texControls.setCameraAndCanvas(texCanvasWrapperSize.width,
+                                                     texCanvasWrapperSize.height,
+                                                     imageWidth,
+                                                     imageHeight,                             
+                                                     orientation);
 
-                        scaleX = (texCamera.right - texCamera.left);
-                        scaleY = (texCamera.top - texCamera.bottom);
-                        planeMesh1.scale.set( scaleX, scaleY, 1 );
-                        break;
-                    }
-                case 6:
-                    {
-                        // portrait
-                        image_w_h_ratio = planeMesh1.material.map.image.height / planeMesh1.material.map.image.width;
+         planeMesh1.scale.set( retVal.scaleX, retVal.scaleY, 1 );
+         viewportExtendsOnX = retVal.viewportExtendsOnX;
 
-                        // Update the camera frustum to cover the entire image
-                        texCamera.left = -planeMesh1.material.map.image.height/2;
-                        texCamera.right = planeMesh1.material.map.image.height/2;
-                        texCamera.top = planeMesh1.material.map.image.width/2;
-                        texCamera.bottom = -planeMesh1.material.map.image.width/2;
+         texRenderer1.setSize(texCanvasWrapperSize.width, texCanvasWrapperSize.height);
 
-                        scaleX = (texCamera.right - texCamera.left);
-                        scaleY = (texCamera.top - texCamera.bottom);
-                        planeMesh1.scale.set( scaleY, scaleX, 1 );
-                        break;
-                    }
-                default:
-                    let msgStr = "imageOrientation is not supported: " + imageOrientation;
-                    console.log('msgStr', msgStr); 
-                    throw(msgStr);
-                    break;
-            }
+         if(MLJ.core.Model.isStickyNotesEnabled())
+         {
+             texLabelRenderer.setSize(retVal.canvasWidth, retVal.canvasHeight);
+         }
 
-            texCamera.aspect = image_w_h_ratio;
-            texCamera.updateProjectionMatrix();
-
-            //////////////////////////////////////////////////////////
-            // Set canvas width / height
-            // https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
-            // Set the width and height to be such that the entire pane is used for drawing
-            // and set the zoom factor such that the entire image is seen 
-            //////////////////////////////////////////////////////////
-
-            // w1, h1 - the size of the canvas that preserves the aspectRatio of the image. It exceeds the gui window, i.e. w1>=texCanvasWrapperSize.width, h1>=texCanvasWrapperSize.height
-            //          w1, h1 is also the size of the viewport.
-            let texCanvasWrapperRatio = texCanvasWrapperSize.width / texCanvasWrapperSize.height;
-            let w1 = 1;
-            let h1 = 1;
-
-            // x2, y2 - offset from the orgin of the gui window for the origin of the canvas and the viewport
-            let x2 = 0;
-            let y2 = 0;
-
-            if(texCanvasWrapperRatio > image_w_h_ratio)
-            {
-                // ok - when in this branch the image is symetric in x in respect to texCanvasWrapper
-
-                w1 = texCanvasWrapperSize.width;
-                h1 = w1 / image_w_h_ratio;
-
-                // h1 is bigger than texCanvasWrapperSize.height
-                let zoomFactor = texCanvasWrapperSize.height / h1;
-                texControls.minZoom = zoomFactor;
-                texControls.setZoom(zoomFactor);
-                x2 = 0;
-                y2 = (h1 - texCanvasWrapperSize.height) / 2;
-                viewportExtendsOnX = false;
-            }
-            else
-            {
-                h1 = texCanvasWrapperSize.height;
-                w1 = h1 * image_w_h_ratio;
-
-                // w1 is bigger than texCanvasWrapperSize.width
-                let zoomFactor = texCanvasWrapperSize.width / w1;
-                texControls.minZoom = zoomFactor;
-                texControls.setZoom(zoomFactor);
-
-                y2 = 0;
-                x2 = (w1 - texCanvasWrapperSize.width) / 2;
-                viewportExtendsOnX = true;
-            }
-
-            texRenderer1.setSize(texCanvasWrapperSize.width, texCanvasWrapperSize.height);
-
-            if(MLJ.core.Scene3D.isStickyNotesEnabled())
-            {
-                texLabelRenderer.setSize(w1, h1);
-            }
-
-            //////////////////////////////////////////////////////////
-            // Set viewport
-            // https://threejs.org/docs/#api/en/renderers/WebGLRenderer.setViewport
-            //////////////////////////////////////////////////////////
-
-            let currentViewport1 = texRenderer1.getCurrentViewport();
-
-            // proportions ok, fills window ok, offset - ok
-            texRenderer1.setViewport ( -x2, -y2, w1, h1 );
-        }
-        else
-        {
-            let a =3;
-        }
-
-    }
+         // Set viewport
+         texRenderer1.setViewport ( -retVal.canvasOffsetLeft, -retVal.canvasOffsetTop, retVal.canvasWidth, retVal.canvasHeight );
+         let currentViewport = texRenderer1.getCurrentViewport();
+         let pixelRatio = texRenderer1.getPixelRatio();
+         _currentViewportNormalized = new THREE.Vector4();
+         _currentViewportNormalized.copy(currentViewport)
+         _currentViewportNormalized.divideScalar(pixelRatio);
+     };
     
     function resizeCanvas() {
-        // console.log('BEG TexturePanelPlugin resizeCanvas');
-
+//         console.log('BEG TexturePanelPlugin resizeCanvas');
+        
         //////////////////////////////////////////////////////////
         // Set the height of texCanvasWrapper programatically.
         //////////////////////////////////////////////////////////
-        
+
         let texturePaneWrapper = document.getElementById('texture-pane-wrapper');
         let texCanvasWrapper = $('#texCanvasWrapper');
         if(texturePaneWrapper.classList.contains("texturePaneWrapper"))
@@ -655,11 +570,11 @@ var globalIndex1 = 0;
             // Set the height of texCanvasWrapper to occupy the parent (texturePaneWrapper) remaining height, after scenebar
             
             let scenbarJqueryObject = $('#mlj-scenebar-widget');
-            let scenbarHeight = scenbarJqueryObject.css("height");
-            // console.log('scenbarHeight', scenbarHeight); 
+            let sceneBarHeight = scenbarJqueryObject.css("height");
+            // console.log('sceneBarHeight', sceneBarHeight); 
 
             // e.g. texCanvasWrapper.css({height: "calc( 100% - 33.78px )"})
-            let calcCmd = "calc( 100% - " + scenbarHeight + ")";
+            let calcCmd = "calc( 100% - " + sceneBarHeight + ")";
             // console.log('calcCmd', calcCmd); 
             texCanvasWrapper.css({height: calcCmd});
         }
@@ -674,24 +589,16 @@ var globalIndex1 = 0;
         // Scale and senter the selected image
         //////////////////////////////////////////////////////////
 
-        let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
-        // let selectedThumbnailImageFilename = MLJ.core.Scene3D.getSelectedThumbnailImageFilename();
-        // let imageInfo = imageInfoVec.getByKey(selectedThumbnailImageFilename);
-
-        let selectedImageFilename = MLJ.core.Scene3D.getSelectedImageFilename();
-//         console.log('selectedImageFilename', selectedImageFilename);
+        let selectedLayer = MLJ.core.Model.getSelectedLayer();
+        let imageInfoVec = selectedLayer.getImageInfoVec();
+        let selectedImageFilename = selectedLayer.getSelectedImageFilename();
         let imageInfo = imageInfoVec.getByKey(selectedImageFilename);
         
-        if(imageInfo)
+        if(imageInfo && planeMesh1)
         {
-            scaleAndCenterTheSelectedImage(imageInfo);
+            scaleAndCenterTheSelectedImage(imageInfo.orientation);
         }
-        else
-        {
-            let a =3;
-        }
-        
-    }
+    };
 
 
     function hideWidgets() {
@@ -768,4 +675,4 @@ var globalIndex1 = 0;
         }
     });
 
-})(MLJ.core.plugin, MLJ.core, MLJ.core.Scene3D);
+})(MLJ.core.plugin, MLJ.core);

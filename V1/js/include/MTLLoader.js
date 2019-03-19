@@ -511,7 +511,6 @@ THREE.MTLLoader.MaterialCreator.prototype = {
 
         }
 
-	 // Update MLJ.core.Scene3D._imageInfoVec
          if( imageFilenameArray.length !== imageOrientationArray.length )
          {
              console.error( 'The number of image file names  and image orientations differ. ' +
@@ -520,8 +519,7 @@ THREE.MTLLoader.MaterialCreator.prototype = {
          }
          else
          {
-             let imageInfoVec = MLJ.core.Scene3D.getImageInfoVec();
-             
+	     // Update imageInfoVecGlobal
              params.userData.urlArray = new MLJ.util.AssociativeArray();
 
              for (let i=0; i<imageFilenameArray.length; i++) {
@@ -530,14 +528,13 @@ THREE.MTLLoader.MaterialCreator.prototype = {
                  
                  setMapForType( "map", imageFilename );
 
-                 let imageInfo = {imageFilename: imageFilename,
-                                  imageOrientation: imageOrientation};
+                 let imageInfo = new ImageInfo({filename: imageFilename,
+                                                orientation: imageOrientation});
 
                  params.userData.urlArray.set(imageFilename, imageInfo);
-                 imageInfoVec.set(imageFilename, imageInfo);
+                 let imageInfoVecGlobal = MLJ.core.MeshFile.getImageInfoVecGlobal();
+                 imageInfoVecGlobal.set(imageFilename, imageInfo);
              }             
-
-             MLJ.core.Scene3D.setImageInfoVec(imageInfoVec);
          }
 
 
