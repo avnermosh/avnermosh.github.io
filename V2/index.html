@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <!-- <meta name="description" content="MeshLabJS: the javascript mesh processing tool. Built using vcg library, emscripten and webgl. Developed by the Visual Computing Lab of ISTI - CNR and by the students of the FGT course.">
+             <title>MeshLabJS 16.04</title>
+             <link rel="icon" href="img/favicon.png" type="image/x-icon"/>             
+           -->
+
+
+        <link rel="stylesheet" href="js/include/jquery-ui-1.12.1/jquery-ui.min.css">
+        <link rel="stylesheet" href="js/include/jquery-ui-1.12.1/jquery-ui.structure.min.css">
+        <link rel="stylesheet" href="js/include/jquery-ui-1.12.1/jquery-ui.theme.min.css">
+        
+        
+        <link rel="stylesheet" href="css/style.css">
+        <!--https://github.com/dobarkod/cookie-banner -->            
+        <script src="js/include/jquery-ui-1.12.1/external/jquery/jquery.js"></script>        
+        <script src="js/include/jquery-ui-1.12.1/jquery-ui.js"></script>
+        <script src="js/include/colpick/js/colpick.js"></script>
+        <link rel="stylesheet" href="js/include/colpick/css/colpick.css">
+
+        <!-- <script src="js/include/three.min.js"></script> -->
+        <script src="js/include/three.js"></script>
+        <script src="js/include/stats.js"></script>        
+        <script src="js/include/EditOverlayRect_Scene3DtopDown_TrackballControls.js"></script>
+        <script src="js/include/OrbitControls3Dpane.js"></script>
+        
+        <script src="js/include/MTLLoader.js"></script>
+        <script src="js/include/OBJLoader.js"></script>
+        <script src="js/include/ZipLoader.js"></script>
+        <script src="js/include/jszip.js"></script>
+        <script src="js/include/jszip-utils.js"></script>
+        <script src="js/include/FileSaver/FileSaver.js"></script>
+        <script src="js/include/Projector.js"></script>
+	<!-- <script src="js/include/OBJExporter.js"></script> -->
+	<script src="js/include/OBJExporterWithMtl.js"></script>
+
+        <script src="js/include/Dropbox-sdk.js"></script>
+        <script src="js/include/quilljs/1.3.6/quill.js"></script>
+        <link rel="stylesheet" href="js/include/quilljs/1.3.6/quill.snow.css">
+        
+	<script src="js/include/CSS2DRenderer.js"></script>
+        
+        <script src="js/mlj/MLJ.js"></script>
+        
+        <script src="js/mlj/util/Util.js"></script>
+        <script src="js/mlj/util/ImageInfo.js"></script>
+        <script src="js/mlj/util/FloorInfo.js"></script>
+        <script src="js/mlj/util/IntersectionInfo.js"></script>
+        
+        <script src="js/mlj/core/GoogleAuth.js"></script>
+        <script src="js/mlj/core/GoogleUploadBlobToDrive.js"></script>
+        <script src="js/mlj/core/Core.js"></script>
+        <script src="js/mlj/core/Model.js"></script>
+        <script src="js/mlj/core/Layer.js"></script>
+        <script src="js/mlj/core/Scene3DtopDown.js"></script>
+        <script src="js/mlj/core/MeshFile.js"></script>
+        <script src="js/mlj/core/ImageFile.js"></script>
+        <script src="js/mlj/core/DropboxUtils.js"></script>
+        
+        <script src="js/mlj/gui/Gui.js"></script>
+        <script src="js/mlj/gui/Param.js"></script>
+        <script src="js/mlj/gui/Component.js"></script>
+        <script src="js/mlj/gui/Widget.js"></script>
+        <script src="js/mlj/gui/SceneBar.js"></script>
+        <script src="js/mlj/core/plugin/Plugin.js"></script>
+
+        <script src="js/mlj/core/plugin/Manager.js"></script>
+        <script src="js/mlj/core/plugin/Texturing.js"></script>
+        
+        <script src="js/mlj/plugins/rendering/TexturePanelPlugin.js"></script>
+        <script src="js/mlj/plugins/rendering/Note.js"></script>
+        
+        <script src="js/MeshLabJS.js"></script>
+
+        <script async defer src="https://apis.google.com/js/api.js" 
+                onload="this.onload=function(){};handleClientLoad()" 
+                onreadystatechange="if (this.readyState === 'complete') this.onload()">
+        </script>
+        
+                
+    </head>
+    <body >        
+        <script>
+         MLJ.core.plugin.Manager.run();
+         MLJ.gui.makeGUI("MeshLabJS");
+        </script>
+    </body>
+</html>
